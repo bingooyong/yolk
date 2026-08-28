@@ -26,16 +26,16 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
     const pz = player?.z ?? 6;
 
     if (phase === "title") {
-      const side = portrait ? 2.6 : 3.6;
-      const back = portrait ? 4.4 : 5.2;
-      const up = portrait ? 1.85 : 2.15;
-      desired.current.set(px + side + Math.sin(t * 0.35) * 0.35, py + up, pz + back);
-      lookAt.current.set(px, py + 0.55, pz);
+      const side = portrait ? 1.35 : 1.85;
+      const back = portrait ? 4.0 : 4.6;
+      const up = portrait ? 1.55 : 1.75;
+      desired.current.set(px + side + Math.sin(t * 0.35) * 0.2, py + up, pz + back);
+      lookAt.current.set(px, py + 0.52, pz);
     } else {
-      const dist = portrait ? CAM_DIST + 1.4 : CAM_DIST;
-      const height = portrait ? CAM_HEIGHT + 0.55 : CAM_HEIGHT;
-      desired.current.set(px * 0.45, py + height, pz + dist);
-      lookAt.current.set(px * 0.28, py + 0.75, pz - CAM_LOOKAHEAD);
+      const dist = portrait ? CAM_DIST + 1.1 : CAM_DIST;
+      const height = portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT;
+      desired.current.set(px * 0.35, py + height, pz + dist);
+      lookAt.current.set(px * 0.22, py + 0.55, pz - CAM_LOOKAHEAD);
     }
 
     const k = phase === "title" ? 1.8 : 3.2;
@@ -53,8 +53,8 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
 
     const persp = camera as THREE.PerspectiveCamera;
     if (persp.isPerspectiveCamera) {
-      const base = portrait ? 56 : 48;
-      const target = phase === "title" ? base : base + (sim.playerDashing ? 2 : 0);
+      const base = portrait ? 54 : 46;
+      const target = phase === "title" ? base - 4 : base + (sim.playerDashing ? 2 : 0);
       persp.fov += (target - persp.fov) * (1 - Math.exp(-5 * dt));
       persp.updateProjectionMatrix();
     }
@@ -73,7 +73,7 @@ export function FollowLight({ quality }: { quality: Quality }) {
   useFrame(() => {
     const p = sim.racers.find((r) => r.isPlayer);
     if (!p || !ref.current) return;
-    ref.current.position.set(p.x + 18, p.y + 28, p.z + 12);
+    ref.current.position.set(p.x + 10, p.y + 16, p.z + 8);
     ref.current.target.position.set(p.x, p.y, p.z);
     ref.current.target.updateMatrixWorld();
   });
@@ -81,7 +81,7 @@ export function FollowLight({ quality }: { quality: Quality }) {
     <directionalLight
       ref={ref}
       castShadow={size > 0}
-      intensity={1.35}
+      intensity={1.55}
       shadow-mapSize={[size || 256, size || 256]}
       shadow-camera-near={2}
       shadow-camera-far={80}

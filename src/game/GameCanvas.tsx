@@ -1,6 +1,7 @@
 import { Suspense, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
+import * as THREE from "three";
 import { qualityToDpr, useDevice } from "@/engine/device";
 import { CameraRig, FollowLight } from "./CameraRig";
 import { RacerField } from "./EggRacer";
@@ -35,6 +36,16 @@ function HudPump() {
   return null;
 }
 
+function Tone() {
+  const { gl } = useThree();
+  useEffect(() => {
+    gl.toneMapping = THREE.ACESFilmicToneMapping;
+    gl.toneMappingExposure = 1.18;
+    gl.outputColorSpace = THREE.SRGBColorSpace;
+  }, [gl]);
+  return null;
+}
+
 function Scene() {
   const paused = useGameStore((s) => s.phase === "paused");
   return (
@@ -56,7 +67,6 @@ export default function GameCanvas() {
       () => sim.playerYaw,
       () => sim.playerSpeed,
     );
-
   }, []);
 
   return (
@@ -64,7 +74,7 @@ export default function GameCanvas() {
       className="absolute inset-0"
       shadows={shadows}
       dpr={dpr}
-      camera={{ position: [0, 8, 16], fov: device.portrait ? 58 : 50, near: 0.1, far: 260 }}
+      camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.1, far: 260 }}
       gl={{
         antialias: device.quality !== "low",
         powerPreference: "high-performance",
@@ -73,15 +83,18 @@ export default function GameCanvas() {
         depth: true,
       }}
       onCreated={({ gl }) => {
-        gl.setClearColor("#7ec8e3");
+        gl.setClearColor("#8FD4F8");
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.18;
       }}
     >
-      <color attach="background" args={["#7ec8e3"]} />
-      <fog attach="fog" args={["#8fd4f0", 48, 170]} />
-      <ambientLight intensity={0.42} />
-      <hemisphereLight args={["#fff1d6", "#4a7aaa", 0.72]} />
+      <color attach="background" args={["#8FD4F8"]} />
+      <fog attach="fog" args={["#A8DCFA", 36, 150]} />
+      <ambientLight intensity={0.62} />
+      <hemisphereLight args={["#FFF1DC", "#2A5AAA", 0.95]} />
       <FollowLight quality={device.quality} />
       <CameraRig portrait={device.portrait} />
+      <Tone />
       <HudPump />
       <Suspense fallback={null}>
         <Scene />

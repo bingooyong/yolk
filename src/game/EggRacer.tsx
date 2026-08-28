@@ -485,7 +485,7 @@ export function EggRacer({
     >
       <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
       <group ref={visual}>
-        <EggMesh color={color} accessory={accessory} skinId={skinId} squash={1} />
+        <EggMesh color={color} accessory={accessory} skinId={skinId} squash={1} isPlayer={isPlayer} />
       </group>
     </RigidBody>
   );

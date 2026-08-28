@@ -24,9 +24,9 @@ export const START_Z = 6;
 export const EGG_RADIUS = 0.5;
 export const EGG_HALF = 0.1;
 export const EGG_BUMP = 1.05;
-export const CAM_DIST = 7.6;
-export const CAM_HEIGHT = 3.9;
-export const CAM_LOOKAHEAD = 3.2;
+export const CAM_DIST = 5.1;
+export const CAM_HEIGHT = 2.15;
+export const CAM_LOOKAHEAD = 4.6;
 
 export type EggColor = {
   id: string;

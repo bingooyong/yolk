@@ -75,30 +75,23 @@ function plat(
 }
 
 export const PLATFORMS: Platform[] = [
-  plat("start", 0, 8, 20, 22, 0, "#E8C99A", "checkpoint"),
-  plat("path", 0, -10, 13, 14, 0, "#7ED9B8"),
-  plat("hammers", 0, -28, 11.5, 18, 0, "#7ED9B8"),
-  plat("land1", 0, -42, 10, 8, 0, "#F0A07A"),
-  plat("link1", 0, -48, 8, 5, 0, "#F0A07A"),
-  { ...plat("b1", -2.2, -52, 4.2, 4.2, 0, "#F3D984", "bounce") },
-  plat("link2", 0, -56.5, 5.5, 5, 0, "#F3D984"),
-  { ...plat("b2", 2.4, -61, 4.2, 4.2, 0.4, "#F3D984", "bounce") },
-  plat("link3", 0, -65.5, 5.5, 5, 0, "#F3D984"),
-  { ...plat("b3", -1.4, -70, 4.2, 4.2, 0, "#F3D984", "bounce") },
-  plat("link4", 0, -76, 7, 5, 0, "#F0A07A"),
-  plat("plaza2", 0, -82, 12, 10, 0, "#F0A07A", "checkpoint"),
-  plat("step", 0, -90, 6.2, 6, 0, "#5BAFE0"),
-  plat("mid1", 0, -103, 5.2, 5, 0.2, "#5BAFE0"),
-  plat("mid2", 0, -113, 5.2, 5, 0.2, "#5BAFE0"),
-  plat("bridge", 0, -123, 6.5, 6, 0, "#5BAFE0"),
-  plat("spin", 0, -132, 8.6, 16, 0, "#6EC4E8"),
-  plat("beam", 0, -150, 4.8, 16, 0.15, "#E08AA4"),
-  plat("beam-end", 0, -162, 8, 6, 0, "#E08AA4"),
+  plat("start", 0, 8, 20, 22, 0, "#2B6BEE", "checkpoint", 0.7),
+  plat("path", 0, -10, 14, 14, 0, "#2B6BEE", "static", 0.7),
+  plat("hammers", 0, -28, 12.5, 18, 0, "#245FE0", "static", 0.7),
+  plat("land1", 0, -42, 12, 8, 0, "#2B6BEE", "static", 0.7),
+  plat("plaza2", 0, -82, 13, 10, 0, "#2B6BEE", "checkpoint", 0.7),
+  plat("step", 0, -90, 7.2, 6, 0, "#3A7AFF"),
+  plat("mid1", 0, -103, 5.4, 5, 0.2, "#3A7AFF"),
+  plat("mid2", 0, -113, 5.4, 5, 0.2, "#3A7AFF"),
+  plat("bridge", 0, -123, 6.8, 6, 0, "#3A7AFF"),
+  plat("spin", 0, -132, 9.2, 16, 0, "#2B6BEE"),
+  plat("beam", 0, -150, 5.2, 16, 0.15, "#5B8CFF"),
+  plat("beam-end", 0, -162, 8.4, 6, 0, "#2B6BEE"),
   {
-    ...plat("conv", 0, -172, 10, 10, 0.6, "#7ED9B8", "conveyor"),
+    ...plat("conv", 0, -172, 10, 10, 0.6, "#2DB8A1", "conveyor"),
     conveyor: [0, 0, -3.2],
   },
-  plat("final", 0, -184, 14, 12, 0, "#F3D984", "finish"),
+  plat("final", 0, -184, 16, 14, 0, "#2B6BEE", "finish", 0.7),
 ];
 
 export const MOVERS: Mover[] = [
@@ -160,6 +153,32 @@ export const CHECKPOINTS: { z: number; pos: [number, number, number] }[] = [
   { z: -162, pos: [0, 0.7, -160] },
 ];
 
+export type TrapTileDef = {
+  id: string;
+  pos: [number, number, number];
+  size: [number, number, number];
+  drops: boolean;
+  delay: number;
+};
+
+const TRAP_COLS = [-4.4, -2.2, 0, 2.2, 4.4];
+const TRAP_ROWS = [-47, -50.2, -53.4, -56.6, -59.8, -63, -66.2, -69.4, -72.6];
+
+export const TRAP_TILES: TrapTileDef[] = TRAP_ROWS.flatMap((z, ri) =>
+  TRAP_COLS.map((x, ci) => {
+    const edge = ri === 0 || ri === TRAP_ROWS.length - 1;
+    const path = ci === 2 || (ri % 3 === 1 && ci === 1) || (ri % 3 === 2 && ci === 3);
+    const drops = !edge && !path;
+    return {
+      id: `trap-${ri}-${ci}`,
+      pos: [x, -0.22, z] as [number, number, number],
+      size: [2.05, 0.44, 2.05] as [number, number, number],
+      drops,
+      delay: 0.38 + ((ri + ci) % 3) * 0.08,
+    };
+  }),
+);
+
 export type Pickup = {
   id: string;
   kind: "coin" | "shield" | "jelly";
@@ -167,11 +186,13 @@ export type Pickup = {
 };
 
 export const PICKUPS: Pickup[] = [
+  { id: "box0", kind: "shield", pos: [-4.6, 1.02, -3.2] },
   { id: "c1", kind: "coin", pos: [-1.6, 1.1, -8] },
   { id: "c2", kind: "coin", pos: [1.6, 1.1, -8] },
   { id: "c3", kind: "coin", pos: [0, 1.2, -18] },
   { id: "s1", kind: "shield", pos: [3.6, 1.15, -28] },
   { id: "c4", kind: "coin", pos: [-3.2, 1.2, -36] },
+  { id: "box1", kind: "jelly", pos: [-3.8, 1.05, -44] },
   { id: "c5", kind: "coin", pos: [0, 1.4, -52] },
   { id: "j1", kind: "jelly", pos: [0, 1.3, -82] },
   { id: "c6", kind: "coin", pos: [0, 1.3, -90] },
@@ -200,6 +221,12 @@ function walkables(): { x: number; y: number; z: number; d: number }[] {
       y: p.pos[1] + p.size[1] / 2,
       z: p.pos[2],
       d: p.size[2],
+    })),
+    ...TRAP_TILES.filter((t) => !t.drops).map((t) => ({
+      x: t.pos[0],
+      y: t.pos[1] + t.size[1] / 2,
+      z: t.pos[2],
+      d: t.size[2],
     })),
     ...MOVERS.map((m) => ({
       x: (m.from[0] + m.to[0]) / 2,

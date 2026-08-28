@@ -10,8 +10,10 @@ import {
   PLATFORMS,
   RINGS,
   SPINNERS,
+  TRAP_TILES,
   moverVel,
 } from "./course";
+import { crateTex, gridTex, skyTex, stripeTex } from "./look";
 import { sim } from "./sim";
 
 function checkerTexture() {
@@ -21,7 +23,7 @@ function checkerTexture() {
   const g = c.getContext("2d")!;
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
-      g.fillStyle = (x + y) % 2 === 0 ? "#17141C" : "#FFF6EB";
+      g.fillStyle = (x + y) % 2 === 0 ? "#1A3A9A" : "#F4F7FF";
       g.fillRect(x, y, 1, 1);
     }
   }
@@ -35,10 +37,35 @@ function checkerTexture() {
   return t;
 }
 
+function Pad({
+  size,
+  color,
+}: {
+  size: [number, number, number];
+  color: string;
+}) {
+  const side = useMemo(() => new THREE.Color(color).multiplyScalar(0.72).getStyle(), [color]);
+  return (
+    <group>
+      <mesh receiveShadow castShadow>
+        <boxGeometry args={size} />
+        <meshLambertMaterial color={side} />
+      </mesh>
+      <mesh position={[0, size[1] / 2 + 0.015, 0]} receiveShadow>
+        <boxGeometry args={[size[0] - 0.06, 0.05, size[2] - 0.06]} />
+        <meshLambertMaterial color={color} />
+      </mesh>
+    </group>
+  );
+}
+
 export function Track() {
   const checker = useMemo(() => checkerTexture(), []);
+  const floor = useMemo(() => gridTex(), []);
   return (
     <>
+      <SkyDome />
+      <NeonRails />
       {PLATFORMS.map((p) => (
         <RigidBody
           key={p.id}
@@ -48,22 +75,26 @@ export function Track() {
           userData={{ kind: p.kind === "static" ? "platform" : p.kind }}
         >
           <CuboidCollider args={[p.size[0] / 2, p.size[1] / 2, p.size[2] / 2]} />
-          <mesh receiveShadow castShadow>
-            <boxGeometry args={p.size} />
-            <meshLambertMaterial color={p.color} />
-          </mesh>
+          <Pad size={p.size} color={p.color} />
         </RigidBody>
       ))}
 
-      <mesh position={[0, 0.02, 14]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[12, 4]} />
+      <mesh position={[0, 0.04, 8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[18, 18]} />
+        <meshLambertMaterial map={floor} />
+      </mesh>
+      <mesh position={[0, 0.03, 14]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[10, 4]} />
         <meshLambertMaterial map={checker} />
       </mesh>
-      <mesh position={[0, 0.02, -184]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[0, 0.03, -184]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[10, 4]} />
         <meshLambertMaterial map={checker} />
       </mesh>
 
+      {TRAP_TILES.map((t) => (
+        <TrapTile key={t.id} {...t} />
+      ))}
       {MOVERS.map((m) => (
         <MovingPad key={m.id} {...m} />
       ))}
@@ -87,6 +118,76 @@ export function Track() {
       <Decor />
       <CloudFloor />
     </>
+  );
+}
+
+function TrapTile(t: (typeof TRAP_TILES)[number]) {
+  const ref = useRef<RapierRigidBody>(null);
+  const armed = useRef(0);
+  const dropped = useRef(false);
+  const tex = useMemo(() => stripeTex(), []);
+  useFrame((_, delta) => {
+    const rb = ref.current;
+    if (!rb || dropped.current) return;
+    const p = sim.racers.find((r) => r.isPlayer);
+    if (t.drops && p && Math.abs(p.x - t.pos[0]) < 1.05 && Math.abs(p.z - t.pos[2]) < 1.05 && p.y < 1.6) {
+      armed.current += delta;
+    }
+    if (armed.current > t.delay) {
+      dropped.current = true;
+    }
+    if (dropped.current) {
+      const cur = rb.translation();
+      rb.setNextKinematicTranslation({ x: cur.x, y: cur.y - 16 * delta, z: cur.z });
+    }
+  });
+  return (
+    <RigidBody
+      ref={ref}
+      type="kinematicPosition"
+      colliders={false}
+      position={t.pos}
+      userData={{ kind: "platform" }}
+    >
+      <CuboidCollider args={[t.size[0] / 2, t.size[1] / 2, t.size[2] / 2]} />
+      <mesh receiveShadow castShadow>
+        <boxGeometry args={t.size} />
+        <meshLambertMaterial map={tex} />
+      </mesh>
+    </RigidBody>
+  );
+}
+
+function NeonRails() {
+  return (
+    <group>
+      {([-10.2, 10.2] as const).map((x) => (
+        <group key={x}>
+          <mesh position={[x, 1.15, -86]} castShadow>
+            <boxGeometry args={[0.55, 2.5, 210]} />
+            <meshLambertMaterial color="#163A9A" />
+          </mesh>
+          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 1.85, -86]}>
+            <boxGeometry args={[0.1, 0.16, 210]} />
+            <meshBasicMaterial color="#7CF0FF" />
+          </mesh>
+          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 0.55, -86]}>
+            <boxGeometry args={[0.08, 0.1, 210]} />
+            <meshBasicMaterial color="#FF8AD4" />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+function SkyDome() {
+  const tex = useMemo(() => skyTex(), []);
+  return (
+    <mesh scale={[-1, 1, 1]}>
+      <sphereGeometry args={[160, 24, 16]} />
+      <meshBasicMaterial map={tex} side={THREE.BackSide} fog={false} />
+    </mesh>
   );
 }
 
@@ -236,29 +337,32 @@ function PickupMesh({
   pos: [number, number, number];
 }) {
   const ref = useRef<THREE.Group>(null);
+  const crate = useMemo(() => crateTex(), []);
   useFrame(({ clock }) => {
     const g = ref.current;
     if (!g) return;
     const gone = sim.taken.has(id);
     g.visible = !gone;
     if (gone) return;
-    g.position.y = pos[1] + Math.sin(clock.elapsedTime * 3 + pos[2]) * 0.12;
-    g.rotation.y = clock.elapsedTime * 2.2;
+    g.position.y = pos[1] + Math.sin(clock.elapsedTime * 3 + pos[2]) * 0.1;
+    g.rotation.y = clock.elapsedTime * 1.4;
   });
-  const color = kind === "coin" ? "#E8C85A" : kind === "shield" ? "#5BAFE0" : "#E08AA4";
+  if (kind === "coin") {
+    return (
+      <group ref={ref} position={pos}>
+        <mesh>
+          <cylinderGeometry args={[0.3, 0.3, 0.08, 20]} />
+          <meshLambertMaterial color="#E8C85A" emissive="#E8C85A" emissiveIntensity={0.35} />
+        </mesh>
+      </group>
+    );
+  }
   return (
     <group ref={ref} position={pos}>
-      {kind === "coin" ? (
-        <mesh>
-          <cylinderGeometry args={[0.28, 0.28, 0.08, 16]} />
-          <meshLambertMaterial color={color} emissive={color} emissiveIntensity={0.2} />
-        </mesh>
-      ) : (
-        <mesh>
-          <icosahedronGeometry args={[0.28, 0]} />
-          <meshLambertMaterial color={color} emissive={color} emissiveIntensity={0.18} />
-        </mesh>
-      )}
+      <mesh castShadow>
+        <boxGeometry args={[0.72, 0.72, 0.72]} />
+        <meshLambertMaterial map={crate} />
+      </mesh>
     </group>
   );
 }
@@ -278,38 +382,45 @@ function BoostRing({ pos }: { pos: [number, number, number] }) {
 
 function FinishArch() {
   return (
-    <group position={[0, 0, -186]}>
-      <mesh position={[-5.2, 2.2, 0]} castShadow>
-        <boxGeometry args={[0.7, 4.4, 0.7]} />
-        <meshLambertMaterial color="#FFF6EB" />
+    <group position={[0, 0, -188]}>
+      <mesh position={[0, 6.2, -4]}>
+        <boxGeometry args={[18, 12, 0.6]} />
+        <meshLambertMaterial color="#142A88" />
       </mesh>
-      <mesh position={[5.2, 2.2, 0]} castShadow>
-        <boxGeometry args={[0.7, 4.4, 0.7]} />
-        <meshLambertMaterial color="#FFF6EB" />
+      {[-6, -2, 2, 6].map((x, i) =>
+        [2, 5, 8].map((y) => (
+          <mesh key={`${x}-${y}`} position={[x + (i % 2) * 0.4, y, -3.6]} rotation={[0, 0, Math.PI / 4]}>
+            <boxGeometry args={[1.6, 1.6, 0.2]} />
+            <meshBasicMaterial color={((x + y) / 2) % 2 === 0 ? "#5CF0FF" : "#C9A6FF"} />
+          </mesh>
+        )),
+      )}
+      <mesh position={[-7.2, 3.2, 0]} castShadow>
+        <boxGeometry args={[0.8, 6.4, 0.8]} />
+        <meshLambertMaterial color="#F4F7FF" />
       </mesh>
-      <mesh position={[0, 4.4, 0]} castShadow>
-        <boxGeometry args={[11.2, 0.7, 0.7]} />
-        <meshLambertMaterial color="#E8614A" />
+      <mesh position={[7.2, 3.2, 0]} castShadow>
+        <boxGeometry args={[0.8, 6.4, 0.8]} />
+        <meshLambertMaterial color="#F4F7FF" />
+      </mesh>
+      <mesh position={[0, 6.4, 0]}>
+        <boxGeometry args={[15.2, 0.7, 0.8]} />
+        <meshLambertMaterial color="#FF6B8A" />
       </mesh>
     </group>
   );
 }
 
 function CandyTree({ position }: { position: [number, number, number] }) {
-  const hue = useMemo(() => ["#E08AA4", "#2DB8A1", "#5BAFE0", "#F0A07A", "#E8C85A"][Math.abs(Math.round(position[0] + position[2])) % 5], [position]);
   return (
     <group position={position}>
-      <mesh position={[0, 0.7, 0]} castShadow>
-        <cylinderGeometry args={[0.12, 0.16, 1.4, 8]} />
-        <meshLambertMaterial color="#C4A574" />
-      </mesh>
       <mesh position={[0, 1.6, 0]} castShadow>
-        <sphereGeometry args={[0.7, 14, 12]} />
-        <meshLambertMaterial color={hue} />
+        <cylinderGeometry args={[0.28, 0.4, 3.2, 8]} />
+        <meshLambertMaterial color="#1A3A9A" />
       </mesh>
-      <mesh position={[0.4, 1.85, 0.1]} castShadow>
-        <sphereGeometry args={[0.42, 12, 10]} />
-        <meshLambertMaterial color={hue} />
+      <mesh position={[0, 3.3, 0]}>
+        <boxGeometry args={[0.12, 0.12, 1.4]} />
+        <meshBasicMaterial color="#7CF0FF" />
       </mesh>
     </group>
   );
@@ -346,9 +457,9 @@ function Decor() {
 
 function CloudFloor() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -11, -90]}>
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -12, -90]}>
       <planeGeometry args={[90, 280]} />
-      <meshLambertMaterial color="#c5eefc" transparent opacity={0.5} />
+      <meshLambertMaterial color="#6BB8F0" transparent opacity={0.35} />
     </mesh>
   );
 }
