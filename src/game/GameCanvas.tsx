@@ -56,6 +56,7 @@ export default function GameCanvas() {
       () => sim.playerYaw,
       () => sim.playerSpeed,
     );
+
   }, []);
 
   return (
