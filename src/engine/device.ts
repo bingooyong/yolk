@@ -24,7 +24,6 @@ function read(): DeviceProfile {
       coarse: false,
     };
   }
-
   const ua = navigator.userAgent;
   const iPhone = /iPhone/.test(ua);
   const iPad =
@@ -36,7 +35,6 @@ function read(): DeviceProfile {
     coarse || ios || navigator.maxTouchPoints > 1 || window.innerWidth < 1100;
   const cores = navigator.hardwareConcurrency || 4;
   const mem = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-
   let quality: Quality = "high";
   if (iPhone) quality = cores <= 4 ? "low" : "medium";
   else if (iPad) quality = cores <= 4 ? "medium" : "high";
@@ -44,7 +42,6 @@ function read(): DeviceProfile {
   if (mem !== undefined && mem <= 4) {
     quality = quality === "high" ? "medium" : "low";
   }
-
   return {
     iPhone,
     iPad,

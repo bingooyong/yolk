@@ -57,56 +57,44 @@ function beep(freq: number, dur: number, type: OscillatorType, gain = 0.12, slid
 export function sfxJump() {
   beep(420, 0.12, "square", 0.08, 280);
 }
-
 export function sfxDash() {
   beep(180, 0.16, "sawtooth", 0.07, 420);
 }
-
 export function sfxLand() {
   beep(90, 0.08, "triangle", 0.1, -30);
 }
-
 export function sfxBounce() {
   beep(520, 0.14, "square", 0.08, 200);
 }
-
 export function sfxHit() {
   beep(110, 0.18, "sawtooth", 0.1, -70);
 }
-
 export function sfxCountdown(n: number) {
   beep(n <= 0 ? 660 : 320 + n * 40, n <= 0 ? 0.28 : 0.12, "square", 0.1, n <= 0 ? 200 : 0);
 }
-
 export function sfxFinish() {
   beep(392, 0.12, "triangle", 0.1, 0);
   setTimeout(() => beep(494, 0.12, "triangle", 0.1, 0), 90);
   setTimeout(() => beep(587, 0.22, "triangle", 0.12, 80), 180);
 }
-
 export function sfxCoin() {
   beep(880, 0.08, "square", 0.07, 120);
 }
-
 export function sfxPull() {
   beep(392, 0.1, "triangle", 0.09, 80);
   setTimeout(() => beep(523, 0.14, "triangle", 0.1, 140), 90);
 }
-
 export function sfxBoxDrop() {
   beep(220, 0.08, "square", 0.07, -80);
   setTimeout(() => beep(180, 0.1, "triangle", 0.08, -40), 70);
 }
-
 export function sfxBoxShake() {
   beep(90, 0.05, "sawtooth", 0.05, 30);
 }
-
 export function sfxBoxOpen() {
   beep(160, 0.12, "sawtooth", 0.09, 280);
   setTimeout(() => beep(620, 0.16, "triangle", 0.1, 180), 80);
 }
-
 export function sfxReveal(rarity: "common" | "rare" | "epic" | "legendary") {
   const seq =
     rarity === "legendary"
@@ -120,7 +108,6 @@ export function sfxReveal(rarity: "common" | "rare" | "epic" | "legendary") {
     setTimeout(() => beep(f, 0.16 + i * 0.02, "triangle", 0.09, 40), i * 110);
   });
 }
-
 export function sfxClick() {
   beep(640, 0.05, "square", 0.05, 0);
 }

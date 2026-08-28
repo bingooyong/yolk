@@ -47,11 +47,9 @@ export const sim: SimWorld = {
 export function addTrauma(amount: number) {
   sim.trauma = Math.min(0.22, sim.trauma + amount);
 }
-
 export function decayTrauma(dt: number) {
   sim.trauma = Math.max(0, sim.trauma - dt * 2.4);
 }
-
 export function ensureRacer(id: string, init: Omit<RacerSim, "id">) {
   let r = sim.racers.find((x) => x.id === id);
   if (!r) {
@@ -60,7 +58,6 @@ export function ensureRacer(id: string, init: Omit<RacerSim, "id">) {
   }
   return r;
 }
-
 export function resetSimRacers() {
   for (const r of sim.racers) {
     r.finished = false;
@@ -76,11 +73,9 @@ export function resetSimRacers() {
   sim.coinsRun = 0;
   sim.taken = new Set();
 }
-
 export function playerColorHex(id: string) {
   return EGG_COLORS.find((c) => c.id === id)?.hex ?? EGG_COLORS[0].hex;
 }
-
 export function lerpAngle(a: number, b: number, t: number) {
   let d = b - a;
   while (d > Math.PI) d -= Math.PI * 2;
