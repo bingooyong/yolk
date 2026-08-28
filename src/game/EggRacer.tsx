@@ -318,10 +318,13 @@ export function EggRacer({
         activate(L.abilities, "pounce");
         L.pounceT = ABILITY.pounce.duration;
         L.squash = 0.8;
-        L.lean = 0.5;
+        L.lean = 0.42;
+        L.vy = Math.max(L.vy * 0.28, ABILITY.pounce.height);
+        L.grounded = false;
+        L.coyote = 0;
         aimDash();
         sfxPounce();
-        addTrauma(0.035);
+        addTrauma(0.03);
       } else if (!exclusive && actions.rollPressed && canUse(L.abilities, "roll")) {
         activate(L.abilities, "roll");
         L.rollT = ABILITY.roll.duration;
@@ -376,7 +379,7 @@ export function EggRacer({
     const hx = L.vx;
     const hz = L.vz;
 
-    if (isPlayer && !actions.jump && L.vy > 1.8) {
+    if (isPlayer && !actions.jump && L.vy > 1.8 && L.pounceT <= 0) {
       L.vy *= JUMP_CUT;
     }
 

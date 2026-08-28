@@ -60,8 +60,10 @@ function Scene() {
 
 export default function GameCanvas() {
   const device = useDevice();
-  const dpr = qualityToDpr(device.quality);
-  const shadows = device.quality !== "low";
+  const gfx = useGameStore((s) => s.gfx);
+  const quality = gfx === "auto" ? device.quality : gfx;
+  const dpr = qualityToDpr(quality);
+  const shadows = quality !== "low";
   const levelId = useGameStore((s) => s.levelId);
   const theme = currentLevel().theme;
 
@@ -80,7 +82,7 @@ export default function GameCanvas() {
       dpr={dpr}
       camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.4, far: 160 }}
       gl={{
-        antialias: device.quality !== "low",
+        antialias: quality !== "low",
         powerPreference: "high-performance",
         alpha: false,
         stencil: false,
@@ -96,7 +98,7 @@ export default function GameCanvas() {
       <fog attach="fog" args={[theme.fog, theme.fogNear, theme.fogFar]} />
       <ambientLight intensity={0.62} />
       <hemisphereLight args={["#FFF1DC", "#2A5AAA", 0.95]} />
-      <FollowLight quality={device.quality} />
+      <FollowLight quality={quality} />
       <CameraRig portrait={device.portrait} />
       <Tone />
       <HudPump />

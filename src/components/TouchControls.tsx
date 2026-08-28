@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowDownToLine, ArrowUp, Lock, RotateCw, Sparkles, Zap } from "lucide-react";
+import { ArrowUp, ChevronsRight, CircleDashed, Lock, Sparkles, Zap } from "lucide-react";
 import { useDevice } from "@/engine/device";
 import { haptic } from "@/engine/haptics";
 import { touch } from "@/game/input";
@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export function TouchControls() {
   const device = useDevice();
   const phase = useGameStore((s) => s.phase);
+  const scale = useGameStore((s) => s.controlScale);
+  const opacity = useGameStore((s) => s.controlOpacity);
   const active = phase === "playing" || phase === "countdown";
 
   if (!device.touchUI || !active) return null;
@@ -25,7 +27,7 @@ export function TouchControls() {
     >
       <JoystickZone large={device.iPad} />
       <LookZone />
-      <ActionPad large={device.iPad} />
+      <ActionPad large={device.iPad} scale={scale} opacity={opacity} />
     </div>
   );
 }
@@ -147,7 +149,7 @@ function LookZone() {
   );
 }
 
-function ActionPad({ large }: { large: boolean }) {
+function ActionPad({ large, scale, opacity }: { large: boolean; scale: number; opacity: number }) {
   const jumpRef = useRef<HTMLButtonElement>(null);
   const boostRef = useRef<HTMLButtonElement>(null);
   const pounceRef = useRef<HTMLButtonElement>(null);
@@ -240,23 +242,27 @@ function ActionPad({ large }: { large: boolean }) {
     }
   };
 
-  const s = large ? 1.14 : 1;
-  const jump = 92 * s;
-  const mid = 58 * s;
-  const skill = 40 * s;
+  const s = (large ? 1.12 : 1) * scale;
+  const jump = 100 * s;
+  const mid = 56 * s;
+  const skill = 38 * s;
 
   return (
-    <div className={cn("action-pad", large && "pad-lg")} aria-label="Action pad">
-      <SkillSlot label="Skill" left={78 * s} top={0} size={skill} icon={<Sparkles className="size-3.5" />} />
+    <div
+      className={cn("action-pad", large && "pad-lg")}
+      aria-label="Action pad"
+      style={{ opacity, transform: large ? undefined : undefined }}
+    >
+      <SkillSlot label="Skill" left={80 * s} top={2 * s} size={skill} icon={<Sparkles className="size-3.5" />} />
       <PadAbility
         btnRef={rollRef}
         ringRef={rollRing}
         aria="Roll"
-        left={2 * s}
-        top={42 * s}
+        left={4 * s}
+        top={36 * s}
         size={mid}
         face="bg-sky text-ink"
-        icon={<RotateCw className="size-6" strokeWidth={2.4} />}
+        icon={<CircleDashed className="size-6" strokeWidth={2.4} />}
         onPointerDown={(e) => tap("roll", e, true)}
         onPointerUp={(e) => tap("roll", e, false)}
         onPointerCancel={(e) => tap("roll", e, false)}
@@ -265,11 +271,11 @@ function ActionPad({ large }: { large: boolean }) {
         btnRef={pounceRef}
         ringRef={pounceRing}
         aria="Pounce"
-        left={128 * s}
-        top={42 * s}
+        left={136 * s}
+        top={36 * s}
         size={mid}
         face="bg-peach text-ink"
-        icon={<ArrowDownToLine className="size-6" strokeWidth={2.4} />}
+        icon={<ChevronsRight className="size-6" strokeWidth={2.6} />}
         onPointerDown={(e) => tap("pounce", e, true)}
         onPointerUp={(e) => tap("pounce", e, false)}
         onPointerCancel={(e) => tap("pounce", e, false)}
@@ -279,22 +285,22 @@ function ActionPad({ large }: { large: boolean }) {
         type="button"
         aria-label="Jump"
         className="pad-btn pad-jump"
-        style={{ left: 48 * s, top: 68 * s, width: jump, height: jump, zIndex: 2 }}
+        style={{ left: 48 * s, top: 62 * s, width: jump, height: jump, zIndex: 2 }}
         onPointerDown={(e) => holdJump(e, true)}
         onPointerUp={(e) => holdJump(e, false)}
         onPointerCancel={(e) => holdJump(e, false)}
       >
         <span className="pad-ripple" />
         <span className="pad-face bg-accent text-accent-fg">
-          <ArrowUp className="size-10" strokeWidth={2.6} />
+          <ArrowUp className="size-11" strokeWidth={2.6} />
         </span>
       </button>
       <PadAbility
         btnRef={boostRef}
         ringRef={boostRing}
         aria="Dash"
-        left={66 * s}
-        top={154 * s}
+        left={70 * s}
+        top={162 * s}
         size={mid}
         face="bg-coral text-fg"
         icon={<Zap className="size-6" strokeWidth={2.4} fill="currentColor" />}

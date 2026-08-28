@@ -85,7 +85,9 @@ function plat(
 
 function compile(partial: Omit<Level, "waypoints" | "coinCount">): Level {
   const walk = [
-    ...partial.platforms.map((p) => ({
+    ...partial.platforms
+      .filter((p) => Math.abs(p.pos[0]) < 4.2)
+      .map((p) => ({
       x: p.pos[0],
       y: p.pos[1] + p.size[1] / 2,
       z: p.pos[2],
@@ -136,7 +138,7 @@ function meadow(): Level {
     theme: {
       id: "meadow",
       name: "糖果草原",
-      blurb: "学会跑、跳、落地。金币在路上，终点就在前面。",
+      blurb: "跑、跳过台阶。右边缺口用扑能抄近路。",
       stars: 1,
       sky: "#9EE8FF",
       fog: "#B8ECFF",
@@ -155,6 +157,8 @@ function meadow(): Level {
       plat("step1", 0, -18.6, 10, 5.2, 0.28, G),
       plat("land1", 0, -26.7, 11, 10.84, 0, C),
       plat("plaza", 0, -39.62, 12, 14.76, 0, P, "checkpoint"),
+      plat("pounceA", 5.6, -20.4, 3.4, 3.2, 0.18, P),
+      plat("pounceB", 5.6, -29.6, 3.6, 4.0, 0.22, G),
       { ...plat("jelly", 0, -50, 5.2, 5.84, 0, J, "bounce") },
       plat("landj", 0, -58, 10, 9.84, 0, C),
       plat("gapA", 0, -66.54, 9, 6.92, 0, G),
@@ -172,7 +176,8 @@ function meadow(): Level {
       { id: "c4", kind: "coin", pos: [0, 1.4, -32] },
       { id: "c5", kind: "coin", pos: [0, 1.4, -48] },
       { id: "c6", kind: "coin", pos: [0, 1.5, -68] },
-      { id: "j1", kind: "jelly", pos: [3.2, 1.1, -38] },
+      { id: "c7", kind: "coin", pos: [5.6, 1.45, -21] },
+      { id: "c8", kind: "coin", pos: [5.6, 1.55, -29.4] },
     ],
     traps: [],
     winds: [],

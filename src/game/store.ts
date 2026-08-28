@@ -39,6 +39,10 @@ type Persist = {
   musicVol: number;
   sfxVol: number;
   camSens: number;
+  controlScale: number;
+  controlOpacity: number;
+  hapticOn: boolean;
+  gfx: "auto" | "low" | "medium" | "high";
 };
 
 const SAVE_KEY = "yolk-rush-v4";
@@ -58,6 +62,10 @@ function load(): Persist {
     musicVol: 0.72,
     sfxVol: 0.78,
     camSens: 1,
+    controlScale: 1,
+    controlOpacity: 0.92,
+    hapticOn: true,
+    gfx: "auto" as const,
   };
   try {
     const raw =
@@ -89,6 +97,10 @@ function load(): Persist {
       camSens: typeof (p as { camSens?: number }).camSens === "number"
         ? Math.min(1.6, Math.max(0.5, (p as { camSens: number }).camSens))
         : 1,
+      controlScale: typeof p.controlScale === "number" ? Math.min(1.25, Math.max(0.8, p.controlScale)) : 1,
+      controlOpacity: typeof p.controlOpacity === "number" ? Math.min(1, Math.max(0.4, p.controlOpacity)) : 0.92,
+      hapticOn: p.hapticOn !== false,
+      gfx: p.gfx === "low" || p.gfx === "medium" || p.gfx === "high" ? p.gfx : "auto",
     };
   } catch {
     return fallback;
@@ -120,6 +132,10 @@ const initial =
         musicVol: 0.72,
         sfxVol: 0.78,
         camSens: 1,
+        controlScale: 1,
+        controlOpacity: 0.92,
+        hapticOn: true,
+        gfx: "auto" as const,
       };
 
 function persistFrom(s: {
@@ -136,6 +152,10 @@ function persistFrom(s: {
   musicVol: number;
   sfxVol: number;
   camSens: number;
+  controlScale: number;
+  controlOpacity: number;
+  hapticOn: boolean;
+  gfx: Persist["gfx"];
 }): Persist {
   return {
     bestTime: s.bestTime,
@@ -151,6 +171,10 @@ function persistFrom(s: {
     musicVol: s.musicVol,
     sfxVol: s.sfxVol,
     camSens: s.camSens,
+    controlScale: s.controlScale,
+    controlOpacity: s.controlOpacity,
+    hapticOn: s.hapticOn,
+    gfx: s.gfx,
   };
 }
 
@@ -165,6 +189,10 @@ type GameStore = {
   musicVol: number;
   sfxVol: number;
   camSens: number;
+  controlScale: number;
+  controlOpacity: number;
+  hapticOn: boolean;
+  gfx: Persist["gfx"];
   howTo: boolean;
   lobbyTab: LobbyTab;
   coins: number;
@@ -196,6 +224,10 @@ type GameStore = {
   setMusicVol: (v: number) => void;
   setSfxVol: (v: number) => void;
   setCamSens: (v: number) => void;
+  setControlScale: (v: number) => void;
+  setControlOpacity: (v: number) => void;
+  setHapticOn: (v: boolean) => void;
+  setGfx: (v: Persist["gfx"]) => void;
   toggleHowTo: () => void;
   startRace: () => void;
   forcePlay: () => void;
@@ -220,6 +252,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   musicVol: initial.musicVol,
   sfxVol: initial.sfxVol,
   camSens: initial.camSens ?? 1,
+  controlScale: initial.controlScale ?? 1,
+  controlOpacity: initial.controlOpacity ?? 0.92,
+  hapticOn: initial.hapticOn !== false,
+  gfx: initial.gfx ?? "auto",
   howTo: false,
   lobbyTab: "play",
   coins: initial.coins,
@@ -275,6 +311,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   setCamSens: (v) => {
     set({ camSens: Math.max(0.5, Math.min(1.6, v)) });
+    save(persistFrom(get()));
+  },
+  setControlScale: (v) => {
+    set({ controlScale: Math.max(0.8, Math.min(1.25, v)) });
+    save(persistFrom(get()));
+  },
+  setControlOpacity: (v) => {
+    set({ controlOpacity: Math.max(0.4, Math.min(1, v)) });
+    save(persistFrom(get()));
+  },
+  setHapticOn: (v) => {
+    set({ hapticOn: v });
+    save(persistFrom(get()));
+  },
+  setGfx: (v) => {
+    set({ gfx: v });
     save(persistFrom(get()));
   },
   toggleHowTo: () => set({ howTo: !get().howTo }),

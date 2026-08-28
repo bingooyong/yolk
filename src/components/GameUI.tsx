@@ -1,14 +1,16 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Flag,
   Gift,
   Pause,
   Play,
   RotateCcw,
+  Settings,
   Sparkles,
   Trophy,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DASH, EGG_COLORS } from "@/game/config";
@@ -37,6 +39,7 @@ function ordinal(n: number) {
 
 export function GameUI() {
   const phase = useGameStore((s) => s.phase);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const countLeft = useGameStore((s) => s.countLeft);
   const colorId = useGameStore((s) => s.colorId);
   const bestTime = useGameStore((s) => s.bestTime);
@@ -104,6 +107,17 @@ export function GameUI() {
         >
           {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
         </Button>
+        {phase === "title" && (
+          <Button
+            variant="secondary"
+            size="icon"
+            className="size-11 bg-ink/55"
+            aria-label="Settings"
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Settings className="size-5" />
+          </Button>
+        )}
         {phase === "playing" && (
           <Button
             variant="secondary"
@@ -160,6 +174,8 @@ export function GameUI() {
           onHowTo={toggleHowTo}
         />
       )}
+
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
 
       {phase === "paused" && (
         <CenterCard>
@@ -303,94 +319,203 @@ function TitleSheet({
   onStart: () => void;
   onHowTo: () => void;
 }) {
+  const scroller = useRef<HTMLDivElement>(null);
+  const [canStart, setCanStart] = useState(true);
+
+  useEffect(() => {
+    const el = scroller.current;
+    if (!el) return;
+    const measure = () => {
+      setCanStart(el.scrollHeight - el.scrollTop - el.clientHeight <= 28);
+    };
+    measure();
+    el.addEventListener("scroll", measure, { passive: true });
+    window.addEventListener("resize", measure);
+    const id = window.setTimeout(measure, 80);
+    return () => {
+      el.removeEventListener("scroll", measure);
+      window.removeEventListener("resize", measure);
+      window.clearTimeout(id);
+    };
+  }, [lobbyTab, howTo]);
+
   return (
-    <div
-      className={cn(
-        "pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-[62%] flex-col justify-end",
-        "landscape:inset-y-0 landscape:right-auto landscape:max-h-none landscape:w-[min(380px,50vw)] landscape:justify-center",
-        "md:inset-auto md:bottom-8 md:left-8 md:top-auto md:w-[min(420px,44vw)] md:max-h-none md:justify-end",
-      )}
-      style={{
-        paddingBottom: "max(16px, env(safe-area-inset-bottom))",
-        paddingLeft: "max(16px, env(safe-area-inset-left))",
-        paddingRight: "max(16px, env(safe-area-inset-right))",
-      }}
-    >
-      <div className="overflow-auto rounded-t-3xl border border-border bg-ink/84 p-5 shadow-panel backdrop-blur-md md:rounded-3xl md:p-7">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.18em] text-fg-subtle">
-              Yolk Rush
-            </p>
-            <h1 className="mt-1 font-display text-4xl leading-tight">蛋黄冲刺</h1>
-          </div>
-          <div className="hud-chip rounded-full px-3 py-1.5 text-sm">币 {coins}</div>
-        </div>
+    <div className="pointer-events-none absolute inset-0">
+      <div
+        className="pointer-events-none absolute left-0 right-24"
+        style={{
+          top: "max(14px, env(safe-area-inset-top))",
+          paddingLeft: "max(16px, env(safe-area-inset-left))",
+        }}
+      >
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-fg-subtle">Yolk Rush</p>
+        <h1 className="font-display text-4xl leading-none md:text-5xl">蛋黄冲刺</h1>
+      </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
+      {lobbyTab === "play" && (
+        <div
+          className="pointer-events-auto absolute inset-0 z-10 flex flex-col items-center justify-center"
+          style={{ paddingBottom: "min(34vh, 280px)" }}
+        >
           <Button
-            variant={lobbyTab === "play" ? "primary" : "secondary"}
-            onClick={() => setLobbyTab("play")}
-          >
-            比赛
-          </Button>
-          <Button
-            variant={lobbyTab === "gacha" ? "primary" : "secondary"}
-            onClick={() => setLobbyTab("gacha")}
-          >
-            <Gift className="size-4" />
-            抽卡
-          </Button>
-        </div>
-
-        {lobbyTab === "play" ? (
-          <>
-            <p className="mt-3 max-w-sm text-pretty text-sm text-fg-muted">
-              {LEVELS[useGameStore.getState().levelId].theme.blurb}
-            </p>
-            <VolumeRow />
-            <LevelPicker />
-            <div className="mt-3 flex gap-4 text-xs text-fg-subtle">
-              <span>胜场 {wins}</span>
-              <span>最佳 {bestTime != null ? formatTime(bestTime) : "--"}</span>
-            </div>
-            <p className="mt-4 text-xs font-medium text-fg-muted">蛋壳颜色</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {EGG_COLORS.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  aria-label={c.name}
-                  aria-pressed={colorId === c.id}
-                  onClick={() => setColor(c.id)}
-                  className={cn(
-                    "size-11 rounded-full border-2",
-                    colorId === c.id ? "border-fg" : "border-transparent",
-                  )}
-                  style={{ backgroundColor: c.hex }}
-                />
-              ))}
-            </div>
-            {howTo && (
-              <ul className="mt-4 space-y-2 text-sm text-fg-muted">
-                <li>角色永远站直，跳跃不会翻跟头</li>
-                <li>镜头只跟位置，不跟旋转</li>
-                <li>掉下去会告诉你为什么，并回检查点</li>
-              </ul>
+            size="lg"
+            aria-label="Start"
+            disabled={!canStart}
+            onClick={() => {
+              if (!canStart) return;
+              onStart();
+            }}
+            className={cn(
+              "h-16 min-w-52 rounded-full px-10 text-xl shadow-panel",
+              canStart && "ring-2 ring-accent/70",
             )}
-            <div className="mt-5 flex flex-col gap-2">
-              <Button size="lg" onClick={onStart} aria-label="Start" className="w-full">
-                <Flag className="size-4" />
-                Start · 开始比赛
-              </Button>
-              <Button variant="secondary" size="lg" onClick={onHowTo} className="w-full">
+          >
+            <Flag className="size-5" />
+            START
+          </Button>
+          <p className="mt-3 text-sm text-fg-muted">
+            {canStart ? "Tap to Start" : "滑到下面解锁开始"}
+          </p>
+        </div>
+      )}
+
+      <div
+        className={cn(
+          "pointer-events-auto absolute inset-x-0 bottom-0 z-20 flex max-h-[42%] flex-col",
+          "landscape:max-h-[58%] md:max-h-[48%]",
+        )}
+        style={{
+          paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+          paddingLeft: "max(12px, env(safe-area-inset-left))",
+          paddingRight: "max(12px, env(safe-area-inset-right))",
+        }}
+      >
+        <div
+          ref={scroller}
+          className="overflow-auto rounded-t-3xl border border-border bg-ink/84 p-5 shadow-panel backdrop-blur-md md:mx-auto md:w-[min(440px,92vw)] md:rounded-3xl"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-fg-muted">先选关卡和蛋壳，再开始</p>
+            <div className="hud-chip rounded-full px-3 py-1.5 text-sm">币 {coins}</div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button
+              variant={lobbyTab === "play" ? "primary" : "secondary"}
+              onClick={() => setLobbyTab("play")}
+            >
+              比赛
+            </Button>
+            <Button
+              variant={lobbyTab === "gacha" ? "primary" : "secondary"}
+              onClick={() => setLobbyTab("gacha")}
+            >
+              <Gift className="size-4" />
+              抽卡
+            </Button>
+          </div>
+
+          {lobbyTab === "play" ? (
+            <>
+              <p className="mt-3 max-w-sm text-pretty text-sm text-fg-muted">
+                {LEVELS[useGameStore.getState().levelId].theme.blurb}
+              </p>
+              <LevelPicker />
+              <div className="mt-3 flex gap-4 text-xs text-fg-subtle">
+                <span>胜场 {wins}</span>
+                <span>最佳 {bestTime != null ? formatTime(bestTime) : "--"}</span>
+              </div>
+              <p className="mt-4 text-xs font-medium text-fg-muted">蛋壳颜色</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {EGG_COLORS.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    aria-label={c.name}
+                    aria-pressed={colorId === c.id}
+                    onClick={() => setColor(c.id)}
+                    className={cn(
+                      "size-11 rounded-full border-2",
+                      colorId === c.id ? "border-fg" : "border-transparent",
+                    )}
+                    style={{ backgroundColor: c.hex }}
+                  />
+                ))}
+              </div>
+              {howTo && (
+                <ul className="mt-4 space-y-2 text-sm text-fg-muted">
+                  <li>跳管高度 · 扑管缺口 · 滚管低姿态 · 加速管冲刺</li>
+                  <li>右边缺口：跳差一点，扑能过去</li>
+                </ul>
+              )}
+              <Button variant="secondary" size="lg" onClick={onHowTo} className="mt-4 w-full">
                 {howTo ? "收起说明" : "怎么玩"}
               </Button>
-            </div>
-          </>
-        ) : (
-          <GachaPanel coins={coins} />
-        )}
+              <p className="mt-4 pb-2 text-center text-xs text-fg-subtle">滑到这里就可以开始</p>
+            </>
+          ) : (
+            <GachaPanel coins={coins} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SettingsPanel({ onClose }: { onClose: () => void }) {
+  const musicVol = useGameStore((s) => s.musicVol);
+  const sfxVol = useGameStore((s) => s.sfxVol);
+  const camSens = useGameStore((s) => s.camSens);
+  const controlScale = useGameStore((s) => s.controlScale);
+  const controlOpacity = useGameStore((s) => s.controlOpacity);
+  const hapticOn = useGameStore((s) => s.hapticOn);
+  const gfx = useGameStore((s) => s.gfx);
+  return (
+    <div className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-ink/55 p-4">
+      <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-5 shadow-panel">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-2xl">设置</h2>
+          <Button variant="secondary" size="icon" aria-label="Close settings" onClick={onClose}>
+            <X className="size-4" />
+          </Button>
+        </div>
+        <div className="mt-4 space-y-4 text-sm text-fg-muted">
+          <label className="flex items-center justify-between gap-3">
+            音乐
+            <input type="range" min={0} max={1} step={0.01} value={musicVol} aria-label="Music volume" onPointerDown={() => unlockAudio()} onChange={(e) => useGameStore.getState().setMusicVol(Number(e.target.value))} className="w-36 accent-accent" />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            音效
+            <input type="range" min={0} max={1} step={0.01} value={sfxVol} aria-label="SFX volume" onPointerDown={() => unlockAudio()} onChange={(e) => useGameStore.getState().setSfxVol(Number(e.target.value))} className="w-36 accent-accent" />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            镜头灵敏度
+            <input type="range" min={0.5} max={1.6} step={0.05} value={camSens} aria-label="Camera sensitivity" onChange={(e) => useGameStore.getState().setCamSens(Number(e.target.value))} className="w-36 accent-accent" />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            按键大小
+            <input type="range" min={0.8} max={1.25} step={0.05} value={controlScale} aria-label="Control size" onChange={(e) => useGameStore.getState().setControlScale(Number(e.target.value))} className="w-36 accent-accent" />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            按键透明度
+            <input type="range" min={0.4} max={1} step={0.05} value={controlOpacity} aria-label="Control opacity" onChange={(e) => useGameStore.getState().setControlOpacity(Number(e.target.value))} className="w-36 accent-accent" />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            画质
+            <select aria-label="Graphics quality" className="rounded-lg border border-border bg-surface-2 px-2 py-1 text-fg" value={gfx} onChange={(e) => useGameStore.getState().setGfx(e.target.value as "auto" | "low" | "medium" | "high")}>
+              <option value="auto">自动</option>
+              <option value="low">省电</option>
+              <option value="medium">均衡</option>
+              <option value="high">高</option>
+            </select>
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            振动
+            <input type="checkbox" checked={hapticOn} aria-label="Haptic" onChange={(e) => useGameStore.getState().setHapticOn(e.target.checked)} />
+          </label>
+        </div>
+        <Button className="mt-5 w-full" onClick={onClose}>
+          返回
+        </Button>
       </div>
     </div>
   );

@@ -6,13 +6,14 @@ export type AbilityDef = {
   cooldown: number;
   duration: number;
   speed: number;
+  height: number;
 };
 
 export const ABILITY: Record<AbilityId, AbilityDef> = {
-  pounce: { id: "pounce", cooldown: 0.82, duration: 0.22, speed: 14.4 },
-  roll: { id: "roll", cooldown: 0.7, duration: 0.32, speed: 11.8 },
-  boost: { id: "boost", cooldown: 0.95, duration: 0.26, speed: 16.4 },
-  grab: { id: "grab", cooldown: 1.6, duration: 0, speed: 0 },
+  pounce: { id: "pounce", cooldown: 0.78, duration: 0.36, speed: 13.2, height: 5.5 },
+  roll: { id: "roll", cooldown: 0.58, duration: 0.58, speed: 11.2, height: 0 },
+  boost: { id: "boost", cooldown: 0.95, duration: 0.26, speed: 16.4, height: 0 },
+  grab: { id: "grab", cooldown: 1.6, duration: 0, speed: 0, height: 0 },
 };
 
 export type AbilitySlot = {
