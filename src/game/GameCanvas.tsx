@@ -78,7 +78,7 @@ export default function GameCanvas() {
       className="absolute inset-0"
       shadows={shadows}
       dpr={dpr}
-      camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.1, far: 220 }}
+      camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.4, far: 160 }}
       gl={{
         antialias: device.quality !== "low",
         powerPreference: "high-performance",

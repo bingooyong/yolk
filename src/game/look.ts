@@ -65,25 +65,23 @@ export function glowTex() {
 
 export function stripeTex() {
   if (stripe) return stripe;
-  stripe = canvasTex(
-    32,
-    32,
-    (g, w, h) => {
-      g.fillStyle = "#E8D8FF";
-      g.fillRect(0, 0, w, h);
-      g.fillStyle = "#9B7ADF";
-      g.lineWidth = 7;
-      g.beginPath();
-      for (let i = -h; i < w + h; i += 10) {
-        g.moveTo(i, 0);
-        g.lineTo(i + h, h);
-      }
-      g.strokeStyle = "#9B7ADF";
-      g.stroke();
-    },
-    true,
-  );
+  stripe = canvasTex(64, 64, (g, w, h) => {
+    g.fillStyle = "#E8D8FF";
+    g.fillRect(0, 0, w, h);
+    g.strokeStyle = "#9B7ADF";
+    g.lineWidth = 10;
+    g.beginPath();
+    for (let i = -h; i < w + h; i += 16) {
+      g.moveTo(i, 0);
+      g.lineTo(i + h, h);
+    }
+    g.stroke();
+  });
   stripe.repeat.set(1, 1);
+  stripe.generateMipmaps = true;
+  stripe.minFilter = THREE.LinearMipmapLinearFilter;
+  stripe.magFilter = THREE.LinearFilter;
+  stripe.needsUpdate = true;
   return stripe;
 }
 

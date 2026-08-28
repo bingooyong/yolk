@@ -4,30 +4,11 @@ import { CuboidCollider, RigidBody, type RapierRigidBody } from "@react-three/ra
 import * as THREE from "three";
 import { currentLevel, moverVel, type TrapTileDef } from "./course";
 import type { Hammer, Mover, Pendulum, Spinner } from "./levels";
-import { crateTex, gridTex, skyTex, stripeTex } from "./look";
+import { crateTex, skyTex, stripeTex } from "./look";
 import { sim } from "./sim";
 import { useGameStore } from "./store";
 
-function checkerTexture() {
-  const c = document.createElement("canvas");
-  c.width = 8;
-  c.height = 8;
-  const g = c.getContext("2d")!;
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      g.fillStyle = (x + y) % 2 === 0 ? "#1A3A9A" : "#F4F7FF";
-      g.fillRect(x, y, 1, 1);
-    }
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.wrapS = THREE.RepeatWrapping;
-  t.wrapT = THREE.RepeatWrapping;
-  t.repeat.set(10, 6);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+const _side = new THREE.Color();
 
 function Pad({
   size,
@@ -36,18 +17,17 @@ function Pad({
   size: [number, number, number];
   color: string;
 }) {
-  const side = useMemo(() => new THREE.Color(color).multiplyScalar(0.72).getStyle(), [color]);
+  const materials = useMemo(() => {
+    const top = new THREE.MeshLambertMaterial({ color });
+    const side = new THREE.MeshLambertMaterial({
+      color: _side.set(color).multiplyScalar(0.72),
+    });
+    return [side, side, top, side, side, side];
+  }, [color]);
   return (
-    <group>
-      <mesh receiveShadow castShadow>
-        <boxGeometry args={size} />
-        <meshLambertMaterial color={side} />
-      </mesh>
-      <mesh position={[0, size[1] / 2 + 0.015, 0]} receiveShadow>
-        <boxGeometry args={[size[0] - 0.06, 0.05, size[2] - 0.06]} />
-        <meshLambertMaterial color={color} />
-      </mesh>
-    </group>
+    <mesh receiveShadow castShadow material={materials}>
+      <boxGeometry args={size} />
+    </mesh>
   );
 }
 
@@ -55,8 +35,6 @@ export function Track() {
   const levelId = useGameStore((s) => s.levelId);
   const raceId = useGameStore((s) => s.raceId);
   const level = currentLevel();
-  const checker = useMemo(() => checkerTexture(), []);
-  const floor = useMemo(() => gridTex(), []);
   return (
     <group key={`${levelId}-${raceId}`}>
       <SkyDome />
@@ -72,24 +50,11 @@ export function Track() {
             position={p.pos}
             userData={{ kind }}
           >
-            <CuboidCollider args={[p.size[0] / 2, p.size[1] / 2, p.size[2] / 2]} />
+            <CuboidCollider args={[p.size[0] / 2, p.size[1] / 2, p.size[2] / 2 + 0.08]} />
             <Pad size={p.size} color={p.color} />
           </RigidBody>
         );
       })}
-
-      <mesh position={[0, 0.04, level.startZ]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[16, 16]} />
-        <meshLambertMaterial map={floor} color={level.theme.ground} />
-      </mesh>
-      <mesh position={[0, 0.03, level.startZ + 6]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[8, 4]} />
-        <meshLambertMaterial map={checker} />
-      </mesh>
-      <mesh position={[0, 0.03, level.finishZ]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[10, 4]} />
-        <meshLambertMaterial map={checker} />
-      </mesh>
 
       {level.traps.map((t) => (
         <TrapTile key={t.id} {...t} />
