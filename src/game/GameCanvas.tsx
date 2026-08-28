@@ -6,6 +6,7 @@ import { qualityToDpr, useDevice } from "@/engine/device";
 import { CameraRig, FollowLight } from "./CameraRig";
 import { RacerField } from "./EggRacer";
 import { Track } from "./Track";
+import { currentLevel } from "./course";
 import { installControlsTest } from "./input";
 import { sim } from "./sim";
 import { useGameStore } from "./store";
@@ -61,6 +62,8 @@ export default function GameCanvas() {
   const device = useDevice();
   const dpr = qualityToDpr(device.quality);
   const shadows = device.quality !== "low";
+  const levelId = useGameStore((s) => s.levelId);
+  const theme = currentLevel().theme;
 
   useEffect(() => {
     installControlsTest(
@@ -71,10 +74,11 @@ export default function GameCanvas() {
 
   return (
     <Canvas
+      key={levelId}
       className="absolute inset-0"
       shadows={shadows}
       dpr={dpr}
-      camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.1, far: 260 }}
+      camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.1, far: 220 }}
       gl={{
         antialias: device.quality !== "low",
         powerPreference: "high-performance",
@@ -83,13 +87,13 @@ export default function GameCanvas() {
         depth: true,
       }}
       onCreated={({ gl }) => {
-        gl.setClearColor("#8FD4F8");
+        gl.setClearColor(theme.sky);
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.18;
       }}
     >
-      <color attach="background" args={["#8FD4F8"]} />
-      <fog attach="fog" args={["#A8DCFA", 36, 150]} />
+      <color attach="background" args={[theme.sky]} />
+      <fog attach="fog" args={[theme.fog, theme.fogNear, theme.fogFar]} />
       <ambientLight intensity={0.62} />
       <hemisphereLight args={["#FFF1DC", "#2A5AAA", 0.95]} />
       <FollowLight quality={device.quality} />

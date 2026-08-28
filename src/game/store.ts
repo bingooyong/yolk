@@ -9,6 +9,7 @@ import {
   pullSkin,
   type Skin,
 } from "./skins";
+import { LEVELS, LEVEL_ORDER, setActiveLevel, type LevelId } from "./levels";
 
 export type Phase = "title" | "countdown" | "playing" | "paused" | "results";
 export type LobbyTab = "play" | "gacha";
@@ -31,9 +32,12 @@ type Persist = {
   coins: number;
   ownedSkins: string[];
   equippedSkin: string;
+  levelId: LevelId;
+  cleared: string[];
+  levelBest: Record<string, number>;
 };
 
-const SAVE_KEY = "yolk-rush-v3";
+const SAVE_KEY = "yolk-rush-v4";
 
 function load(): Persist {
   const fallback: Persist = {
@@ -43,10 +47,14 @@ function load(): Persist {
     coins: 160,
     ownedSkins: [...STARTER_SKINS],
     equippedSkin: "mint_wings",
+    levelId: "meadow",
+    cleared: [],
+    levelBest: {},
   };
   try {
     const raw =
       localStorage.getItem(SAVE_KEY) ??
+      localStorage.getItem("yolk-rush-v3") ??
       localStorage.getItem("yolk-rush-v2") ??
       localStorage.getItem("yolk-rush-v1");
     if (!raw) return fallback;
@@ -54,6 +62,7 @@ function load(): Persist {
     const owned = Array.isArray(p.ownedSkins)
       ? Array.from(new Set([...STARTER_SKINS, ...p.ownedSkins]))
       : [...STARTER_SKINS];
+    const levelId = LEVEL_ORDER.includes(p.levelId as LevelId) ? (p.levelId as LevelId) : "meadow";
     return {
       bestTime: typeof p.bestTime === "number" ? p.bestTime : null,
       wins: typeof p.wins === "number" ? p.wins : 0,
@@ -63,6 +72,9 @@ function load(): Persist {
       equippedSkin: owned.includes(p.equippedSkin ?? "")
         ? (p.equippedSkin as string)
         : "mint_wings",
+      levelId,
+      cleared: Array.isArray(p.cleared) ? p.cleared : [],
+      levelBest: p.levelBest && typeof p.levelBest === "object" ? p.levelBest : {},
     };
   } catch {
     return fallback;
@@ -87,6 +99,9 @@ const initial =
         coins: 160,
         ownedSkins: [...STARTER_SKINS],
         equippedSkin: "mint_wings",
+        levelId: "meadow" as LevelId,
+        cleared: [] as string[],
+        levelBest: {} as Record<string, number>,
       };
 
 function persistFrom(s: {
@@ -96,6 +111,9 @@ function persistFrom(s: {
   coins: number;
   ownedSkins: string[];
   equippedSkin: string;
+  levelId: LevelId;
+  cleared: string[];
+  levelBest: Record<string, number>;
 }): Persist {
   return {
     bestTime: s.bestTime,
@@ -104,6 +122,9 @@ function persistFrom(s: {
     coins: s.coins,
     ownedSkins: s.ownedSkins,
     equippedSkin: s.equippedSkin,
+    levelId: s.levelId,
+    cleared: s.cleared,
+    levelBest: s.levelBest,
   };
 }
 
@@ -120,9 +141,13 @@ type GameStore = {
   coins: number;
   ownedSkins: string[];
   equippedSkin: string;
+  levelId: LevelId;
+  cleared: string[];
+  levelBest: Record<string, number>;
   lastPull: { skin: Skin; duplicate: boolean } | null;
   pullSeq: number;
   raceCoins: number;
+  lastBonus: { first: number; perfect: number; noFall: number };
 
   lastPayout: number;
   hud: {
@@ -131,9 +156,12 @@ type GameStore = {
     dashCd: number;
     coinsRun: number;
     racers: HudRacer[];
+    failHint: string;
   };
   setColor: (id: string) => void;
   setSkin: (id: string) => void;
+  setLevel: (id: LevelId) => void;
+  isUnlocked: (id: LevelId) => boolean;
   setLobbyTab: (tab: LobbyTab) => void;
   toggleMute: () => void;
   toggleHowTo: () => void;
@@ -162,12 +190,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   coins: initial.coins,
   ownedSkins: initial.ownedSkins,
   equippedSkin: initial.equippedSkin,
+  levelId: initial.levelId,
+  cleared: initial.cleared,
+  levelBest: initial.levelBest,
   lastPull: null,
   pullSeq: 0,
   raceCoins: 0,
+  lastBonus: { first: 0, perfect: 0, noFall: 0 },
 
   lastPayout: 0,
-  hud: { time: 0, place: 8, dashCd: 0, coinsRun: 0, racers: [] },
+  hud: { time: 0, place: 8, dashCd: 0, coinsRun: 0, racers: [], failHint: "" },
 
   setColor: (id) => {
     set({ colorId: id });
@@ -180,12 +212,28 @@ export const useGameStore = create<GameStore>((set, get) => ({
     save(persistFrom(get()));
   },
 
+  setLevel: (id) => {
+    set({ levelId: id });
+    setActiveLevel(id);
+    save(persistFrom(get()));
+  },
+
+  isUnlocked: (id) => {
+    const idx = LEVEL_ORDER.indexOf(id);
+    if (idx <= 0) return true;
+    const prev = LEVEL_ORDER[idx - 1];
+    return get().cleared.includes(prev);
+  },
+
   setLobbyTab: (tab) => set({ lobbyTab: tab, howTo: false }),
   toggleMute: () => set({ muted: !get().muted }),
   toggleHowTo: () => set({ howTo: !get().howTo }),
 
   startRace: () => {
+    const lv = LEVELS[get().levelId];
+    setActiveLevel(get().levelId);
     resetSimRacers();
+    sim.coinsTotal = lv.coinCount;
     set((s) => ({
       phase: "countdown",
       countLeft: 3,
@@ -193,13 +241,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       howTo: false,
       raceCoins: 0,
       lastPull: null,
+      lastBonus: { first: 0, perfect: 0, noFall: 0 },
     }));
   },
 
   forcePlay: () => {
     const s = get();
     if (s.phase === "playing") return;
+    setActiveLevel(s.levelId);
     resetSimRacers();
+    sim.coinsTotal = LEVELS[s.levelId].coinCount;
     set({
       phase: "playing",
       countLeft: 0,
@@ -219,9 +270,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   toTitle: () => set({ phase: "title", howTo: false, lobbyTab: "play" }),
 
   pullSim: () => {
-    const FINISH = -186;
-    const START = 8;
-    const span = START - FINISH;
+    const lv = LEVELS[get().levelId];
+    const FINISH = lv.finishZ;
+    const START = lv.startZ;
+    const span = Math.max(1, START - FINISH);
     const racers: HudRacer[] = sim.racers.map((r) => ({
       id: r.id,
       name: r.name,
@@ -241,6 +293,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         dashCd: player?.dashCd ?? 0,
         coinsRun: sim.coinsRun,
         racers,
+        failHint: sim.time < sim.failUntil ? sim.failHint : "",
       },
     });
   },
@@ -251,13 +304,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const won = player?.place === 1;
     const best = s.bestTime == null ? time : Math.min(s.bestTime, time);
     const wins = s.wins + (won ? 1 : 0);
-    const payout = placeReward(player?.place ?? 8, Boolean(player?.finished)) + sim.coinsRun;
+    const first = s.cleared.includes(s.levelId) ? 0 : 40;
+    const noFall = sim.falls === 0 ? 18 : 0;
+    const perfect = sim.falls === 0 && sim.coinsRun >= sim.coinsTotal * 5 ? 28 : 0;
+    const payout =
+      placeReward(player?.place ?? 8, Boolean(player?.finished)) + sim.coinsRun + first + perfect + noFall;
     const coins = s.coins + payout;
+    const cleared = first ? [...s.cleared, s.levelId] : s.cleared;
+    const prevBest = s.levelBest[s.levelId];
+    const levelBest = {
+      ...s.levelBest,
+      [s.levelId]: prevBest == null ? time : Math.min(prevBest, time),
+    };
     const next = {
       ...persistFrom(s),
       bestTime: best,
       wins,
       coins,
+      cleared,
+      levelBest,
     };
     save(next);
     set({
@@ -267,6 +332,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
       coins,
       lastPayout: payout,
       raceCoins: sim.coinsRun,
+      cleared,
+      levelBest,
+      lastBonus: { first, perfect, noFall },
     });
   },
 
@@ -291,3 +359,5 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   clearPull: () => set({ lastPull: null }),
 }));
+
+if (typeof window !== "undefined") setActiveLevel(initial.levelId);

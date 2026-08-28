@@ -2,19 +2,11 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { CuboidCollider, RigidBody, type RapierRigidBody } from "@react-three/rapier";
 import * as THREE from "three";
-import {
-  HAMMERS,
-  MOVERS,
-  PENDULUMS,
-  PICKUPS,
-  PLATFORMS,
-  RINGS,
-  SPINNERS,
-  TRAP_TILES,
-  moverVel,
-} from "./course";
+import { currentLevel, moverVel, type TrapTileDef } from "./course";
+import type { Hammer, Mover, Pendulum, Spinner } from "./levels";
 import { crateTex, gridTex, skyTex, stripeTex } from "./look";
 import { sim } from "./sim";
+import { useGameStore } from "./store";
 
 function checkerTexture() {
   const c = document.createElement("canvas");
@@ -60,68 +52,75 @@ function Pad({
 }
 
 export function Track() {
+  const levelId = useGameStore((s) => s.levelId);
+  const raceId = useGameStore((s) => s.raceId);
+  const level = currentLevel();
   const checker = useMemo(() => checkerTexture(), []);
   const floor = useMemo(() => gridTex(), []);
   return (
-    <>
+    <group key={`${levelId}-${raceId}`}>
       <SkyDome />
-      <NeonRails />
-      {PLATFORMS.map((p) => (
-        <RigidBody
-          key={p.id}
-          type="fixed"
-          colliders={false}
-          position={p.pos}
-          userData={{ kind: p.kind === "static" ? "platform" : p.kind }}
-        >
-          <CuboidCollider args={[p.size[0] / 2, p.size[1] / 2, p.size[2] / 2]} />
-          <Pad size={p.size} color={p.color} />
-        </RigidBody>
-      ))}
+      <NeonRails color={level.theme.rail} neon={level.theme.neon} />
+      {level.platforms.map((p) => {
+        const kind =
+          p.kind === "ice" || p.kind === "bounce" || p.kind === "conveyor" ? p.kind : "platform";
+        return (
+          <RigidBody
+            key={p.id}
+            type="fixed"
+            colliders={false}
+            position={p.pos}
+            userData={{ kind }}
+          >
+            <CuboidCollider args={[p.size[0] / 2, p.size[1] / 2, p.size[2] / 2]} />
+            <Pad size={p.size} color={p.color} />
+          </RigidBody>
+        );
+      })}
 
-      <mesh position={[0, 0.04, 8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[18, 18]} />
-        <meshLambertMaterial map={floor} />
+      <mesh position={[0, 0.04, level.startZ]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[16, 16]} />
+        <meshLambertMaterial map={floor} color={level.theme.ground} />
       </mesh>
-      <mesh position={[0, 0.03, 14]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[0, 0.03, level.startZ + 6]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[8, 4]} />
+        <meshLambertMaterial map={checker} />
+      </mesh>
+      <mesh position={[0, 0.03, level.finishZ]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[10, 4]} />
         <meshLambertMaterial map={checker} />
       </mesh>
-      <mesh position={[0, 0.03, -184]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[10, 4]} />
-        <meshLambertMaterial map={checker} />
-      </mesh>
 
-      {TRAP_TILES.map((t) => (
+      {level.traps.map((t) => (
         <TrapTile key={t.id} {...t} />
       ))}
-      {MOVERS.map((m) => (
+      {level.movers.map((m) => (
         <MovingPad key={m.id} {...m} />
       ))}
-      {HAMMERS.map((h) => (
+      {level.hammers.map((h) => (
         <Hammer key={h.id} {...h} />
       ))}
-      {SPINNERS.map((s) => (
+      {level.spinners.map((s) => (
         <Spinner key={s.id} {...s} />
       ))}
-      {PENDULUMS.map((p) => (
+      {level.pendulums.map((p) => (
         <Pendulum key={p.id} {...p} />
       ))}
-      {RINGS.map((r) => (
+      {level.rings.map((r) => (
         <BoostRing key={r.id} pos={r.pos} />
       ))}
-      {PICKUPS.map((p) => (
+      {level.pickups.map((p) => (
         <PickupMesh key={p.id} {...p} />
       ))}
 
-      <FinishArch />
-      <Decor />
+      <FinishArch z={level.finishZ} />
+      <Decor theme={level.theme.id} finishZ={level.finishZ} />
       <CloudFloor />
-    </>
+    </group>
   );
 }
 
-function TrapTile(t: (typeof TRAP_TILES)[number]) {
+function TrapTile(t: TrapTileDef) {
   const ref = useRef<RapierRigidBody>(null);
   const armed = useRef(0);
   const dropped = useRef(false);
@@ -158,22 +157,18 @@ function TrapTile(t: (typeof TRAP_TILES)[number]) {
   );
 }
 
-function NeonRails() {
+function NeonRails({ color, neon }: { color: string; neon: string }) {
   return (
     <group>
       {([-10.2, 10.2] as const).map((x) => (
         <group key={x}>
-          <mesh position={[x, 1.15, -86]} castShadow>
-            <boxGeometry args={[0.55, 2.5, 210]} />
-            <meshLambertMaterial color="#163A9A" />
+          <mesh position={[x, 1.15, -40]} castShadow>
+            <boxGeometry args={[0.55, 2.5, 130]} />
+            <meshLambertMaterial color={color} />
           </mesh>
-          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 1.85, -86]}>
-            <boxGeometry args={[0.1, 0.16, 210]} />
-            <meshBasicMaterial color="#7CF0FF" />
-          </mesh>
-          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 0.55, -86]}>
-            <boxGeometry args={[0.08, 0.1, 210]} />
-            <meshBasicMaterial color="#FF8AD4" />
+          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 1.85, -40]}>
+            <boxGeometry args={[0.1, 0.16, 130]} />
+            <meshBasicMaterial color={neon} />
           </mesh>
         </group>
       ))}
@@ -191,7 +186,7 @@ function SkyDome() {
   );
 }
 
-function MovingPad(m: (typeof MOVERS)[number]) {
+function MovingPad(m: Mover) {
   const ref = useRef<RapierRigidBody>(null);
   const last = useRef(new THREE.Vector3(...m.from));
   useFrame(({ clock }) => {
@@ -225,7 +220,7 @@ function MovingPad(m: (typeof MOVERS)[number]) {
   );
 }
 
-function Hammer(h: (typeof HAMMERS)[number]) {
+function Hammer(h: Hammer) {
   const ref = useRef<RapierRigidBody>(null);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const e = useMemo(() => new THREE.Euler(), []);
@@ -265,7 +260,7 @@ function Hammer(h: (typeof HAMMERS)[number]) {
   );
 }
 
-function Spinner(s: (typeof SPINNERS)[number]) {
+function Spinner(s: Spinner) {
   const ref = useRef<RapierRigidBody>(null);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const e = useMemo(() => new THREE.Euler(), []);
@@ -296,7 +291,7 @@ function Spinner(s: (typeof SPINNERS)[number]) {
   );
 }
 
-function Pendulum(p: (typeof PENDULUMS)[number]) {
+function Pendulum(p: Pendulum) {
   const ref = useRef<RapierRigidBody>(null);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const e = useMemo(() => new THREE.Euler(), []);
@@ -380,76 +375,63 @@ function BoostRing({ pos }: { pos: [number, number, number] }) {
   );
 }
 
-function FinishArch() {
+function FinishArch({ z }: { z: number }) {
   return (
-    <group position={[0, 0, -188]}>
-      <mesh position={[0, 6.2, -4]}>
-        <boxGeometry args={[18, 12, 0.6]} />
-        <meshLambertMaterial color="#142A88" />
+    <group position={[0, 0, z - 2]}>
+      <mesh position={[-5.4, 2.4, 0]} castShadow>
+        <boxGeometry args={[0.7, 4.8, 0.7]} />
+        <meshLambertMaterial color="#FFF6EB" />
       </mesh>
-      {[-6, -2, 2, 6].map((x, i) =>
-        [2, 5, 8].map((y) => (
-          <mesh key={`${x}-${y}`} position={[x + (i % 2) * 0.4, y, -3.6]} rotation={[0, 0, Math.PI / 4]}>
-            <boxGeometry args={[1.6, 1.6, 0.2]} />
-            <meshBasicMaterial color={((x + y) / 2) % 2 === 0 ? "#5CF0FF" : "#C9A6FF"} />
-          </mesh>
-        )),
-      )}
-      <mesh position={[-7.2, 3.2, 0]} castShadow>
-        <boxGeometry args={[0.8, 6.4, 0.8]} />
-        <meshLambertMaterial color="#F4F7FF" />
+      <mesh position={[5.4, 2.4, 0]} castShadow>
+        <boxGeometry args={[0.7, 4.8, 0.7]} />
+        <meshLambertMaterial color="#FFF6EB" />
       </mesh>
-      <mesh position={[7.2, 3.2, 0]} castShadow>
-        <boxGeometry args={[0.8, 6.4, 0.8]} />
-        <meshLambertMaterial color="#F4F7FF" />
-      </mesh>
-      <mesh position={[0, 6.4, 0]}>
-        <boxGeometry args={[15.2, 0.7, 0.8]} />
-        <meshLambertMaterial color="#FF6B8A" />
+      <mesh position={[0, 4.8, 0]}>
+        <boxGeometry args={[11.6, 0.7, 0.7]} />
+        <meshLambertMaterial color="#E8614A" />
       </mesh>
     </group>
   );
 }
 
-function CandyTree({ position }: { position: [number, number, number] }) {
+function CandyTree({
+  position,
+  color,
+  glow,
+}: {
+  position: [number, number, number];
+  color: string;
+  glow: string;
+}) {
   return (
     <group position={position}>
-      <mesh position={[0, 1.6, 0]} castShadow>
-        <cylinderGeometry args={[0.28, 0.4, 3.2, 8]} />
-        <meshLambertMaterial color="#1A3A9A" />
+      <mesh position={[0, 1.4, 0]} castShadow>
+        <cylinderGeometry args={[0.26, 0.38, 2.8, 8]} />
+        <meshLambertMaterial color={color} />
       </mesh>
-      <mesh position={[0, 3.3, 0]}>
-        <boxGeometry args={[0.12, 0.12, 1.4]} />
-        <meshBasicMaterial color="#7CF0FF" />
+      <mesh position={[0, 2.9, 0]}>
+        <sphereGeometry args={[0.55, 12, 10]} />
+        <meshLambertMaterial color={glow} />
       </mesh>
     </group>
   );
 }
 
-function Decor() {
-  const trees: [number, number, number][] = [
-    [-8.5, 0, 10],
-    [8.2, 0, 8],
-    [-7.5, 0, 2],
-    [7.8, 0, -2],
-    [-7.2, 0, -12],
-    [7.4, 0, -18],
-    [-6.8, 0, -40],
-    [7.1, 0, -78],
-    [-6.4, 0, -80],
-    [7.6, 0, -180],
-    [-7.4, 0, -182],
-  ];
+function Decor({ theme, finishZ }: { theme: string; finishZ: number }) {
+  const color =
+    theme === "ice" ? "#8EC8F0" : theme === "factory" ? "#6A7A90" : theme === "pirate" ? "#8B6914" : "#3DCFB0";
+  const glow =
+    theme === "ice" ? "#FFFFFF" : theme === "dessert" ? "#E08AA4" : theme === "finale" ? "#E8C85A" : "#FFF6A8";
+  const zs = [8, -6, -20, -40, Math.max(finishZ + 8, -60)];
   return (
     <>
-      {trees.map((p, i) => (
-        <CandyTree key={i} position={p} />
-      ))}
-      {[-18, -40, -90, -140, -175].map((z, i) => (
-        <mesh key={z} position={[i % 2 === 0 ? -16 : 16, 6 + (i % 3), z]}>
-          <sphereGeometry args={[2.4, 12, 10]} />
-          <meshLambertMaterial color="#F7FBFF" transparent opacity={0.55} />
-        </mesh>
+      {zs.map((z, i) => (
+        <CandyTree
+          key={i}
+          position={[i % 2 === 0 ? -8.2 : 8.2, 0, z]}
+          color={color}
+          glow={glow}
+        />
       ))}
     </>
   );

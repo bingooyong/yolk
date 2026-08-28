@@ -34,8 +34,9 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
     } else {
       const dist = portrait ? CAM_DIST + 1.1 : CAM_DIST;
       const height = portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT;
-      desired.current.set(px * 0.35, py + height, pz + dist);
-      lookAt.current.set(px * 0.22, py + 0.55, pz - CAM_LOOKAHEAD);
+      const air = player && !player.grounded ? 0.38 : 0;
+      desired.current.set(px * 0.22, Math.max(1.55, py + height + air), pz + dist);
+      lookAt.current.set(px * 0.12, py + 0.55, pz - CAM_LOOKAHEAD);
     }
 
     const k = phase === "title" ? 1.8 : 3.2;
@@ -43,10 +44,10 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
     pos.current.lerp(desired.current, a);
     look.current.lerp(lookAt.current, a);
 
-    const mag = sim.trauma * sim.trauma * 0.06;
+    const mag = sim.trauma * sim.trauma * 0.035;
     camera.position.set(
-      pos.current.x + Math.sin(t * 23) * mag,
-      pos.current.y,
+      pos.current.x + Math.sin(t * 18) * mag,
+      Math.max(1.35, pos.current.y),
       pos.current.z,
     );
     camera.lookAt(look.current);

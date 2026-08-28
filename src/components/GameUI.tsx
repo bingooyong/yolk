@@ -22,6 +22,7 @@ import {
   rarityColor,
   rarityLabel,
 } from "@/game/skins";
+import { LEVELS, LEVEL_ORDER } from "@/game/levels";
 import { cn } from "@/lib/utils";
 
 function formatTime(t: number) {
@@ -115,13 +116,20 @@ export function GameUI() {
       </div>
 
       {(phase === "playing" || phase === "countdown") && (
-        <HudBar
-          time={hud.time}
-          place={hud.place}
-          dashCd={hud.dashCd}
-          coinsRun={hud.coinsRun}
-          racers={hud.racers}
-        />
+        <>
+          <HudBar
+            time={hud.time}
+            place={hud.place}
+            dashCd={hud.dashCd}
+            coinsRun={hud.coinsRun}
+            racers={hud.racers}
+          />
+          {hud.failHint ? (
+            <div className="pointer-events-none absolute bottom-[22%] left-1/2 z-20 w-[min(92%,420px)] -translate-x-1/2 rounded-2xl border border-border bg-ink/80 px-4 py-3 text-center text-sm shadow-panel">
+              {hud.failHint}
+            </div>
+          ) : null}
+        </>
       )}
 
       {phase === "countdown" && (
@@ -323,8 +331,9 @@ function TitleSheet({
         {lobbyTab === "play" ? (
           <>
             <p className="mt-3 max-w-sm text-pretty text-sm text-fg-muted">
-              跑、跳、冲。收集蛋币和护盾糖，第一个冲过终点。皮肤只改外观。
+              {LEVELS[useGameStore.getState().levelId].theme.blurb}
             </p>
+            <LevelPicker />
             <div className="mt-3 flex gap-4 text-xs text-fg-subtle">
               <span>胜场 {wins}</span>
               <span>最佳 {bestTime != null ? formatTime(bestTime) : "--"}</span>
@@ -348,9 +357,9 @@ function TitleSheet({
             </div>
             {howTo && (
               <ul className="mt-4 space-y-2 text-sm text-fg-muted">
-                <li>镜头固定朝向终点，减少晕眩</li>
-                <li>金币 +5，蓝糖护盾，粉糖加速</li>
-                <li>掉下去回检查点。完赛按名次发币抽皮肤</li>
+                <li>角色永远站直，跳跃不会翻跟头</li>
+                <li>镜头只跟位置，不跟旋转</li>
+                <li>掉下去会告诉你为什么，并回检查点</li>
               </ul>
             )}
             <div className="mt-5 flex flex-col gap-2">
@@ -367,6 +376,45 @@ function TitleSheet({
           <GachaPanel coins={coins} />
         )}
       </div>
+    </div>
+  );
+}
+
+function LevelPicker() {
+  const levelId = useGameStore((s) => s.levelId);
+  const setLevel = useGameStore((s) => s.setLevel);
+  const isUnlocked = useGameStore((s) => s.isUnlocked);
+  const cleared = useGameStore((s) => s.cleared);
+  const levelBest = useGameStore((s) => s.levelBest);
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-2">
+      {LEVEL_ORDER.map((id) => {
+        const lv = LEVELS[id];
+        const open = isUnlocked(id);
+        const done = cleared.includes(id);
+        const active = levelId === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            disabled={!open}
+            onClick={() => open && setLevel(id)}
+            className={cn(
+              "rounded-xl border px-3 py-2 text-left",
+              active ? "border-fg bg-surface-2" : "border-border",
+              !open && "opacity-40",
+            )}
+          >
+            <span className="block font-display text-sm">{lv.theme.name}</span>
+            <span className="mt-0.5 block text-[11px] text-fg-subtle">
+              {"★".repeat(lv.theme.stars)}
+              {"☆".repeat(5 - lv.theme.stars)}
+              {done ? " · 已通关" : open ? "" : " · 通关上一关"}
+              {levelBest[id] != null ? ` · ${formatTime(levelBest[id])}` : ""}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -476,6 +524,8 @@ function Results({
   onMenu: () => void;
 }) {
   const you = racers.find((r) => r.isPlayer);
+  const bonus = useGameStore((s) => s.lastBonus);
+  const levelName = LEVELS[useGameStore((s) => s.levelId)].theme.name;
   return (
     <div className="pointer-events-auto absolute inset-0 flex items-end justify-center bg-ink/40 p-4 md:items-center">
       <div
@@ -484,7 +534,7 @@ function Results({
       >
         <div className="flex items-center gap-2 text-accent">
           <Trophy className="size-5" />
-          <p className="text-xs font-medium uppercase tracking-[0.16em]">Finish</p>
+          <p className="text-xs font-medium uppercase tracking-[0.16em]">{levelName}</p>
         </div>
         <h2 className="mt-1 font-display text-3xl">{you ? ordinal(you.place) : "完赛"}</h2>
         <p className="mt-1 text-sm text-fg-muted">
@@ -492,6 +542,13 @@ function Results({
           {bestTime != null ? ` · 最佳 ${formatTime(bestTime)}` : ""}
         </p>
         <p className="mt-2 text-sm text-butter">本局入账 +{payout} 币</p>
+        {(bonus.first > 0 || bonus.perfect > 0 || bonus.noFall > 0) && (
+          <p className="mt-1 text-xs text-fg-subtle">
+            {bonus.first > 0 ? `首通 +${bonus.first}  ` : ""}
+            {bonus.noFall > 0 ? `无掉落 +${bonus.noFall}  ` : ""}
+            {bonus.perfect > 0 ? `收集 +${bonus.perfect}` : ""}
+          </p>
+        )}
         <ol className="mt-4 max-h-44 space-y-1.5 overflow-auto">
           {racers.map((r) => (
             <li

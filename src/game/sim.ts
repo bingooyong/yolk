@@ -18,6 +18,8 @@ export type RacerSim = {
   squash: number;
 };
 
+export type MoveState = "idle" | "running" | "jump_start" | "airborne" | "falling" | "landing";
+
 export type SimWorld = {
   raceId: number;
   time: number;
@@ -29,6 +31,11 @@ export type SimWorld = {
   coinsRun: number;
   taken: Set<string>;
   racers: RacerSim[];
+  moveState: MoveState;
+  failHint: string;
+  failUntil: number;
+  falls: number;
+  coinsTotal: number;
 };
 
 export const sim: SimWorld = {
@@ -42,6 +49,11 @@ export const sim: SimWorld = {
   coinsRun: 0,
   taken: new Set(),
   racers: [],
+  moveState: "idle",
+  failHint: "",
+  failUntil: 0,
+  falls: 0,
+  coinsTotal: 0,
 };
 
 export function addTrauma(amount: number) {
@@ -75,6 +87,16 @@ export function resetSimRacers() {
   sim.playerDashing = false;
   sim.coinsRun = 0;
   sim.taken = new Set();
+  sim.moveState = "idle";
+  sim.failHint = "";
+  sim.failUntil = 0;
+  sim.falls = 0;
+}
+
+export function setFail(hint: string) {
+  sim.failHint = hint;
+  sim.failUntil = sim.time + 2.6;
+  sim.falls += 1;
 }
 
 export function playerColorHex(id: string) {
