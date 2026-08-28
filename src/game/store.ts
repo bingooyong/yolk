@@ -38,6 +38,7 @@ type Persist = {
   muted: boolean;
   musicVol: number;
   sfxVol: number;
+  camSens: number;
 };
 
 const SAVE_KEY = "yolk-rush-v4";
@@ -56,6 +57,7 @@ function load(): Persist {
     muted: false,
     musicVol: 0.72,
     sfxVol: 0.78,
+    camSens: 1,
   };
   try {
     const raw =
@@ -84,6 +86,9 @@ function load(): Persist {
       muted: p.muted === true,
       musicVol: typeof p.musicVol === "number" ? Math.min(1, Math.max(0, p.musicVol)) : 0.72,
       sfxVol: typeof p.sfxVol === "number" ? Math.min(1, Math.max(0, p.sfxVol)) : 0.78,
+      camSens: typeof (p as { camSens?: number }).camSens === "number"
+        ? Math.min(1.6, Math.max(0.5, (p as { camSens: number }).camSens))
+        : 1,
     };
   } catch {
     return fallback;
@@ -114,6 +119,7 @@ const initial =
         muted: false,
         musicVol: 0.72,
         sfxVol: 0.78,
+        camSens: 1,
       };
 
 function persistFrom(s: {
@@ -129,6 +135,7 @@ function persistFrom(s: {
   muted: boolean;
   musicVol: number;
   sfxVol: number;
+  camSens: number;
 }): Persist {
   return {
     bestTime: s.bestTime,
@@ -143,6 +150,7 @@ function persistFrom(s: {
     muted: s.muted,
     musicVol: s.musicVol,
     sfxVol: s.sfxVol,
+    camSens: s.camSens,
   };
 }
 
@@ -156,6 +164,7 @@ type GameStore = {
   muted: boolean;
   musicVol: number;
   sfxVol: number;
+  camSens: number;
   howTo: boolean;
   lobbyTab: LobbyTab;
   coins: number;
@@ -186,6 +195,7 @@ type GameStore = {
   toggleMute: () => void;
   setMusicVol: (v: number) => void;
   setSfxVol: (v: number) => void;
+  setCamSens: (v: number) => void;
   toggleHowTo: () => void;
   startRace: () => void;
   forcePlay: () => void;
@@ -209,6 +219,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   muted: initial.muted,
   musicVol: initial.musicVol,
   sfxVol: initial.sfxVol,
+  camSens: initial.camSens ?? 1,
   howTo: false,
   lobbyTab: "play",
   coins: initial.coins,
@@ -260,6 +271,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
   setSfxVol: (v) => {
     set({ sfxVol: Math.max(0, Math.min(1, v)) });
+    save(persistFrom(get()));
+  },
+  setCamSens: (v) => {
+    set({ camSens: Math.max(0.5, Math.min(1.6, v)) });
     save(persistFrom(get()));
   },
   toggleHowTo: () => set({ howTo: !get().howTo }),

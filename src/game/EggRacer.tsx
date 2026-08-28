@@ -44,7 +44,18 @@ import {
   sfxHit,
   sfxJump,
   sfxLand,
+  sfxPounce,
+  sfxRoll,
 } from "./audio";
+import {
+  ABILITY,
+  activate,
+  canUse,
+  hudOf,
+  makeAbilities,
+  tickAbilities,
+  type AbilitySet,
+} from "./abilities";
 import { addTrauma, ensureRacer, lerpAngle, setFail, sim, type DashState, type MoveState } from "./sim";
 import { useGameStore } from "./store";
 
@@ -98,6 +109,11 @@ export function EggRacer({
     dashDirZ: -1,
     chargeBeep: 0,
     maxBeep: false,
+    pounceT: 0,
+    rollT: 0,
+    rollSpin: 0,
+    lean: 0,
+    abilities: makeAbilities() as AbilitySet,
     grounded: false,
     stun: 0,
     squash: 1,
@@ -150,6 +166,11 @@ export function EggRacer({
     L.dashRecover = 0;
     L.maxBeep = false;
     L.chargeBeep = 0;
+    L.pounceT = 0;
+    L.rollT = 0;
+    L.rollSpin = 0;
+    L.lean = 0;
+    L.abilities = makeAbilities();
     L.grounded = true;
     L.stun = 0;
     L.squash = 1;
@@ -217,9 +238,10 @@ export function EggRacer({
     const canControl = phase === "playing" && !L.finished && L.stun <= 0;
 
     if (isPlayer && (phase === "playing" || phase === "countdown")) {
-      const camYaw = sim.camYaw;
-      tmpFwd.set(-Math.sin(camYaw), 0, -Math.cos(camYaw));
-      tmpRight.set(Math.cos(camYaw), 0, -Math.sin(camYaw));
+      const orbit = Math.abs(Math.atan2(Math.sin(sim.lookYaw), Math.cos(sim.lookYaw)));
+      const moveYaw = orbit > 1.75 ? L.yaw : sim.camYaw;
+      tmpFwd.set(-Math.sin(moveYaw), 0, -Math.cos(moveYaw));
+      tmpRight.set(Math.cos(moveYaw), 0, -Math.sin(moveYaw));
       const steer = consumeSteerOverride();
       let mx = actions.moveX;
       const my = actions.moveY;
@@ -275,24 +297,46 @@ export function EggRacer({
     L.invuln = Math.max(0, L.invuln - dt);
     L.dashRecover = Math.max(0, L.dashRecover - dt);
     if (L.dashT > 0) L.dashT -= dt;
+    L.pounceT = Math.max(0, L.pounceT - dt);
+    L.rollT = Math.max(0, L.rollT - dt);
+    if (isPlayer) tickAbilities(L.abilities, dt);
 
-    if (isPlayer && phase === "playing" && !L.finished) {
-      stepPlayerDash(L, actions, wishLen, () => {
-        if (wishLen < 0.1) {
-          wishX = -Math.sin(L.yaw);
-          wishZ = -Math.cos(L.yaw);
-        }
-        L.dashDirX = wishLen < 0.1 ? -Math.sin(L.yaw) : wishX / Math.max(wishLen, 0.001);
-        L.dashDirZ = wishLen < 0.1 ? -Math.cos(L.yaw) : wishZ / Math.max(wishLen, 0.001);
-      });
-    } else if (wantDash && L.dashCd <= 0 && !L.finished && phase === "playing") {
-      fireDash(L, 2, isPlayer);
+    const exclusive =
+      L.pounceT > 0 || L.rollT > 0 || L.dashState === "active" || L.dashState === "charging";
+
+    const aimDash = () => {
       if (wishLen < 0.1) {
         wishX = -Math.sin(L.yaw);
         wishZ = -Math.cos(L.yaw);
       }
-      L.dashDirX = wishX;
-      L.dashDirZ = wishZ;
+      L.dashDirX = wishLen < 0.1 ? -Math.sin(L.yaw) : wishX / Math.max(wishLen, 0.001);
+      L.dashDirZ = wishLen < 0.1 ? -Math.cos(L.yaw) : wishZ / Math.max(wishLen, 0.001);
+    };
+
+    if (isPlayer && phase === "playing" && !L.finished) {
+      if (!exclusive && actions.pouncePressed && canUse(L.abilities, "pounce")) {
+        activate(L.abilities, "pounce");
+        L.pounceT = ABILITY.pounce.duration;
+        L.squash = 0.8;
+        L.lean = 0.5;
+        aimDash();
+        sfxPounce();
+        addTrauma(0.035);
+      } else if (!exclusive && actions.rollPressed && canUse(L.abilities, "roll")) {
+        activate(L.abilities, "roll");
+        L.rollT = ABILITY.roll.duration;
+        L.rollSpin = 0;
+        L.squash = 0.58;
+        aimDash();
+        sfxRoll();
+        addTrauma(0.025);
+      }
+      if (L.pounceT <= 0 && L.rollT <= 0) {
+        stepPlayerDash(L, actions, wishLen, aimDash);
+      }
+    } else if (wantDash && L.dashCd <= 0 && !L.finished && phase === "playing") {
+      fireDash(L, 2, isPlayer);
+      aimDash();
     }
 
     if (L.dashState === "active" && L.dashT <= 0) {
@@ -306,11 +350,17 @@ export function EggRacer({
     }
 
     const dashing = L.dashState === "active" && L.dashT > 0;
+    const pouncing = L.pounceT > 0;
+    const rolling = L.rollT > 0;
     const dashSpd = dashing
       ? Math.min(DASH.maxSpeed, DASH.speed[Math.max(0, L.dashLevel - 1)] ?? DASH_SPEED)
-      : L.grounded
-        ? MOVE_SPEED
-        : AIR_SPEED;
+      : pouncing
+        ? ABILITY.pounce.speed
+        : rolling
+          ? ABILITY.roll.speed
+          : L.grounded
+            ? MOVE_SPEED
+            : AIR_SPEED;
     const speed = dashSpd;
     const ice = L.surface === "ice" && L.grounded;
     const grip = ice ? 1.55 : L.grounded ? 16 : 7;
@@ -319,7 +369,7 @@ export function EggRacer({
     const blend = 1 - Math.exp(-grip * dt);
     L.vx += (targetVx - L.vx) * blend;
     L.vz += (targetVz - L.vz) * blend;
-    if (dashing) {
+    if (dashing || pouncing || rolling) {
       L.vx = L.dashDirX * speed;
       L.vz = L.dashDirZ * speed;
     }
@@ -335,7 +385,7 @@ export function EggRacer({
       if (L.vy < -TERMINAL_V) L.vy = -TERMINAL_V;
     } else if (L.vy < 0) L.vy = 0;
 
-    if (L.jumpBuf > 0 && L.coyote > 0) {
+    if (L.jumpBuf > 0 && L.coyote > 0 && L.pounceT <= 0) {
       L.vy = JUMP_V;
       L.jumpBuf = 0;
       L.coyote = 0;
@@ -486,6 +536,9 @@ export function EggRacer({
     L.landT = Math.max(0, L.landT - dt);
 
     if (L.landT > 0) L.moveState = "landing";
+    else if (pouncing) L.moveState = "pounce";
+    else if (rolling) L.moveState = "roll";
+    else if (dashing) L.moveState = "boost";
     else if (L.jumpT > 0) L.moveState = "jump_start";
     else if (!grounded) L.moveState = L.vy > 0.4 ? "airborne" : "falling";
     else L.moveState = wishLen > 0.18 ? "running" : "idle";
@@ -498,6 +551,10 @@ export function EggRacer({
     const wantBank = THREE.MathUtils.clamp(-wishX * 0.16, -0.18, 0.18);
     L.bank += (wantBank - L.bank) * (1 - Math.exp(-10 * dt));
 
+    if (pouncing) L.lean = 0.48;
+    else L.lean += (0 - L.lean) * (1 - Math.exp(-12 * dt));
+    if (rolling) L.rollSpin += 18 * dt;
+    else L.rollSpin = 0;
     L.squash += (1 - L.squash) * (1 - Math.exp(-10 * dt));
 
     for (const ring of level.rings) {
@@ -591,14 +648,21 @@ export function EggRacer({
     if (isPlayer) {
       sim.playerYaw = L.yaw;
       sim.playerSpeed = horiz;
-      sim.playerDashing = dashing;
-      sim.dashFov = dashing ? DASH.fov[Math.max(0, L.dashLevel - 1)] : sim.dashFov * 0.86;
+      sim.playerDashing = dashing || pouncing;
+      sim.dashFov = dashing ? DASH.fov[Math.max(0, L.dashLevel - 1)] : pouncing ? 2.4 : sim.dashFov * 0.86;
       sim.moveState = L.moveState;
       sim.pad.jumpHeld = actions.jump;
       sim.pad.dashState = L.dashState;
       sim.pad.dashCharge = L.dashCharge;
       sim.pad.dashLevel = L.dashLevel;
       sim.pad.dashCd = L.dashCd;
+      sim.pad.pounce = hudOf(L.abilities.pounce);
+      sim.pad.roll = hudOf(L.abilities.roll);
+      sim.pad.boost = {
+        phase: dashing ? "active" : L.dashCd > 0 ? "cooldown" : "ready",
+        cd01: L.dashCd > 0 ? Math.min(1, L.dashCd / DASH.cooldown) : 0,
+        flash: L.abilities.boost.flash,
+      };
       if (phase === "playing" && !L.finished) sim.time += dt;
     }
   });
@@ -609,7 +673,7 @@ export function EggRacer({
     const L = local.current;
     vis.rotation.order = "YXZ";
     vis.rotation.y = L.yaw + Math.PI;
-    vis.rotation.x = 0;
+    vis.rotation.x = L.rollT > 0 ? L.rollSpin : L.lean;
     vis.rotation.z = L.bank;
     const s = L.squash;
     vis.scale.set(1 / Math.sqrt(s), s, 1 / Math.sqrt(s));
@@ -629,6 +693,7 @@ export function EggRacer({
         <FeelTrail color={color} active={isPlayer} />
         <EggMesh color={color} accessory={accessory} skinId={skinId} squash={1} isPlayer={isPlayer} />
       </group>
+      {isPlayer ? <PlayerMarker color={color} /> : null}
     </RigidBody>
   );
 }
@@ -738,6 +803,41 @@ function FeelTrail({ color, active }: { color: string; active: boolean }) {
           />
         </mesh>
       ))}
+    </group>
+  );
+}
+
+function PlayerMarker({ color }: { color: string }) {
+  const group = useRef<THREE.Group>(null);
+  const ghost = useRef<THREE.Mesh>(null);
+  useFrame(({ camera, clock }) => {
+    const g = group.current;
+    if (!g) return;
+    const bob = Math.sin(clock.elapsedTime * 5.2) * 0.07;
+    g.position.y = 1.42 + bob;
+    g.lookAt(camera.position);
+    if (ghost.current) {
+      const mat = ghost.current.material as THREE.MeshBasicMaterial;
+      mat.opacity = 0.28;
+    }
+  });
+  return (
+    <group ref={group} renderOrder={8}>
+      <mesh position={[0, 0, 0]} rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[0.16, 0.28, 3]} />
+        <meshBasicMaterial color={color} toneMapped={false} />
+      </mesh>
+      <mesh ref={ghost} position={[0, 0, 0]} rotation={[Math.PI, 0, 0]} renderOrder={9}>
+        <coneGeometry args={[0.2, 0.34, 3]} />
+        <meshBasicMaterial
+          color={color}
+          transparent
+          opacity={0.28}
+          depthTest={false}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
     </group>
   );
 }

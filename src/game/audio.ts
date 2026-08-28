@@ -477,6 +477,12 @@ export function sfxDashMax() {
 export function sfxDashRelease(level: number) {
   beep(160 + level * 40, 0.14, "sawtooth", 0.07 + level * 0.015, 380 + level * 40);
 }
+export function sfxPounce() {
+  beep(210, 0.12, "square", 0.07, 260);
+}
+export function sfxRoll() {
+  beep(140, 0.16, "sawtooth", 0.055, 90);
+}
 export function sfxLand() {
   beep(90, 0.08, "triangle", 0.1, -30);
 }

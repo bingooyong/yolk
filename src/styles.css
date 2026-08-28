@@ -87,8 +87,8 @@
   position: absolute;
   right: max(10px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
-  width: 188px;
-  height: 196px;
+  width: 196px;
+  height: 220px;
   pointer-events: none;
 }
 
@@ -142,6 +142,25 @@
 
 .pad-btn.is-locked {
   opacity: 0.4;
+}
+
+.pad-btn.is-cool {
+  filter: brightness(0.7);
+}
+
+.pad-btn.is-ready-flash {
+  animation: pad-ready 180ms ease-out;
+}
+
+@keyframes pad-ready {
+  0% {
+    transform: scale(1.08);
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
 }
 
 .pad-ripple {

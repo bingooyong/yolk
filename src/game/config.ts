@@ -47,6 +47,9 @@ export const EGG_BUMP = 1.05;
 export const CAM_DIST = 6.2;
 export const CAM_HEIGHT = 2.55;
 export const CAM_LOOKAHEAD = 3.4;
+export const CAM_PITCH_MIN = -0.32;
+export const CAM_PITCH_MAX = 0.48;
+export const CAM_RECENTER = 1.7;
 
 export type EggColor = {
   id: string;

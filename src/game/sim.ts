@@ -1,4 +1,5 @@
 import { EGG_COLORS } from "./config";
+import type { AbilityHud } from "./abilities";
 
 export type RacerSim = {
   id: string;
@@ -18,7 +19,16 @@ export type RacerSim = {
   squash: number;
 };
 
-export type MoveState = "idle" | "running" | "jump_start" | "airborne" | "falling" | "landing";
+export type MoveState =
+  | "idle"
+  | "running"
+  | "jump_start"
+  | "airborne"
+  | "falling"
+  | "landing"
+  | "pounce"
+  | "roll"
+  | "boost";
 export type DashState = "idle" | "charging" | "ready" | "release" | "active" | "recovery";
 
 export type PadHud = {
@@ -28,7 +38,12 @@ export type PadHud = {
   dashCharge: number;
   dashLevel: 0 | 1 | 2 | 3;
   dashCd: number;
+  pounce: AbilityHud;
+  roll: AbilityHud;
+  boost: AbilityHud;
 };
+
+const idleHud = (): AbilityHud => ({ phase: "ready", cd01: 0, flash: 0 });
 
 export type SimWorld = {
   raceId: number;
@@ -39,6 +54,9 @@ export type SimWorld = {
   playerDashing: boolean;
   dashFov: number;
   camYaw: number;
+  lookYaw: number;
+  lookPitch: number;
+  lookIdle: number;
   coinsRun: number;
   taken: Set<string>;
   racers: RacerSim[];
@@ -59,6 +77,9 @@ export const sim: SimWorld = {
   playerDashing: false,
   dashFov: 0,
   camYaw: 0,
+  lookYaw: 0,
+  lookPitch: 0,
+  lookIdle: 0,
   coinsRun: 0,
   taken: new Set(),
   racers: [],
@@ -74,6 +95,9 @@ export const sim: SimWorld = {
     dashCharge: 0,
     dashLevel: 0,
     dashCd: 0,
+    pounce: idleHud(),
+    roll: idleHud(),
+    boost: idleHud(),
   },
 };
 
@@ -107,6 +131,9 @@ export function resetSimRacers() {
   sim.playerSpeed = 0;
   sim.playerDashing = false;
   sim.dashFov = 0;
+  sim.lookYaw = 0;
+  sim.lookPitch = 0;
+  sim.lookIdle = 0;
   sim.coinsRun = 0;
   sim.taken = new Set();
   sim.moveState = "idle";
@@ -118,6 +145,9 @@ export function resetSimRacers() {
   sim.pad.dashCharge = 0;
   sim.pad.dashLevel = 0;
   sim.pad.dashCd = 0;
+  sim.pad.pounce = idleHud();
+  sim.pad.roll = idleHud();
+  sim.pad.boost = idleHud();
 }
 
 export function setFail(hint: string) {

@@ -47,6 +47,8 @@ export function GameUI() {
   const coins = useGameStore((s) => s.coins);
   const lobbyTab = useGameStore((s) => s.lobbyTab);
   const lastPayout = useGameStore((s) => s.lastPayout);
+  const camSens = useGameStore((s) => s.camSens);
+  const setCamSens = useGameStore((s) => s.setCamSens);
   const lastPull = useGameStore((s) => s.lastPull);
   const pullSeq = useGameStore((s) => s.pullSeq);
   const clearPull = useGameStore((s) => s.clearPull);
@@ -163,6 +165,19 @@ export function GameUI() {
         <CenterCard>
           <h2 className="font-display text-3xl">暂停</h2>
           <p className="mt-2 text-sm text-fg-muted">比赛还在等你回来</p>
+          <label className="mt-4 flex items-center justify-between gap-3 text-xs text-fg-muted">
+            镜头灵敏度
+            <input
+              type="range"
+              min={0.5}
+              max={1.6}
+              step={0.05}
+              value={camSens}
+              onChange={(e) => setCamSens(Number(e.target.value))}
+              className="w-28"
+              aria-label="Camera sensitivity"
+            />
+          </label>
           <div className="mt-6 flex flex-col gap-2">
             <Button size="lg" onClick={resume} aria-label="Resume">
               <Play className="size-4" />

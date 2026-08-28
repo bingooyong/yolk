@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowUp, Lock, Sparkles, Zap } from "lucide-react";
+import { ArrowDownToLine, ArrowUp, Lock, RotateCw, Sparkles, Zap } from "lucide-react";
 import { useDevice } from "@/engine/device";
 import { haptic } from "@/engine/haptics";
 import { touch } from "@/game/input";
@@ -24,6 +24,7 @@ export function TouchControls() {
       }}
     >
       <JoystickZone large={device.iPad} />
+      <LookZone />
       <ActionPad large={device.iPad} />
     </div>
   );
@@ -110,34 +111,75 @@ function JoystickZone({ large }: { large: boolean }) {
   );
 }
 
+function LookZone() {
+  const pid = useRef<number | null>(null);
+  const last = useRef({ x: 0, y: 0 });
+  return (
+    <div
+      className="pointer-events-auto absolute right-0 w-[48%]"
+      style={{
+        touchAction: "none",
+        top: "max(58px, calc(env(safe-area-inset-top) + 48px))",
+        height: "38%",
+      }}
+      aria-label="Look"
+      onPointerDown={(e) => {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        pid.current = e.pointerId;
+        last.current = { x: e.clientX, y: e.clientY };
+        sim.lookIdle = 0;
+      }}
+      onPointerMove={(e) => {
+        if (pid.current !== e.pointerId) return;
+        touch.lookX += e.clientX - last.current.x;
+        touch.lookY += e.clientY - last.current.y;
+        last.current = { x: e.clientX, y: e.clientY };
+        sim.lookIdle = 0;
+      }}
+      onPointerUp={(e) => {
+        if (pid.current !== e.pointerId) return;
+        pid.current = null;
+      }}
+      onPointerCancel={() => {
+        pid.current = null;
+      }}
+    />
+  );
+}
+
 function ActionPad({ large }: { large: boolean }) {
   const jumpRef = useRef<HTMLButtonElement>(null);
-  const dashRef = useRef<HTMLButtonElement>(null);
-  const ringRef = useRef<SVGCircleElement>(null);
+  const boostRef = useRef<HTMLButtonElement>(null);
+  const pounceRef = useRef<HTMLButtonElement>(null);
+  const rollRef = useRef<HTMLButtonElement>(null);
+  const pounceRing = useRef<SVGCircleElement>(null);
+  const rollRing = useRef<SVGCircleElement>(null);
+  const boostRing = useRef<SVGCircleElement>(null);
   const jumpPid = useRef<number | null>(null);
-  const dashPid = useRef<number | null>(null);
+  const boostPid = useRef<number | null>(null);
 
   useEffect(() => {
     let id = 0;
-    const circ = 2 * Math.PI * 38;
+    const circ = 2 * Math.PI * 34;
     const tick = () => {
       const p = sim.pad;
-      const dash = dashRef.current;
-      const jump = jumpRef.current;
-      const ring = ringRef.current;
-      if (dash) {
-        dash.classList.toggle("is-down", p.dashState === "charging" || p.dashState === "ready");
-        dash.classList.toggle("is-max", p.dashState === "ready");
-        dash.classList.toggle("is-pulse", p.dashState === "release" || p.dashState === "active");
-      }
-      if (jump) {
-        jump.classList.toggle("is-down", p.jumpHeld);
-      }
-      if (ring) {
-        const charge = p.dashState === "idle" || p.dashState === "recovery" ? 0 : p.dashCharge;
-        ring.style.strokeDashoffset = String(circ * (1 - charge));
-        ring.style.opacity = charge > 0.02 ? "1" : "0";
-      }
+      jumpRef.current?.classList.toggle("is-down", p.jumpHeld);
+      boostRef.current?.classList.toggle("is-down", p.dashState === "charging" || p.dashState === "ready");
+      boostRef.current?.classList.toggle("is-max", p.dashState === "ready");
+      pounceRef.current?.classList.toggle("is-ready-flash", p.pounce.flash > 0);
+      rollRef.current?.classList.toggle("is-ready-flash", p.roll.flash > 0);
+      boostRef.current?.classList.toggle("is-ready-flash", p.boost.flash > 0);
+      pounceRef.current?.classList.toggle("is-cool", p.pounce.phase === "cooldown");
+      rollRef.current?.classList.toggle("is-cool", p.roll.phase === "cooldown");
+      const setRing = (el: SVGCircleElement | null, cd01: number, show: boolean) => {
+        if (!el) return;
+        el.style.strokeDashoffset = String(circ * (1 - cd01));
+        el.style.opacity = show ? "1" : "0";
+      };
+      setRing(pounceRing.current, p.pounce.cd01, p.pounce.phase !== "ready");
+      setRing(rollRing.current, p.roll.cd01, p.roll.phase !== "ready");
+      const boostCharge = p.dashState === "idle" || p.dashState === "recovery" ? p.boost.cd01 : p.dashCharge;
+      setRing(boostRing.current, boostCharge, p.dashState !== "idle" || p.boost.phase !== "ready");
       id = requestAnimationFrame(tick);
     };
     id = requestAnimationFrame(tick);
@@ -145,6 +187,8 @@ function ActionPad({ large }: { large: boolean }) {
       cancelAnimationFrame(id);
       touch.jump = false;
       touch.dash = false;
+      touch.pounce = false;
+      touch.roll = false;
       touch.dashCancel = false;
       sim.pad.jumpHeld = false;
     };
@@ -157,10 +201,9 @@ function ActionPad({ large }: { large: boolean }) {
       e.preventDefault();
       touch.jump = true;
       sim.pad.jumpHeld = true;
-      sim.pad.jumpPulse = performance.now();
       jumpRef.current?.classList.add("is-down", "is-pulse");
       haptic("light");
-      window.setTimeout(() => jumpRef.current?.classList.remove("is-pulse"), 170);
+      window.setTimeout(() => jumpRef.current?.classList.remove("is-pulse"), 160);
     } else {
       if (jumpPid.current != null && e.pointerId !== jumpPid.current) return;
       jumpPid.current = null;
@@ -170,9 +213,9 @@ function ActionPad({ large }: { large: boolean }) {
     }
   };
 
-  const holdDash = (e: React.PointerEvent, kind: "down" | "up" | "cancel") => {
+  const holdBoost = (e: React.PointerEvent, kind: "down" | "up" | "cancel") => {
     if (kind === "down") {
-      dashPid.current = e.pointerId;
+      boostPid.current = e.pointerId;
       e.currentTarget.setPointerCapture(e.pointerId);
       e.preventDefault();
       touch.dashCancel = false;
@@ -180,92 +223,145 @@ function ActionPad({ large }: { large: boolean }) {
       haptic("medium");
       return;
     }
-    if (dashPid.current != null && e.pointerId !== dashPid.current) return;
-    dashPid.current = null;
-    if (kind === "cancel") {
-      touch.dashCancel = true;
-      touch.dash = false;
+    if (boostPid.current != null && e.pointerId !== boostPid.current) return;
+    boostPid.current = null;
+    touch.dashCancel = kind === "cancel";
+    touch.dash = false;
+  };
+
+  const tap = (key: "pounce" | "roll", e: React.PointerEvent, on: boolean) => {
+    e.preventDefault();
+    if (on) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      touch[key] = true;
+      haptic("medium");
     } else {
-      touch.dashCancel = false;
-      touch.dash = false;
+      touch[key] = false;
     }
   };
 
-  const s = large ? 1.16 : 1;
-  const dash = 84 * s;
-  const jump = 70 * s;
-  const skill = 42 * s;
+  const s = large ? 1.14 : 1;
+  const jump = 92 * s;
+  const mid = 58 * s;
+  const skill = 40 * s;
 
   return (
     <div className={cn("action-pad", large && "pad-lg")} aria-label="Action pad">
-      <SkillSlot
-        label="Skill 1"
-        left={78 * s}
-        top={2 * s}
-        size={skill}
-        icon={<Sparkles className="size-4" />}
+      <SkillSlot label="Skill" left={78 * s} top={0} size={skill} icon={<Sparkles className="size-3.5" />} />
+      <PadAbility
+        btnRef={rollRef}
+        ringRef={rollRing}
+        aria="Roll"
+        left={2 * s}
+        top={42 * s}
+        size={mid}
+        face="bg-sky text-ink"
+        icon={<RotateCw className="size-6" strokeWidth={2.4} />}
+        onPointerDown={(e) => tap("roll", e, true)}
+        onPointerUp={(e) => tap("roll", e, false)}
+        onPointerCancel={(e) => tap("roll", e, false)}
+      />
+      <PadAbility
+        btnRef={pounceRef}
+        ringRef={pounceRing}
+        aria="Pounce"
+        left={128 * s}
+        top={42 * s}
+        size={mid}
+        face="bg-peach text-ink"
+        icon={<ArrowDownToLine className="size-6" strokeWidth={2.4} />}
+        onPointerDown={(e) => tap("pounce", e, true)}
+        onPointerUp={(e) => tap("pounce", e, false)}
+        onPointerCancel={(e) => tap("pounce", e, false)}
       />
       <button
         ref={jumpRef}
         type="button"
         aria-label="Jump"
-        className="pad-btn"
-        style={{ left: 4 * s, top: 36 * s, width: jump, height: jump }}
+        className="pad-btn pad-jump"
+        style={{ left: 48 * s, top: 68 * s, width: jump, height: jump, zIndex: 2 }}
         onPointerDown={(e) => holdJump(e, true)}
         onPointerUp={(e) => holdJump(e, false)}
         onPointerCancel={(e) => holdJump(e, false)}
       >
         <span className="pad-ripple" />
         <span className="pad-face bg-accent text-accent-fg">
-          <ArrowUp className="size-8" strokeWidth={2.6} />
+          <ArrowUp className="size-10" strokeWidth={2.6} />
         </span>
       </button>
-      <SkillSlot
-        label="Skill 2"
-        left={142 * s}
-        top={48 * s}
-        size={skill}
-        icon={<Sparkles className="size-4" />}
-      />
-      <button
-        ref={dashRef}
-        type="button"
-        aria-label="Dash"
-        className="pad-btn"
-        style={{ left: 58 * s, top: 96 * s, width: dash, height: dash }}
-        onPointerDown={(e) => holdDash(e, "down")}
-        onPointerUp={(e) => holdDash(e, "up")}
-        onPointerCancel={(e) => holdDash(e, "cancel")}
-      >
-        <svg className="pad-ring" viewBox="0 0 88 88" aria-hidden>
-          <circle cx="44" cy="44" r="38" fill="none" stroke="rgb(255 246 235 / 0.12)" strokeWidth="4" />
-          <circle
-            ref={ringRef}
-            cx="44"
-            cy="44"
-            r="38"
-            fill="none"
-            stroke="var(--color-coral)"
-            strokeWidth="4.5"
-            strokeLinecap="round"
-            strokeDasharray={2 * Math.PI * 38}
-            strokeDashoffset={2 * Math.PI * 38}
-            style={{ opacity: 0 }}
-          />
-        </svg>
-        <span className="pad-ripple" />
-        <span className="pad-face bg-coral text-fg">
-          <Zap className="size-8" strokeWidth={2.4} fill="currentColor" />
-        </span>
-      </button>
-      <SkillSlot
-        label="Skill 3"
-        left={128 * s}
-        top={138 * s}
-        size={skill}
-        icon={<Sparkles className="size-4" />}
+      <PadAbility
+        btnRef={boostRef}
+        ringRef={boostRing}
+        aria="Dash"
+        left={66 * s}
+        top={154 * s}
+        size={mid}
+        face="bg-coral text-fg"
+        icon={<Zap className="size-6" strokeWidth={2.4} fill="currentColor" />}
+        onPointerDown={(e) => holdBoost(e, "down")}
+        onPointerUp={(e) => holdBoost(e, "up")}
+        onPointerCancel={(e) => holdBoost(e, "cancel")}
       />
     </div>
+  );
+}
+
+function PadAbility({
+  btnRef,
+  ringRef,
+  aria,
+  left,
+  top,
+  size,
+  face,
+  icon,
+  onPointerDown,
+  onPointerUp,
+  onPointerCancel,
+}: {
+  btnRef: React.RefObject<HTMLButtonElement | null>;
+  ringRef: React.RefObject<SVGCircleElement | null>;
+  aria: string;
+  left: number;
+  top: number;
+  size: number;
+  face: string;
+  icon: ReactNode;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerUp: (e: React.PointerEvent) => void;
+  onPointerCancel: (e: React.PointerEvent) => void;
+}) {
+  const circ = 2 * Math.PI * 34;
+  return (
+    <button
+      ref={btnRef}
+      type="button"
+      aria-label={aria}
+      className="pad-btn"
+      style={{ left, top, width: size, height: size }}
+      onPointerDown={onPointerDown}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
+    >
+      <svg className="pad-ring" viewBox="0 0 80 80" aria-hidden>
+        <circle cx="40" cy="40" r="34" fill="none" stroke="rgb(255 246 235 / 0.12)" strokeWidth="4" />
+        <circle
+          ref={ringRef}
+          cx="40"
+          cy="40"
+          r="34"
+          fill="none"
+          stroke="var(--color-fg)"
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          strokeDashoffset={circ}
+          style={{ opacity: 0 }}
+        />
+      </svg>
+      <span className="pad-ripple" />
+      <span className={cn("pad-face", face)}>{icon}</span>
+    </button>
   );
 }
 
