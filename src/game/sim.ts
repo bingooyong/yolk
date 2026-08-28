@@ -19,6 +19,16 @@ export type RacerSim = {
 };
 
 export type MoveState = "idle" | "running" | "jump_start" | "airborne" | "falling" | "landing";
+export type DashState = "idle" | "charging" | "ready" | "release" | "active" | "recovery";
+
+export type PadHud = {
+  jumpHeld: boolean;
+  jumpPulse: number;
+  dashState: DashState;
+  dashCharge: number;
+  dashLevel: 0 | 1 | 2 | 3;
+  dashCd: number;
+};
 
 export type SimWorld = {
   raceId: number;
@@ -27,6 +37,7 @@ export type SimWorld = {
   playerYaw: number;
   playerSpeed: number;
   playerDashing: boolean;
+  dashFov: number;
   camYaw: number;
   coinsRun: number;
   taken: Set<string>;
@@ -36,6 +47,7 @@ export type SimWorld = {
   failUntil: number;
   falls: number;
   coinsTotal: number;
+  pad: PadHud;
 };
 
 export const sim: SimWorld = {
@@ -45,6 +57,7 @@ export const sim: SimWorld = {
   playerYaw: 0,
   playerSpeed: 0,
   playerDashing: false,
+  dashFov: 0,
   camYaw: 0,
   coinsRun: 0,
   taken: new Set(),
@@ -54,6 +67,14 @@ export const sim: SimWorld = {
   failUntil: 0,
   falls: 0,
   coinsTotal: 0,
+  pad: {
+    jumpHeld: false,
+    jumpPulse: 0,
+    dashState: "idle",
+    dashCharge: 0,
+    dashLevel: 0,
+    dashCd: 0,
+  },
 };
 
 export function addTrauma(amount: number) {
@@ -85,12 +106,18 @@ export function resetSimRacers() {
   sim.trauma = 0;
   sim.playerSpeed = 0;
   sim.playerDashing = false;
+  sim.dashFov = 0;
   sim.coinsRun = 0;
   sim.taken = new Set();
   sim.moveState = "idle";
   sim.failHint = "";
   sim.failUntil = 0;
   sim.falls = 0;
+  sim.pad.jumpHeld = false;
+  sim.pad.dashState = "idle";
+  sim.pad.dashCharge = 0;
+  sim.pad.dashLevel = 0;
+  sim.pad.dashCd = 0;
 }
 
 export function setFail(hint: string) {

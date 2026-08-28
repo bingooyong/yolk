@@ -11,7 +11,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { EGG_COLORS } from "@/game/config";
+import { DASH, EGG_COLORS } from "@/game/config";
 import { sfxClick, sfxCountdown, sfxPull, setMuted, unlockAudio } from "@/game/audio";
 import { useGameStore } from "@/game/store";
 import { GachaCeremony } from "@/components/GachaCeremony";
@@ -241,7 +241,7 @@ function HudBar({
           >
             <span
               className="block h-full bg-accent"
-              style={{ width: `${ready ? 100 : (1 - dashCd / 1.25) * 100}%` }}
+              style={{ width: `${ready ? 100 : (1 - dashCd / DASH.cooldown) * 100}%` }}
             />
           </span>
         </div>

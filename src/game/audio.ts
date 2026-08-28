@@ -467,6 +467,16 @@ export function sfxJump() {
 export function sfxDash() {
   beep(180, 0.16, "sawtooth", 0.07, 420);
 }
+export function sfxDashCharge(level: number) {
+  beep(240 + level * 90, 0.07, "square", 0.045, 40);
+}
+export function sfxDashMax() {
+  beep(520, 0.12, "triangle", 0.08, 180);
+  window.setTimeout(() => beep(720, 0.1, "triangle", 0.07, 80), 70);
+}
+export function sfxDashRelease(level: number) {
+  beep(160 + level * 40, 0.14, "sawtooth", 0.07 + level * 0.015, 380 + level * 40);
+}
 export function sfxLand() {
   beep(90, 0.08, "triangle", 0.1, -30);
 }

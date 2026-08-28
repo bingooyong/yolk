@@ -10,17 +10,26 @@ export const actions = {
   jump: false,
   dash: false,
   jumpPressed: false,
+  jumpReleased: false,
   dashPressed: false,
+  dashReleased: false,
+  dashCanceled: false,
+  dashHold: 0,
+  skill1: false,
+  skill2: false,
+  skill3: false,
 };
 
 let prevJump = false;
 let prevDash = false;
+let dashHoldT = 0;
 
 export const touch = {
   moveX: 0,
   moveY: 0,
   jump: false,
   dash: false,
+  dashCancel: false,
 };
 
 const GAME_KEYS = new Set([
@@ -97,6 +106,7 @@ export function pollInput() {
   let y = 0;
   let jump = false;
   let dash = false;
+  let canceled = false;
 
   if (injected) {
     if (injected.has("KeyA") || injected.has("ArrowLeft")) x -= 1;
@@ -117,6 +127,8 @@ export function pollInput() {
     y += touch.moveY;
     jump = jump || touch.jump;
     dash = dash || touch.dash;
+    canceled = touch.dashCancel;
+    touch.dashCancel = false;
 
     const pads = navigator.getGamepads?.() ?? [];
     for (const pad of pads) {
@@ -135,6 +147,12 @@ export function pollInput() {
     }
   }
 
+  if (typeof document !== "undefined" && document.hidden) {
+    canceled = true;
+    dash = false;
+    jump = false;
+  }
+
   x = Math.max(-1, Math.min(1, x));
   y = Math.max(-1, Math.min(1, y));
   const mag = Math.hypot(x, y);
@@ -143,12 +161,25 @@ export function pollInput() {
     y /= mag;
   }
 
+  const jumpPressed = jump && !prevJump;
+  const jumpReleased = !jump && prevJump;
+  const dashPressed = dash && !prevDash;
+  const dashReleased = !dash && prevDash && !canceled;
+  const dashCanceled = (!dash && prevDash && canceled) || canceled;
+
+  if (dash) dashHoldT += 1 / 60;
+  else dashHoldT = 0;
+
   actions.moveX = x;
   actions.moveY = y;
   actions.jump = jump;
   actions.dash = dash;
-  actions.jumpPressed = jump && !prevJump;
-  actions.dashPressed = dash && !prevDash;
+  actions.jumpPressed = jumpPressed;
+  actions.jumpReleased = jumpReleased;
+  actions.dashPressed = dashPressed;
+  actions.dashReleased = dashReleased;
+  actions.dashCanceled = dashCanceled;
+  actions.dashHold = dashHoldT;
   prevJump = jump;
   prevDash = dash;
 }

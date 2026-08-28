@@ -55,7 +55,7 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
     const persp = camera as THREE.PerspectiveCamera;
     if (persp.isPerspectiveCamera) {
       const base = portrait ? 54 : 46;
-      const target = phase === "title" ? base - 4 : base + (sim.playerDashing ? 2 : 0);
+      const target = phase === "title" ? base - 4 : base + sim.dashFov;
       persp.fov += (target - persp.fov) * (1 - Math.exp(-5 * dt));
       persp.updateProjectionMatrix();
     }

@@ -12,15 +12,15 @@ import {
   ACCESSORIES,
   AIR_SPEED,
   COYOTE,
-  DASH_COOLDOWN,
+  DASH,
   DASH_SPEED,
-  DASH_TIME,
   EGG_BUMP,
   EGG_HALF,
   EGG_RADIUS,
   FALL_GRAVITY,
   JUMP_BUFFER,
   JUMP_CUT,
+  JUMP_FEEL,
   JUMP_V,
   KILL_Y,
   MOVE_SPEED,
@@ -33,8 +33,19 @@ import {
 import { currentLevel, moverVel } from "./course";
 import { EggMesh } from "./EggMesh";
 import { actions, consumeSteerOverride, pollInput } from "./input";
-import { sfxBounce, sfxCoin, sfxDash, sfxFinish, sfxHit, sfxJump, sfxLand } from "./audio";
-import { addTrauma, ensureRacer, lerpAngle, setFail, sim, type MoveState } from "./sim";
+import {
+  sfxBounce,
+  sfxCoin,
+  sfxDash,
+  sfxDashCharge,
+  sfxDashMax,
+  sfxDashRelease,
+  sfxFinish,
+  sfxHit,
+  sfxJump,
+  sfxLand,
+} from "./audio";
+import { addTrauma, ensureRacer, lerpAngle, setFail, sim, type DashState, type MoveState } from "./sim";
 import { useGameStore } from "./store";
 
 type BodyUser = {
@@ -79,6 +90,14 @@ export function EggRacer({
     jumpBuf: 0,
     dashT: 0,
     dashCd: 0,
+    dashState: "idle" as DashState,
+    dashCharge: 0,
+    dashLevel: 0 as 0 | 1 | 2 | 3,
+    dashRecover: 0,
+    dashDirX: 0,
+    dashDirZ: -1,
+    chargeBeep: 0,
+    maxBeep: false,
     grounded: false,
     stun: 0,
     squash: 1,
@@ -125,6 +144,12 @@ export function EggRacer({
     L.jumpBuf = 0;
     L.dashT = 0;
     L.dashCd = 0;
+    L.dashState = "idle";
+    L.dashCharge = 0;
+    L.dashLevel = 0;
+    L.dashRecover = 0;
+    L.maxBeep = false;
+    L.chargeBeep = 0;
     L.grounded = true;
     L.stun = 0;
     L.squash = 1;
@@ -197,17 +222,16 @@ export function EggRacer({
       tmpRight.set(Math.cos(camYaw), 0, -Math.sin(camYaw));
       const steer = consumeSteerOverride();
       let mx = actions.moveX;
-      let my = actions.moveY;
+      const my = actions.moveY;
       if (steer != null) mx -= steer;
       wishX = tmpFwd.x * my + tmpRight.x * mx;
       wishZ = tmpFwd.z * my + tmpRight.z * mx;
       wantJump = actions.jump;
-      wantDash = actions.dashPressed;
+      wantDash = false;
       if (phase === "countdown") {
         wishX = 0;
         wishZ = 0;
         wantJump = false;
-        wantDash = false;
       }
     } else if (!isPlayer && phase === "playing" && !L.finished) {
       const WAYPOINTS = currentLevel().waypoints;
@@ -249,24 +273,45 @@ export function EggRacer({
     L.dashCd = Math.max(0, L.dashCd - dt);
     L.stun = Math.max(0, L.stun - dt);
     L.invuln = Math.max(0, L.invuln - dt);
+    L.dashRecover = Math.max(0, L.dashRecover - dt);
     if (L.dashT > 0) L.dashT -= dt;
 
-    if (wantDash && L.dashCd <= 0 && !L.finished && phase === "playing") {
-      L.dashT = DASH_TIME;
-      L.dashCd = DASH_COOLDOWN;
-      L.squash = 0.86;
-      if (isPlayer) {
-        sfxDash();
-        addTrauma(0.04);
-      }
+    if (isPlayer && phase === "playing" && !L.finished) {
+      stepPlayerDash(L, actions, wishLen, () => {
+        if (wishLen < 0.1) {
+          wishX = -Math.sin(L.yaw);
+          wishZ = -Math.cos(L.yaw);
+        }
+        L.dashDirX = wishLen < 0.1 ? -Math.sin(L.yaw) : wishX / Math.max(wishLen, 0.001);
+        L.dashDirZ = wishLen < 0.1 ? -Math.cos(L.yaw) : wishZ / Math.max(wishLen, 0.001);
+      });
+    } else if (wantDash && L.dashCd <= 0 && !L.finished && phase === "playing") {
+      fireDash(L, 2, isPlayer);
       if (wishLen < 0.1) {
         wishX = -Math.sin(L.yaw);
         wishZ = -Math.cos(L.yaw);
       }
+      L.dashDirX = wishX;
+      L.dashDirZ = wishZ;
     }
 
-    const dashing = L.dashT > 0;
-    const speed = dashing ? DASH_SPEED : L.grounded ? MOVE_SPEED : AIR_SPEED;
+    if (L.dashState === "active" && L.dashT <= 0) {
+      L.dashState = "recovery";
+      L.dashRecover = DASH.recover;
+    }
+    if (L.dashState === "recovery" && L.dashRecover <= 0) {
+      L.dashState = "idle";
+      L.dashLevel = 0;
+      L.dashCharge = 0;
+    }
+
+    const dashing = L.dashState === "active" && L.dashT > 0;
+    const dashSpd = dashing
+      ? Math.min(DASH.maxSpeed, DASH.speed[Math.max(0, L.dashLevel - 1)] ?? DASH_SPEED)
+      : L.grounded
+        ? MOVE_SPEED
+        : AIR_SPEED;
+    const speed = dashSpd;
     const ice = L.surface === "ice" && L.grounded;
     const grip = ice ? 1.55 : L.grounded ? 16 : 7;
     const targetVx = wishX * speed;
@@ -274,6 +319,10 @@ export function EggRacer({
     const blend = 1 - Math.exp(-grip * dt);
     L.vx += (targetVx - L.vx) * blend;
     L.vz += (targetVz - L.vz) * blend;
+    if (dashing) {
+      L.vx = L.dashDirX * speed;
+      L.vz = L.dashDirZ * speed;
+    }
     const hx = L.vx;
     const hz = L.vz;
 
@@ -291,9 +340,9 @@ export function EggRacer({
       L.jumpBuf = 0;
       L.coyote = 0;
       L.grounded = false;
-      L.squash = 1.18;
+      L.squash = JUMP_FEEL.squash;
       L.moveState = "jump_start";
-      L.jumpT = 0.12;
+      L.jumpT = 0.14;
       if (isPlayer) sfxJump();
     }
 
@@ -360,6 +409,35 @@ export function EggRacer({
       }
     }
 
+    if (dashing && nCol > 0 && maxNy < 0.42) {
+      let wall = false;
+      let nxn = 0;
+      let nzn = 0;
+      for (let i = 0; i < nCol; i++) {
+        const hit = cc.computedCollision(i);
+        if (!hit) continue;
+        if (Math.abs(hit.normal1.y) < 0.42) {
+          wall = true;
+          nxn += hit.normal1.x;
+          nzn += hit.normal1.z;
+        }
+      }
+      if (wall) {
+        const mag = Math.hypot(nxn, nzn) || 1;
+        L.dashT = 0;
+        L.dashState = "recovery";
+        L.dashRecover = DASH.recover + 0.08;
+        L.vx = (nxn / mag) * 3.2;
+        L.vz = (nzn / mag) * 3.2;
+        L.stun = 0.12;
+        L.squash = 0.84;
+        if (isPlayer) {
+          sfxHit();
+          addTrauma(0.07);
+        }
+      }
+    }
+
     if (hitHazard) {
       const mag = Math.hypot(hazardN.x, hazardN.z) || 1;
       L.vy = 6.2;
@@ -395,7 +473,7 @@ export function EggRacer({
     rb.setNextKinematicTranslation({ x: nx, y: ny, z: nz });
 
     if (grounded && !L.grounded && L.lastY - ny > 0.08) {
-      L.squash = 0.82;
+      L.squash = JUMP_FEEL.landSquash;
       L.landT = 0.12;
       L.moveState = "landing";
       if (isPlayer) {
@@ -514,7 +592,13 @@ export function EggRacer({
       sim.playerYaw = L.yaw;
       sim.playerSpeed = horiz;
       sim.playerDashing = dashing;
+      sim.dashFov = dashing ? DASH.fov[Math.max(0, L.dashLevel - 1)] : sim.dashFov * 0.86;
       sim.moveState = L.moveState;
+      sim.pad.jumpHeld = actions.jump;
+      sim.pad.dashState = L.dashState;
+      sim.pad.dashCharge = L.dashCharge;
+      sim.pad.dashLevel = L.dashLevel;
+      sim.pad.dashCd = L.dashCd;
       if (phase === "playing" && !L.finished) sim.time += dt;
     }
   });
@@ -542,9 +626,119 @@ export function EggRacer({
     >
       <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
       <group ref={visual}>
+        <FeelTrail color={color} active={isPlayer} />
         <EggMesh color={color} accessory={accessory} skinId={skinId} squash={1} isPlayer={isPlayer} />
       </group>
     </RigidBody>
+  );
+}
+
+function dashLevelOf(charge: number): 1 | 2 | 3 {
+  if (charge >= DASH.levelAt[2]) return 3;
+  if (charge >= DASH.levelAt[1]) return 2;
+  return 1;
+}
+
+type DashBody = {
+  dashT: number;
+  dashCd: number;
+  dashState: DashState;
+  dashCharge: number;
+  dashLevel: 0 | 1 | 2 | 3;
+  dashRecover: number;
+  dashDirX: number;
+  dashDirZ: number;
+  chargeBeep: number;
+  maxBeep: boolean;
+  squash: number;
+};
+
+function fireDash(L: DashBody, level: 1 | 2 | 3, isPlayer: boolean) {
+  const lv = level;
+  L.dashLevel = lv;
+  L.dashState = "active";
+  L.dashT = Math.min(DASH.maxTime, DASH.time[lv - 1]);
+  L.dashCd = DASH.cooldown;
+  L.dashCharge = lv / 3;
+  L.squash = JUMP_FEEL.squash;
+  L.maxBeep = false;
+  if (isPlayer) {
+    sfxDashRelease(lv);
+    addTrauma(DASH.shake[lv - 1]);
+  }
+}
+
+function stepPlayerDash(
+  L: DashBody,
+  input: typeof actions,
+  _wishLen: number,
+  aim: () => void,
+) {
+  if (L.dashState === "active") return;
+  if (input.dashCanceled && (L.dashState === "charging" || L.dashState === "ready")) {
+    L.dashState = "idle";
+    L.dashCharge = 0;
+    L.dashLevel = 0;
+    L.maxBeep = false;
+    return;
+  }
+  if (
+    (L.dashState === "idle" || (L.dashState === "recovery" && L.dashRecover <= 0)) &&
+    input.dashPressed &&
+    L.dashCd <= 0
+  ) {
+    L.dashState = "charging";
+    L.dashCharge = 0.06;
+    L.dashLevel = 1;
+    L.maxBeep = false;
+    L.chargeBeep = 0;
+    aim();
+  }
+  if (L.dashState === "charging" || L.dashState === "ready") {
+    L.dashCharge = Math.min(1, L.dashCharge + STEP / DASH.chargeMax);
+    L.dashLevel = dashLevelOf(L.dashCharge);
+    L.squash = 0.94 - L.dashCharge * 0.1;
+    if (L.dashCharge >= 1) {
+      L.dashState = "ready";
+      if (!L.maxBeep) {
+        L.maxBeep = true;
+        sfxDashMax();
+      }
+    } else if (L.dashCharge - L.chargeBeep > 0.24) {
+      L.chargeBeep = L.dashCharge;
+      sfxDashCharge(L.dashLevel);
+    }
+    if (input.dashReleased) {
+      aim();
+      fireDash(L, L.dashLevel || 1, true);
+    }
+  }
+}
+
+function FeelTrail({ color, active }: { color: string; active: boolean }) {
+  const g = useRef<THREE.Group>(null);
+  useFrame(() => {
+    if (!g.current) return;
+    const on = active && sim.playerDashing;
+    g.current.visible = on;
+    const s = on ? 0.75 + sim.pad.dashLevel * 0.14 : 0.01;
+    g.current.scale.setScalar(s);
+  });
+  if (!active) return null;
+  return (
+    <group ref={g} visible={false}>
+      {[0.42, 0.82, 1.22].map((z, i) => (
+        <mesh key={i} position={[0, 0.04, z]}>
+          <sphereGeometry args={[0.36 - i * 0.06, 10, 8]} />
+          <meshBasicMaterial
+            color={color}
+            transparent
+            opacity={0.3 - i * 0.07}
+            depthWrite={false}
+          />
+        </mesh>
+      ))}
+    </group>
   );
 }
 

@@ -83,6 +83,116 @@
   backdrop-filter: blur(10px);
 }
 
+.action-pad {
+  position: absolute;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: 188px;
+  height: 196px;
+  pointer-events: none;
+}
+
+.action-pad.pad-lg {
+  width: 220px;
+  height: 228px;
+}
+
+.pad-btn {
+  position: absolute;
+  pointer-events: auto;
+  border: 0;
+  border-radius: 999px;
+  color: var(--color-fg);
+  background: rgb(23 20 28 / 0.42);
+  box-shadow:
+    inset 0 1px 0 rgb(255 246 235 / 0.18),
+    0 8px 18px rgb(0 0 0 / 0.28);
+  display: grid;
+  place-items: center;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 90ms ease-out,
+    filter 90ms ease-out;
+}
+
+.pad-btn::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+}
+
+.pad-btn .pad-face {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgb(255 246 235 / 0.22);
+}
+
+.pad-btn.is-down {
+  transform: scale(0.88);
+  filter: brightness(1.22);
+}
+
+.pad-btn.is-max .pad-face {
+  animation: pad-pulse 0.7s ease-in-out infinite;
+}
+
+.pad-btn.is-locked {
+  opacity: 0.4;
+}
+
+.pad-ripple {
+  position: absolute;
+  inset: -8%;
+  border-radius: 999px;
+  border: 2px solid rgb(255 246 235 / 0.7);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.pad-btn.is-pulse .pad-ripple {
+  animation: pad-ripple 160ms ease-out;
+}
+
+@keyframes pad-ripple {
+  from {
+    transform: scale(0.7);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(1.32);
+    opacity: 0;
+  }
+}
+
+@keyframes pad-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(232 97 74 / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 9px rgb(232 97 74 / 0);
+  }
+}
+
+.pad-ring {
+  position: absolute;
+  inset: -7px;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .action-pad {
+    transform: scale(0.86);
+    transform-origin: bottom right;
+    bottom: max(6px, env(safe-area-inset-bottom));
+  }
+}
+
 @keyframes gacha-bob {
   0%,
   100% {

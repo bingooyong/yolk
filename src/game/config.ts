@@ -12,7 +12,27 @@ export const MOVE_SPEED = 8.4;
 export const AIR_SPEED = 7.4;
 export const DASH_SPEED = 16.5;
 export const DASH_TIME = 0.28;
-export const DASH_COOLDOWN = 1.25;
+export const DASH_COOLDOWN = 0.95;
+
+export const DASH = {
+  chargeMax: 0.92,
+  tapWindow: 0.14,
+  levelAt: [0.16, 0.48, 0.82] as const,
+  speed: [12.2, 16.4, 20.2] as const,
+  time: [0.16, 0.26, 0.36] as const,
+  cooldown: 0.95,
+  recover: 0.16,
+  fov: [2.2, 4.0, 6.2] as const,
+  shake: [0.03, 0.055, 0.08] as const,
+  maxSpeed: 21,
+  maxTime: 0.4,
+} as const;
+
+export const JUMP_FEEL = {
+  squash: 0.78,
+  stretch: 1.12,
+  landSquash: 0.82,
+} as const;
 export const JUMP_V = 9.5;
 export const JUMP_CUT = 0.52;
 export const COYOTE = 0.14;
