@@ -13,6 +13,7 @@ import { LEVELS, LEVEL_ORDER, setActiveLevel, type LevelId } from "./levels";
 
 export type Phase = "title" | "countdown" | "playing" | "paused" | "results";
 export type LobbyTab = "play" | "gacha";
+export type Hub = "home" | "play" | "character" | "inventory" | "profile";
 
 export type HudRacer = {
   id: string;
@@ -43,6 +44,9 @@ type Persist = {
   controlOpacity: number;
   hapticOn: boolean;
   gfx: "auto" | "low" | "medium" | "high";
+  gamesPlayed: number;
+  xp: number;
+  playerName: string;
 };
 
 const SAVE_KEY = "yolk-rush-v4";
@@ -66,6 +70,9 @@ function load(): Persist {
     controlOpacity: 0.92,
     hapticOn: true,
     gfx: "auto" as const,
+    gamesPlayed: 0,
+    xp: 0,
+    playerName: "Yolk",
   };
   try {
     const raw =
@@ -101,6 +108,9 @@ function load(): Persist {
       controlOpacity: typeof p.controlOpacity === "number" ? Math.min(1, Math.max(0.4, p.controlOpacity)) : 0.92,
       hapticOn: p.hapticOn !== false,
       gfx: p.gfx === "low" || p.gfx === "medium" || p.gfx === "high" ? p.gfx : "auto",
+      gamesPlayed: typeof p.gamesPlayed === "number" ? p.gamesPlayed : 0,
+      xp: typeof p.xp === "number" ? p.xp : 0,
+      playerName: typeof p.playerName === "string" && p.playerName.trim() ? p.playerName.slice(0, 16) : "Yolk",
     };
   } catch {
     return fallback;
@@ -136,6 +146,9 @@ const initial =
         controlOpacity: 0.92,
         hapticOn: true,
         gfx: "auto" as const,
+        gamesPlayed: 0,
+        xp: 0,
+        playerName: "Yolk",
       };
 
 function persistFrom(s: {
@@ -156,6 +169,9 @@ function persistFrom(s: {
   controlOpacity: number;
   hapticOn: boolean;
   gfx: Persist["gfx"];
+  gamesPlayed: number;
+  xp: number;
+  playerName: string;
 }): Persist {
   return {
     bestTime: s.bestTime,
@@ -175,6 +191,9 @@ function persistFrom(s: {
     controlOpacity: s.controlOpacity,
     hapticOn: s.hapticOn,
     gfx: s.gfx,
+    gamesPlayed: s.gamesPlayed,
+    xp: s.xp,
+    playerName: s.playerName,
   };
 }
 
@@ -205,6 +224,10 @@ type GameStore = {
   pullSeq: number;
   raceCoins: number;
   lastBonus: { first: number; perfect: number; noFall: number };
+  hub: Hub;
+  gamesPlayed: number;
+  xp: number;
+  playerName: string;
 
   lastPayout: number;
   hud: {
@@ -220,6 +243,8 @@ type GameStore = {
   setLevel: (id: LevelId) => void;
   isUnlocked: (id: LevelId) => boolean;
   setLobbyTab: (tab: LobbyTab) => void;
+  setHub: (hub: Hub) => void;
+  nextRace: () => void;
   toggleMute: () => void;
   setMusicVol: (v: number) => void;
   setSfxVol: (v: number) => void;
@@ -268,6 +293,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   pullSeq: 0,
   raceCoins: 0,
   lastBonus: { first: 0, perfect: 0, noFall: 0 },
+  hub: "home" as Hub,
+  gamesPlayed: initial.gamesPlayed ?? 0,
+  xp: initial.xp ?? 0,
+  playerName: initial.playerName ?? "Yolk",
 
   lastPayout: 0,
   hud: { time: 0, place: 8, dashCd: 0, coinsRun: 0, racers: [], failHint: "" },
@@ -297,6 +326,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setLobbyTab: (tab) => set({ lobbyTab: tab, howTo: false }),
+  setHub: (hub) => set({ hub }),
   toggleMute: () => {
     set({ muted: !get().muted });
     save(persistFrom(get()));
@@ -369,7 +399,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
   resume: () => {
     if (get().phase === "paused") set({ phase: "playing" });
   },
-  toTitle: () => set({ phase: "title", howTo: false, lobbyTab: "play" }),
+  toTitle: () => set({ phase: "title", howTo: false, lobbyTab: "play", hub: "home" }),
+
+  nextRace: () => {
+    const s = get();
+    const i = LEVEL_ORDER.indexOf(s.levelId);
+    const nid = LEVEL_ORDER[i + 1];
+    if (!nid) {
+      set({ phase: "title", hub: "play" });
+      return;
+    }
+    s.setLevel(nid);
+    s.startRace();
+  },
 
   pullSim: () => {
     const lv = LEVELS[get().levelId];
@@ -418,13 +460,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ...s.levelBest,
       [s.levelId]: prevBest == null ? time : Math.min(prevBest, time),
     };
+    const gamesPlayed = s.gamesPlayed + 1;
+    const xp = s.xp + 24 + Math.max(0, 5 - (player?.place ?? 8)) * 8 + (first ? 20 : 0);
     const next = {
-      ...persistFrom(s),
+      ...persistFrom({ ...s, gamesPlayed, xp }),
       bestTime: best,
       wins,
       coins,
       cleared,
       levelBest,
+      gamesPlayed,
+      xp,
     };
     save(next);
     set({
@@ -437,6 +483,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       cleared,
       levelBest,
       lastBonus: { first, perfect, noFall },
+      gamesPlayed,
+      xp,
     });
   },
 

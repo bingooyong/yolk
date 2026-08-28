@@ -17,6 +17,8 @@ import { DASH, EGG_COLORS } from "@/game/config";
 import { sfxClick, sfxCountdown, sfxPull, setMuted, unlockAudio } from "@/game/audio";
 import { useGameStore } from "@/game/store";
 import { GachaCeremony } from "@/components/GachaCeremony";
+import { Hub } from "@/components/Hub";
+import { ResultScreen } from "@/components/ResultScreen";
 import {
   DUP_REFUND,
   GACHA_COST,
@@ -57,6 +59,7 @@ export function GameUI() {
   const clearPull = useGameStore((s) => s.clearPull);
   const setColor = useGameStore((s) => s.setColor);
   const startRace = useGameStore((s) => s.startRace);
+  const nextRace = useGameStore((s) => s.nextRace);
   const pause = useGameStore((s) => s.pause);
   const resume = useGameStore((s) => s.resume);
   const toTitle = useGameStore((s) => s.toTitle);
@@ -156,24 +159,7 @@ export function GameUI() {
         </div>
       )}
 
-      {phase === "title" && (
-        <TitleSheet
-          colorId={colorId}
-          setColor={setColor}
-          bestTime={bestTime}
-          wins={wins}
-          howTo={howTo}
-          coins={coins}
-          lobbyTab={lobbyTab}
-          setLobbyTab={setLobbyTab}
-          onStart={() => {
-            unlockAudio();
-            sfxClick();
-            startRace();
-          }}
-          onHowTo={toggleHowTo}
-        />
-      )}
+      {phase === "title" && <Hub />}
 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
 
@@ -207,16 +193,16 @@ export function GameUI() {
       )}
 
       {phase === "results" && (
-        <Results
-          racers={hud.racers}
-          time={hud.time}
-          bestTime={bestTime}
-          payout={lastPayout}
+        <ResultScreen
           onAgain={() => {
             unlockAudio();
             startRace();
           }}
           onMenu={toTitle}
+          onNext={() => {
+            unlockAudio();
+            nextRace();
+          }}
         />
       )}
 
