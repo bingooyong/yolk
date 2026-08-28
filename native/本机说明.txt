@@ -1,0 +1,27 @@
+蛋黄冲刺 · 源码带到本机
+========================
+
+不要把 GitHub 密码发给任何人（包括 Grok）。
+
+推荐做法：
+1. 解压这个包
+2. 用 Xcode 打开 native/ios/YolkRush.xcodeproj 即可装到 iPhone
+3. 若要用 Grok CLI 继续改游戏，在解压后的文件夹里打开 CLI
+4. 若要备份到 GitHub：
+   - 浏览器打开 https://github.com/new 新建空仓库（不要勾 README）
+   - 在本机终端：
+     git init
+     git add .
+     git commit -m "Yolk Rush"
+     git remote add origin https://github.com/bingooyong/你的仓库名.git
+     git branch -M main
+     git push -u origin main
+   - 登录用浏览器或 GitHub 自己的 token，不要把密码发给 AI
+
+网页预览（可选）：
+  npm install
+  npm run dev
+
+重新打包进 iPhone 工程：
+  npx vite build --config vite.native.config.ts
+  然后再用 Xcode Run

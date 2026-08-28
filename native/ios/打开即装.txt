@@ -1,0 +1,22 @@
+蛋黄冲刺 · 装到 iPhone / iPad
+================================
+
+这是一份完整的 Xcode 工程，游戏已经打在里面。
+不需要再下源码、不需要 Node。
+
+1. 解压这个压缩包
+2. 双击 YolkRush.xcodeproj，用 Xcode 打开
+3. 用数据线把 iPhone 插上电脑，手机打开「开发者模式」
+   （设置 → 隐私与安全性 → 开发者模式）
+4. Xcode 顶部设备列表里选中你的 iPhone
+5. 左侧点最上方「YolkRush」工程 → Signing & Capabilities
+   → Team 选你的 Apple ID（没有就 Account 里登录一个）
+6. 点左上角 ▶ 运行
+
+第一次装到手机上，可能会提示「不受信任的开发者」：
+iPhone 设置 → 通用 → VPN 与设备管理 → 点你的 Apple ID → 信任。
+
+免费 Apple ID 大约每 7 天要重新在 Xcode 点一次运行。
+付费开发者账号则可以一直用。
+
+iPhone、iPad 都可以装，竖屏横屏都能玩。
