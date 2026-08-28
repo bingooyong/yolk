@@ -7,8 +7,5 @@ dist
 artifacts
 screenshots
 .grok
-startup.sh
-AGENTS.md
-AGENTS.project.md
 .env
 .env.*
