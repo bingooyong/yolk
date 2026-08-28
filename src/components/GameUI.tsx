@@ -333,6 +333,7 @@ function TitleSheet({
             <p className="mt-3 max-w-sm text-pretty text-sm text-fg-muted">
               {LEVELS[useGameStore.getState().levelId].theme.blurb}
             </p>
+            <VolumeRow />
             <LevelPicker />
             <div className="mt-3 flex gap-4 text-xs text-fg-subtle">
               <span>胜场 {wins}</span>
@@ -376,6 +377,45 @@ function TitleSheet({
           <GachaPanel coins={coins} />
         )}
       </div>
+    </div>
+  );
+}
+
+function VolumeRow() {
+  const musicVol = useGameStore((s) => s.musicVol);
+  const sfxVol = useGameStore((s) => s.sfxVol);
+  const setMusicVol = useGameStore((s) => s.setMusicVol);
+  const setSfxVol = useGameStore((s) => s.setSfxVol);
+  return (
+    <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-fg-muted">
+      <label className="flex items-center gap-2">
+        <span className="shrink-0">音乐</span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={musicVol}
+          aria-label="Music volume"
+          onPointerDown={() => unlockAudio()}
+          onChange={(e) => setMusicVol(Number(e.target.value))}
+          className="h-2 w-full accent-accent"
+        />
+      </label>
+      <label className="flex items-center gap-2">
+        <span className="shrink-0">音效</span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={sfxVol}
+          aria-label="SFX volume"
+          onPointerDown={() => unlockAudio()}
+          onChange={(e) => setSfxVol(Number(e.target.value))}
+          className="h-2 w-full accent-accent"
+        />
+      </label>
     </div>
   );
 }

@@ -35,6 +35,9 @@ type Persist = {
   levelId: LevelId;
   cleared: string[];
   levelBest: Record<string, number>;
+  muted: boolean;
+  musicVol: number;
+  sfxVol: number;
 };
 
 const SAVE_KEY = "yolk-rush-v4";
@@ -50,6 +53,9 @@ function load(): Persist {
     levelId: "meadow",
     cleared: [],
     levelBest: {},
+    muted: false,
+    musicVol: 0.72,
+    sfxVol: 0.78,
   };
   try {
     const raw =
@@ -75,6 +81,9 @@ function load(): Persist {
       levelId,
       cleared: Array.isArray(p.cleared) ? p.cleared : [],
       levelBest: p.levelBest && typeof p.levelBest === "object" ? p.levelBest : {},
+      muted: p.muted === true,
+      musicVol: typeof p.musicVol === "number" ? Math.min(1, Math.max(0, p.musicVol)) : 0.72,
+      sfxVol: typeof p.sfxVol === "number" ? Math.min(1, Math.max(0, p.sfxVol)) : 0.78,
     };
   } catch {
     return fallback;
@@ -102,6 +111,9 @@ const initial =
         levelId: "meadow" as LevelId,
         cleared: [] as string[],
         levelBest: {} as Record<string, number>,
+        muted: false,
+        musicVol: 0.72,
+        sfxVol: 0.78,
       };
 
 function persistFrom(s: {
@@ -114,6 +126,9 @@ function persistFrom(s: {
   levelId: LevelId;
   cleared: string[];
   levelBest: Record<string, number>;
+  muted: boolean;
+  musicVol: number;
+  sfxVol: number;
 }): Persist {
   return {
     bestTime: s.bestTime,
@@ -125,6 +140,9 @@ function persistFrom(s: {
     levelId: s.levelId,
     cleared: s.cleared,
     levelBest: s.levelBest,
+    muted: s.muted,
+    musicVol: s.musicVol,
+    sfxVol: s.sfxVol,
   };
 }
 
@@ -136,6 +154,8 @@ type GameStore = {
   wins: number;
   raceId: number;
   muted: boolean;
+  musicVol: number;
+  sfxVol: number;
   howTo: boolean;
   lobbyTab: LobbyTab;
   coins: number;
@@ -164,6 +184,8 @@ type GameStore = {
   isUnlocked: (id: LevelId) => boolean;
   setLobbyTab: (tab: LobbyTab) => void;
   toggleMute: () => void;
+  setMusicVol: (v: number) => void;
+  setSfxVol: (v: number) => void;
   toggleHowTo: () => void;
   startRace: () => void;
   forcePlay: () => void;
@@ -184,7 +206,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   bestTime: initial.bestTime,
   wins: initial.wins,
   raceId: 0,
-  muted: false,
+  muted: initial.muted,
+  musicVol: initial.musicVol,
+  sfxVol: initial.sfxVol,
   howTo: false,
   lobbyTab: "play",
   coins: initial.coins,
@@ -226,7 +250,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setLobbyTab: (tab) => set({ lobbyTab: tab, howTo: false }),
-  toggleMute: () => set({ muted: !get().muted }),
+  toggleMute: () => {
+    set({ muted: !get().muted });
+    save(persistFrom(get()));
+  },
+  setMusicVol: (v) => {
+    set({ musicVol: Math.max(0, Math.min(1, v)) });
+    save(persistFrom(get()));
+  },
+  setSfxVol: (v) => {
+    set({ sfxVol: Math.max(0, Math.min(1, v)) });
+    save(persistFrom(get()));
+  },
   toggleHowTo: () => set({ howTo: !get().howTo }),
 
   startRace: () => {

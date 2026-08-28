@@ -2,7 +2,8 @@ import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { GameUI } from "@/components/GameUI";
 import { TouchControls } from "@/components/TouchControls";
 import { installInput } from "@/game/input";
-import { unlockAudio } from "@/game/audio";
+import { MusicDirector } from "@/game/MusicDirector";
+import { resumeAudio, suspendAudio } from "@/game/audio";
 
 const gameCanvasLoad =
   typeof window !== "undefined" ? import("@/game/GameCanvas") : null;
@@ -17,7 +18,10 @@ export function GameApp() {
   useEffect(() => {
     setReady(true);
     const off = installInput();
-    const resume = () => unlockAudio();
+    const resume = () => {
+      if (document.hidden) suspendAudio();
+      else resumeAudio();
+    };
     const block = (e: Event) => e.preventDefault();
     document.addEventListener("visibilitychange", resume);
     document.addEventListener("gesturestart", block);
@@ -43,6 +47,7 @@ export function GameApp() {
       ) : (
         <Boot />
       )}
+      <MusicDirector />
       <GameUI />
       <TouchControls />
     </div>
