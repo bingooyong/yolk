@@ -12,15 +12,18 @@ This directory contains guidelines for frontend development. Fill in each file w
 
 ## Guidelines Index
 
-| Guide | Description | Status |
-|-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
-| [Component Guidelines](./component-guidelines.md) | Component patterns, props, composition | To fill |
-| [Hook Guidelines](./hook-guidelines.md) | Custom hooks, data fetching patterns | To fill |
-| [State Management](./state-management.md) | Local state, global state, server state | To fill |
-| [Visual Rendering](./visual-rendering.md) | Three.js/R3F fixed-step, quality, lighting, character, environment, and visual QA contracts | Active |
-| [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
-| [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
+| Guide                                             | Description                                                                                                       | Status  |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------- |
+| [Directory Structure](./directory-structure.md)   | Module organization and file layout                                                                               | To fill |
+| [Component Guidelines](./component-guidelines.md) | Component patterns, props, composition                                                                            | To fill |
+| [Hook Guidelines](./hook-guidelines.md)           | Custom hooks, data fetching patterns                                                                              | To fill |
+| [State Management](./state-management.md)         | Local state, global state, server state                                                                           | To fill |
+| [Visual Rendering](./visual-rendering.md)         | Three.js/R3F fixed-step, quality, lighting, character, environment, and visual QA contracts                       | Active  |
+| [Project Architecture](./project-architecture.md) | Dual web/iOS entries, module boundaries, simulation/state flow, persistence, generated paths, and high-risk areas | Active  |
+| [Data & Security](./data-security.md)             | Local game authority, server-only DB/auth/app-data boundaries, trust borders, and environment contracts           | Active  |
+| [Testing & Operations](./testing-operations.md)   | Command matrix, focused/broad tests, visual QA, web/native builds, and generated-path policy                      | Active  |
+| [Quality Guidelines](./quality-guidelines.md)     | Code standards, forbidden patterns                                                                                | To fill |
+| [Type Safety](./type-safety.md)                   | Type patterns, validation                                                                                         | To fill |
 
 ---
 

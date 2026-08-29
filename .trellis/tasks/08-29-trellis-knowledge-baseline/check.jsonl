@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/index.md","reason":"Check spec consistency against frontend baseline"}
+{"file":".trellis/tasks/08-29-trellis-knowledge-baseline/research/architecture-frontend.md","reason":"Verify architecture spec fidelity"}
+{"file":".trellis/tasks/08-29-trellis-knowledge-baseline/research/data-security-interfaces.md","reason":"Verify data/security spec fidelity"}
+{"file":".trellis/tasks/08-29-trellis-knowledge-baseline/research/build-test-operations.md","reason":"Verify operations/testing spec fidelity"}

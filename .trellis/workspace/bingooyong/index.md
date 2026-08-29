@@ -7,9 +7,11 @@
 ## Current Status
 
 <!-- @@@auto:current-status -->
+
 - **Active File**: `journal-1.md`
 - **Total Sessions**: 1
 - **Last Active**: 2026-08-29
+
 <!-- @@@/auto:current-status -->
 
 ---
@@ -17,9 +19,12 @@
 ## Active Documents
 
 <!-- @@@auto:active-documents -->
-| File | Lines | Status |
-|------|-------|--------|
-| `journal-1.md` | ~28 | Active |
+
+| File                | Lines                                                               | Status |
+| ------------------- | ------------------------------------------------------------------- | ------ |
+| `journal-1.md`      | ~28                                                                 | Active |
+| `project-memory.md` | Long-lived project background, decisions, debt, risks, and unknowns | Active |
+
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -27,9 +32,11 @@
 ## Session History
 
 <!-- @@@auto:session-history -->
-| # | Date | Title | Commits | Branch |
-|---|------|-------|---------|--------|
-| 1 | 2026-08-29 | Yolk Rush Phase 2 Visual Upgrade | `6a82947` | `main` |
+
+| #   | Date       | Title                            | Commits   | Branch |
+| --- | ---------- | -------------------------------- | --------- | ------ |
+| 1   | 2026-08-29 | Yolk Rush Phase 2 Visual Upgrade | `6a82947` | `main` |
+
 <!-- @@@/auto:session-history -->
 
 ---

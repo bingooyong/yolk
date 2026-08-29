@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/index.md","reason":"Current frontend guideline index and visual rendering baseline"}
+{"file":".trellis/tasks/08-29-trellis-knowledge-baseline/research/architecture-frontend.md","reason":"Confirmed architecture, module, state, native, and frontend constraints"}
+{"file":".trellis/tasks/08-29-trellis-knowledge-baseline/research/data-security-interfaces.md","reason":"Confirmed data/auth/security/interface/deployment constraints"}
+{"file":".trellis/tasks/08-29-trellis-knowledge-baseline/research/build-test-operations.md","reason":"Confirmed build/test/operations/generated/history constraints"}
