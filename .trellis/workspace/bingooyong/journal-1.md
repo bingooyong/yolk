@@ -48,3 +48,24 @@ Initialized durable architecture, data/security, and testing/operations specs pl
 ### Status
 
 [OK] **Completed**
+
+
+## Session 3: Skin 3D Asset Pipeline (Provider + GLB Runtime)
+
+**Date**: 2026-08-29
+**Task**: Skin 3D Asset Pipeline (Provider + GLB Runtime)
+**Branch**: `feat/skin-3d-pipeline`
+
+### Summary
+
+Shipped P0-P6 of the Skin 3D Pipeline: Provider interface + 4 impls (Mock/Meshy/Rodin/Trellis) behind a server-only factory; programmatic GLB demo seed; Asset Validator with public-URL path normalization; per-role Quality Gate (test exempts pbr/texture/skel/anim, production makes pbr Required); browser Loader that reads GLB + sibling gate report and throws QualityGateRejectedError on valid:false; gate-registry + useRejectedSkinIds() to hide rejected Skins from the wardrobe; CharacterVisual dispatcher mounted inside EggRacer preserving the R7 contract; v4->v5 store migration; .trellis/spec/frontend/skin-system.md spec; docs/skins/* + create-skin SKILL.md updated; 55 test:skin + 28 test:visual cases green; typecheck/lint/build clean. Final review surfaced 8 additional findings (3 critical: missing spec file, missing R14 test, doc/spec drift; 2 high: QualityGateRejectedError integration, getSkin hides rejected per R13.5; 3 medium/low) — all fixed in the second pass before commit.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `54b8064` | (see git log) |
+
+### Status
+
+[OK] **Completed**
