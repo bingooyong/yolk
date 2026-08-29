@@ -44,7 +44,7 @@ export function EggMesh({
   const arms = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
-    const pose = getCharacterPose(presentation.current, clock.elapsedTime, skin?.animationProfile ?? "default");
+    const pose = getCharacterPose(presentation.current, clock.elapsedTime, skin?.proceduralAnimation ?? "default");
     if (group.current) {
       group.current.position.y = EGG_VISUAL_GROUND_OFFSET + pose.lift;
       group.current.scale.set(pose.scaleX, pose.scaleY, pose.scaleZ);

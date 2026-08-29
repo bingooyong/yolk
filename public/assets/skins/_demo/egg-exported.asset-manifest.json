@@ -1,0 +1,52 @@
+{
+  "valid": true,
+  "id": "egg-exported",
+  "version": 1,
+  "format": "glb",
+  "model": "/assets/skins/_demo/egg-exported.glb",
+  "triangleCount": 12,
+  "textureResolution": 0,
+  "materials": 1,
+  "textures": 0,
+  "meshes": 1,
+  "pbr": true,
+  "animations": [],
+  "skeleton": false,
+  "boundingBox": {
+    "min": [
+      -0.5,
+      -0.5,
+      -0.5
+    ],
+    "max": [
+      0.5,
+      0.5,
+      0.5
+    ]
+  },
+  "fileSizeKB": 1.66,
+  "fileSizeBytes": 1696,
+  "lod": {
+    "lod0": "/assets/skins/_demo/egg-exported.glb",
+    "lod1": "/assets/skins/_demo/egg-exported.glb",
+    "lod2": "/assets/skins/_demo/egg-exported.glb"
+  },
+  "license": "project-internal",
+  "source": "/assets/skins/_demo",
+  "generatedAt": "2026-08-29T14:08:40.108Z",
+  "sha256": "c344e8226cb90f9098f3ff6d2657808327722ec45a262bd217700fc002a22e26",
+  "requiredLevels": {
+    "glbParseable": "Required",
+    "meshes": "Required",
+    "triangleCount": "Required",
+    "boundingBox": "Required",
+    "materials": "Required",
+    "textureEmbedded": "Optional",
+    "pbr": "Recommended",
+    "skeleton": "Recommended",
+    "animation": "Recommended",
+    "modelSize": "Required",
+    "nonFinite": "Required",
+    "fileSize": "Required"
+  }
+}

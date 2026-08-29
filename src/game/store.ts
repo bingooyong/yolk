@@ -47,9 +47,28 @@ type Persist = {
   gamesPlayed: number;
   xp: number;
   playerName: string;
+  /**
+   * v5-only fields — optional, defaults applied at hydration. See
+   * `08-29-skin-3d-pipeline` R1 / implement.md P1. Forward-compat: unknown
+   * keys are preserved by JSON.stringify so future fields don't get lost.
+   */
+  preferredLod?: "lod0" | "lod1" | "lod2";
+  lastPreviewedSkinId?: string;
 };
 
-export const SAVE_KEY = "yolk-rush-v4";
+/**
+ * Save key bumped from v4 → v5 with the Skin Model extension. Migration to
+ * v5 is performed by `load()` below — a v4-only save is upgraded in place
+ * on next read and re-saved under the v5 key. See CLAUDE.md "store.ts 的
+ * SAVE_KEY 升级规则" — never replace Persist in-place; always add a new key.
+ */
+export const SAVE_KEY = "yolk-rush-v5";
+export const LEGACY_SAVE_KEYS = [
+  "yolk-rush-v4",
+  "yolk-rush-v3",
+  "yolk-rush-v2",
+  "yolk-rush-v1",
+] as const;
 
 function defaultPersist(): Persist {
   return {
@@ -73,52 +92,150 @@ function defaultPersist(): Persist {
     gamesPlayed: 0,
     xp: 0,
     playerName: "Yolk",
+    preferredLod: undefined,
+    lastPreviewedSkinId: undefined,
+  };
+}
+
+/**
+ * Pure v4 → v5 migration. Returns a fully-formed Persist. Unknown v4 fields
+ * (future additions) are preserved on the returned object via spread.
+ */
+export function migrateV4ToV5(v4: Partial<Persist>): Persist {
+  const owned = Array.isArray(v4.ownedSkins)
+    ? Array.from(new Set([...STARTER_SKINS, ...(v4.ownedSkins as string[])]))
+    : [...STARTER_SKINS];
+  const levelId = LEVEL_ORDER.includes(v4.levelId as LevelId)
+    ? (v4.levelId as LevelId)
+    : "meadow";
+  return {
+    ...(v4 as Persist),
+    bestTime: typeof v4.bestTime === "number" ? v4.bestTime : null,
+    wins: typeof v4.wins === "number" ? v4.wins : 0,
+    colorId: EGG_COLORS.some((c) => c.id === v4.colorId) ? (v4.colorId as string) : "coral",
+    coins: typeof v4.coins === "number" ? v4.coins : 160,
+    ownedSkins: owned,
+    equippedSkin: owned.includes(v4.equippedSkin ?? "")
+      ? (v4.equippedSkin as string)
+      : "mint_wings",
+    levelId,
+    cleared: Array.isArray(v4.cleared) ? (v4.cleared as string[]) : [],
+    levelBest:
+      v4.levelBest && typeof v4.levelBest === "object"
+        ? (v4.levelBest as Record<string, number>)
+        : {},
+    muted: v4.muted === true,
+    musicVol: typeof v4.musicVol === "number" ? Math.min(1, Math.max(0, v4.musicVol)) : 0.72,
+    sfxVol: typeof v4.sfxVol === "number" ? Math.min(1, Math.max(0, v4.sfxVol)) : 0.78,
+    camSens: typeof (v4 as { camSens?: number }).camSens === "number"
+      ? Math.min(1.6, Math.max(0.5, (v4 as { camSens: number }).camSens))
+      : 1,
+    controlScale: typeof v4.controlScale === "number"
+      ? Math.min(1.25, Math.max(0.8, v4.controlScale))
+      : 1,
+    controlOpacity: typeof v4.controlOpacity === "number"
+      ? Math.min(1, Math.max(0.4, v4.controlOpacity))
+      : 0.92,
+    hapticOn: v4.hapticOn !== false,
+    gfx: v4.gfx === "low" || v4.gfx === "medium" || v4.gfx === "high" ? v4.gfx : "auto",
+    gamesPlayed: typeof v4.gamesPlayed === "number" ? v4.gamesPlayed : 0,
+    xp: typeof v4.xp === "number" ? v4.xp : 0,
+    playerName:
+      typeof v4.playerName === "string" && v4.playerName.trim()
+        ? v4.playerName.slice(0, 16)
+        : "Yolk",
+    preferredLod: undefined,
+    lastPreviewedSkinId: undefined,
   };
 }
 
 function load(): Persist {
   const fallback = defaultPersist();
   try {
-    const raw =
-      localStorage.getItem(SAVE_KEY) ??
-      localStorage.getItem("yolk-rush-v3") ??
-      localStorage.getItem("yolk-rush-v2") ??
-      localStorage.getItem("yolk-rush-v1");
-    if (!raw) return fallback;
-    const p = JSON.parse(raw) as Partial<Persist>;
-    const owned = Array.isArray(p.ownedSkins)
-      ? Array.from(new Set([...STARTER_SKINS, ...p.ownedSkins]))
-      : [...STARTER_SKINS];
-    const levelId = LEVEL_ORDER.includes(p.levelId as LevelId) ? (p.levelId as LevelId) : "meadow";
-    return {
-      bestTime: typeof p.bestTime === "number" ? p.bestTime : null,
-      wins: typeof p.wins === "number" ? p.wins : 0,
-      colorId: EGG_COLORS.some((c) => c.id === p.colorId) ? (p.colorId as string) : "coral",
-      coins: typeof p.coins === "number" ? p.coins : 160,
-      ownedSkins: owned,
-      equippedSkin: owned.includes(p.equippedSkin ?? "")
-        ? (p.equippedSkin as string)
-        : "mint_wings",
-      levelId,
-      cleared: Array.isArray(p.cleared) ? p.cleared : [],
-      levelBest: p.levelBest && typeof p.levelBest === "object" ? p.levelBest : {},
-      muted: p.muted === true,
-      musicVol: typeof p.musicVol === "number" ? Math.min(1, Math.max(0, p.musicVol)) : 0.72,
-      sfxVol: typeof p.sfxVol === "number" ? Math.min(1, Math.max(0, p.sfxVol)) : 0.78,
-      camSens: typeof (p as { camSens?: number }).camSens === "number"
-        ? Math.min(1.6, Math.max(0.5, (p as { camSens: number }).camSens))
-        : 1,
-      controlScale: typeof p.controlScale === "number" ? Math.min(1.25, Math.max(0.8, p.controlScale)) : 1,
-      controlOpacity: typeof p.controlOpacity === "number" ? Math.min(1, Math.max(0.4, p.controlOpacity)) : 0.92,
-      hapticOn: p.hapticOn !== false,
-      gfx: p.gfx === "low" || p.gfx === "medium" || p.gfx === "high" ? p.gfx : "auto",
-      gamesPlayed: typeof p.gamesPlayed === "number" ? p.gamesPlayed : 0,
-      xp: typeof p.xp === "number" ? p.xp : 0,
-      playerName: typeof p.playerName === "string" && p.playerName.trim() ? p.playerName.slice(0, 16) : "Yolk",
-    };
+    const rawV5 = localStorage.getItem(SAVE_KEY);
+    if (rawV5) {
+      const p = JSON.parse(rawV5) as Partial<Persist>;
+      // Re-apply defaults to fill any missing field (forward compat).
+      return applyDefaults(p);
+    }
+    for (const legacyKey of LEGACY_SAVE_KEYS) {
+      const raw = localStorage.getItem(legacyKey);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw) as Partial<Persist>;
+      const migrated = migrateV4ToV5(parsed);
+      // Persist the upgrade so future loads hit v5 directly.
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(migrated));
+        localStorage.removeItem(legacyKey);
+      } catch {
+        /* ignore */
+      }
+      return migrated;
+    }
+    return fallback;
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Fill missing / malformed v5 fields with safe defaults. Pure: never
+ * strips unknown keys so future schema growth stays compatible.
+ */
+function applyDefaults(p: Partial<Persist>): Persist {
+  const fallback = defaultPersist();
+  const owned = Array.isArray(p.ownedSkins)
+    ? Array.from(new Set([...STARTER_SKINS, ...(p.ownedSkins as string[])]))
+    : [...STARTER_SKINS];
+  const levelId = LEVEL_ORDER.includes(p.levelId as LevelId)
+    ? (p.levelId as LevelId)
+    : "meadow";
+  const preferredLod: Persist["preferredLod"] =
+    p.preferredLod === "lod0" || p.preferredLod === "lod1" || p.preferredLod === "lod2"
+      ? p.preferredLod
+      : undefined;
+  return {
+    ...(p as Persist),
+    bestTime: typeof p.bestTime === "number" ? p.bestTime : null,
+    wins: typeof p.wins === "number" ? p.wins : 0,
+    colorId: EGG_COLORS.some((c) => c.id === p.colorId) ? (p.colorId as string) : "coral",
+    coins: typeof p.coins === "number" ? p.coins : 160,
+    ownedSkins: owned,
+    equippedSkin: owned.includes(p.equippedSkin ?? "")
+      ? (p.equippedSkin as string)
+      : "mint_wings",
+    levelId,
+    cleared: Array.isArray(p.cleared) ? (p.cleared as string[]) : [],
+    levelBest:
+      p.levelBest && typeof p.levelBest === "object"
+        ? (p.levelBest as Record<string, number>)
+        : {},
+    muted: p.muted === true,
+    musicVol: typeof p.musicVol === "number" ? Math.min(1, Math.max(0, p.musicVol)) : 0.72,
+    sfxVol: typeof p.sfxVol === "number" ? Math.min(1, Math.max(0, p.sfxVol)) : 0.78,
+    camSens: typeof (p as { camSens?: number }).camSens === "number"
+      ? Math.min(1.6, Math.max(0.5, (p as { camSens: number }).camSens))
+      : 1,
+    controlScale: typeof p.controlScale === "number"
+      ? Math.min(1.25, Math.max(0.8, p.controlScale))
+      : 1,
+    controlOpacity: typeof p.controlOpacity === "number"
+      ? Math.min(1, Math.max(0.4, p.controlOpacity))
+      : 0.92,
+    hapticOn: p.hapticOn !== false,
+    gfx: p.gfx === "low" || p.gfx === "medium" || p.gfx === "high" ? p.gfx : "auto",
+    gamesPlayed: typeof p.gamesPlayed === "number" ? p.gamesPlayed : 0,
+    xp: typeof p.xp === "number" ? p.xp : 0,
+    playerName:
+      typeof p.playerName === "string" && p.playerName.trim()
+        ? p.playerName.slice(0, 16)
+        : "Yolk",
+    preferredLod,
+    lastPreviewedSkinId:
+      typeof p.lastPreviewedSkinId === "string" && p.lastPreviewedSkinId.length <= 64
+        ? p.lastPreviewedSkinId
+        : fallback.lastPreviewedSkinId,
+  };
 }
 
 function save(p: Persist) {
@@ -151,6 +268,8 @@ function persistFrom(s: {
   gamesPlayed: number;
   xp: number;
   playerName: string;
+  preferredLod?: Persist["preferredLod"];
+  lastPreviewedSkinId?: string;
 }): Persist {
   return {
     bestTime: s.bestTime,
@@ -173,6 +292,8 @@ function persistFrom(s: {
     gamesPlayed: s.gamesPlayed,
     xp: s.xp,
     playerName: s.playerName,
+    preferredLod: s.preferredLod,
+    lastPreviewedSkinId: s.lastPreviewedSkinId,
   };
 }
 
@@ -208,6 +329,9 @@ type GameStore = {
   gamesPlayed: number;
   xp: number;
   playerName: string;
+  /** v5 fields — round-trip through reconcilePersisted + persistFrom(get()). */
+  preferredLod?: Persist["preferredLod"];
+  lastPreviewedSkinId?: string;
 
   lastPayout: number;
   hud: {
@@ -234,6 +358,9 @@ type GameStore = {
   setControlOpacity: (v: number) => void;
   setHapticOn: (v: boolean) => void;
   setGfx: (v: Persist["gfx"]) => void;
+  setPlayerName: (name: string) => void;
+  setPreferredLod: (v: Persist["preferredLod"]) => void;
+  setLastPreviewedSkinId: (id: string | undefined) => void;
   toggleHowTo: () => void;
   startRace: () => void;
   forcePlay: () => void;
@@ -280,6 +407,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   gamesPlayed: initial.gamesPlayed ?? 0,
   xp: initial.xp ?? 0,
   playerName: initial.playerName ?? "Yolk",
+  preferredLod: initial.preferredLod,
+  lastPreviewedSkinId: initial.lastPreviewedSkinId,
 
   lastPayout: 0,
   hud: { time: 0, place: 8, dashCd: 0, coinsRun: 0, racers: [], failHint: "" },
@@ -347,6 +476,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
     set({ gfx: v });
     save(persistFrom(get()));
   },
+  setPlayerName: (name) => {
+    const trimmed = typeof name === "string" ? name.trim().slice(0, 16) : "Yolk";
+    set({ playerName: trimmed || "Yolk" });
+    save(persistFrom(get()));
+  },
+  setPreferredLod: (v) => {
+    set({ preferredLod: v });
+    save(persistFrom(get()));
+  },
+  setLastPreviewedSkinId: (id) => {
+    set({ lastPreviewedSkinId: id });
+    save(persistFrom(get()));
+  },
   toggleHowTo: () => set({ howTo: !get().howTo }),
 
   startRace: () => {
@@ -402,6 +544,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       gamesPlayed: persisted.gamesPlayed,
       xp: persisted.xp,
       playerName: persisted.playerName,
+      preferredLod: persisted.preferredLod,
+      lastPreviewedSkinId: persisted.lastPreviewedSkinId,
     });
     setActiveLevel(persisted.levelId);
   },

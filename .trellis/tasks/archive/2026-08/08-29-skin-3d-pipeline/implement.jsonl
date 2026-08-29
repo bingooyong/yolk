@@ -1,0 +1,20 @@
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/prd.md", "reason": "Requirements + acceptance criteria — single source of truth"}
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/design.md", "reason": "Module boundaries + Provider interface + data flow + contracts"}
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/implement.md", "reason": "Six-phase execution order + validation commands + rollback points"}
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/concept-art/bear-explorer-brief.md", "reason": "小熊探险家 concept art asset brief — input for future Meshy/Rodin (out of scope this task)"}
+{"file": "CLAUDE.md", "reason": "Hard constraints: host:port 8080, SAVE_KEY upgrade rule, server-only getSql, .trellis/spec/ writable scope"}
+{"file": "AGENTS.md", "reason": "Trellis workflow context for AI assistants"}
+{"file": ".trellis/spec/frontend/index.md", "reason": "Frontend guideline index for state management / component / rendering"}
+{"file": ".trellis/spec/frontend/visual-rendering.md", "reason": "Visual rendering baseline — Three.js / R3F / Rapier stack already in place"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "Component conventions for CharacterVisual / DeveloperSkinPreview"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "Zustand store patterns — relevant for v4 → v5 Persist migration"}
+{"file": "docs/visual/visual-architecture.md", "reason": "Visual architecture overview — character rendering lives here"}
+{"file": "docs/visual/material-system.md", "reason": "Material system — PBR expectations for GLB inputs"}
+{"file": "docs/visual/rendering-pipeline.md", "reason": "Rendering pipeline — where CharacterVisual fits"}
+{"file": "docs/visual/performance-guide.md", "reason": "Performance budget — LOD contract rationale"}
+{"file": "src/game/skins.ts", "reason": "Current Skin type + 12 procedural skins to preserve"}
+{"file": "src/game/character-presentation.ts", "reason": "Transform-only character pose API to reuse — DO NOT modify"}
+{"file": "src/game/store.ts", "reason": "Current SAVE_KEY=yolk-rush-v4 + Persist type — needs v4→v5 migration"}
+{"file": "src/game/store-hydration.test.ts", "reason": "Existing hydration test pattern to extend for v5 migration"}
+{"file": "vite.config.ts", "reason": "Nitro serverDir / authPopupPlugin / tanstackStart ordering — relevant for dev-only preview route guard"}
+{"file": "package.json", "reason": "Existing three / @react-three/fiber / @react-three/rapier versions + playwright + node:test setup"}
