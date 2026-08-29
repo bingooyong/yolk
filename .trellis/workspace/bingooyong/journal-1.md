@@ -69,3 +69,24 @@ Shipped P0-P6 of the Skin 3D Pipeline: Provider interface + 4 impls (Mock/Meshy/
 ### Status
 
 [OK] **Completed**
+
+
+## Session 4: Fix 16 pre-existing npm test failures from grok a2a9e28
+
+**Date**: 2026-08-29
+**Task**: Fix 16 pre-existing npm test failures from grok a2a9e28
+**Branch**: `main`
+
+### Summary
+
+Resumed after the 3-way merge (0148c51) was already pushed to origin/main. Diagnosed 16 pre-existing npm test failures that came in via grok's a2a9e28 Export from Grok commit. Two root causes: (1) 7 env-dependent tests reading .grok/skills/og/* paths that are gitignored — fixed via .grok/app-env.json fixture for the 4 auth/with-app-env tests + env-aware skip guards (scripts/_test-env.mjs helper, inline { skip } options) for the 3 brand-check + 1 write-atomic tests. (2) 8 grok-pwa-plugin tests whose cwd defaulted to process.cwd() and read the project's own src/lib/og/site.json (title=Yolk Rush), short-circuiting resolveOgTitle's fromSite branch — fixed by pinning cwd: mkdtempSync(...) for each test so the temp empty dir isolates from the project root. Result: 215/215 tests run, 211 pass + 4 skipped (env-dependent, restored in grok-equipped envs), 0 fail. typecheck clean, lint 0 errors (only pre-existing warnings). Pushed as 6520a7f.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6520a7f` | (see git log) |
+
+### Status
+
+[OK] **Completed**
