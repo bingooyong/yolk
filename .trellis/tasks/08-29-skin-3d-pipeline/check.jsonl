@@ -1,0 +1,15 @@
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/prd.md", "reason": "Acceptance criteria — check each item against delivered code"}
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/design.md", "reason": "Trade-offs table — verify chosen options actually implemented"}
+{"file": ".trellis/tasks/08-29-skin-3d-pipeline/implement.md", "reason": "P0-P6 phase checklist + Validation Commands + Risky Files — gate each phase"}
+{"file": "CLAUDE.md", "reason": "Hard constraints gate — especially 'store.ts SAVE_KEY 升级规则' (must add v5 not in-place edit)"}
+{"file": "src/game/skins.ts", "reason": "Verify all 12 existing skins still resolve + kind field present on every entry"}
+{"file": "src/game/store.ts", "reason": "Verify v5 key + migrateV4ToV5 + v4 fallback path"}
+{"file": "src/engine/skin-asset/provider/types.ts", "reason": "Verify SkinAssetGenerationProvider interface matches design.md §4 exactly"}
+{"file": "src/engine/skin-asset/provider/mock-provider.ts", "reason": "Verify returns demo GLB URL + no network calls"}
+{"file": "scripts/validate-skin-asset.mjs", "reason": "Verify all numbers in output come from real GLB read (no hard-coded zeros)"}
+{"file": "public/assets/skins/_demo/egg-exported.asset-manifest.json", "reason": "Verify triangleCount > 0 + valid: true + license field present"}
+{"file": "docs/skins/third-party-assets.md", "reason": "Verify demo GLB license recorded even if project-internal"}
+{"file": ".agents/skills/create-skin/SKILL.md", "reason": "Verify 8-step workflow + MissingApiKeyError stop behavior + no fake GLB clause"}
+{"file": ".trellis/spec/frontend/skin-system.md", "reason": "Verify only stable rules written (no placeholders, no unverified API examples)"}
+{"file": ".trellis/spec/frontend/visual-rendering.md", "reason": "Cross-check that CharacterVisual does not contradict existing rendering spec"}
+{"file": "docs/visual/visual-architecture.md", "reason": "Cross-check CharacterVisual layer alignment"}
