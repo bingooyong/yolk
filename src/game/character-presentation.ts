@@ -133,7 +133,11 @@ const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
  * Produce a transform-only character pose. Gameplay still owns all timing and
  * movement; this uses already-computed presentation state plus render time.
  */
-export function getCharacterPose(presentation: CharacterPresentation, time: number): CharacterPose {
+export function getCharacterPose(
+  presentation: CharacterPresentation,
+  time: number,
+  profile: "default" | "bouncy" | "hero" = "default",
+): CharacterPose {
   const speedRatio = clamp01(presentation.horizontalSpeed / 8.4);
   let lift = 0;
   let scaleX = 1;
@@ -142,11 +146,10 @@ export function getCharacterPose(presentation: CharacterPresentation, time: numb
   let armSway = 0;
   let wingEnergy = 0.35;
 
+  const bounce = profile === "bouncy" ? 1.55 : profile === "hero" ? 0.55 : 1;
   if (presentation.moveState === "idle" && presentation.grounded) {
-    // The calibrated root offset is 0.030892; this amplitude leaves roughly
-    // 0.017 clearance at the lowest breath point instead of piercing ground.
-    const breath = Math.sin(time * 2.4);
-    lift += breath * 0.014;
+    const breath = Math.sin(time * (2.4 * bounce));
+    lift += breath * 0.014 * bounce;
     scaleY *= 1 - breath * 0.012;
     scaleX *= 1 + breath * 0.01;
     scaleZ *= 1 + breath * 0.01;

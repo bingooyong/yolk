@@ -1,0 +1,25 @@
+{
+  "id": "phase-skin-system-2",
+  "name": "phase-skin-system-2",
+  "title": "Character Skin System 2.0",
+  "description": "Replace accessory-only skins with a data-driven character visual registry, wardrobe preview, and two full characters (Knight, Bear).",
+  "status": "in_progress",
+  "priority": "P1",
+  "creator": "bingooyong",
+  "assignee": "grok-build",
+  "createdAt": "2026-08-29",
+  "completedAt": null,
+  "parent": null,
+  "subtasks": [],
+  "children": [],
+  "relatedFiles": [
+    "src/game/skins.ts",
+    "src/game/visuals/CharacterVisual.tsx",
+    "src/game/visuals/KnightMesh.tsx",
+    "src/game/visuals/BearMesh.tsx",
+    "src/components/Hub.tsx",
+    "src/game/store.ts",
+    "src/game/EggRacer.tsx"
+  ],
+  "notes": "Phase 1 shipped: architecture, wardrobe, yolk/knight/bear. Rabbit/Robot/banner/create-skin later."
+}

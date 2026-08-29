@@ -204,6 +204,7 @@ type GameStore = {
   raceCoins: number;
   lastBonus: { first: number; perfect: number; noFall: number };
   hub: Hub;
+  previewSkinId: string | null;
   gamesPlayed: number;
   xp: number;
   playerName: string;
@@ -223,6 +224,7 @@ type GameStore = {
   isUnlocked: (id: LevelId) => boolean;
   setLobbyTab: (tab: LobbyTab) => void;
   setHub: (hub: Hub) => void;
+  setPreviewSkin: (id: string | null) => void;
   nextRace: () => void;
   toggleMute: () => void;
   setMusicVol: (v: number) => void;
@@ -274,6 +276,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   raceCoins: 0,
   lastBonus: { first: 0, perfect: 0, noFall: 0 },
   hub: "home" as Hub,
+  previewSkinId: null as string | null,
   gamesPlayed: initial.gamesPlayed ?? 0,
   xp: initial.xp ?? 0,
   playerName: initial.playerName ?? "Yolk",
@@ -306,7 +309,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setLobbyTab: (tab) => set({ lobbyTab: tab, howTo: false }),
-  setHub: (hub) => set({ hub }),
+  setHub: (hub) =>
+    set({
+      hub,
+      previewSkinId: hub === "character" ? get().previewSkinId ?? get().equippedSkin : null,
+    }),
+  setPreviewSkin: (id) => set({ previewSkinId: id }),
   toggleMute: () => {
     set({ muted: !get().muted });
     save(persistFrom(get()));
@@ -406,7 +414,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   resume: () => {
     if (get().phase === "paused") set({ phase: "playing" });
   },
-  toTitle: () => set({ phase: "title", howTo: false, lobbyTab: "play", hub: "home" }),
+  toTitle: () => set({ phase: "title", howTo: false, lobbyTab: "play", hub: "home", previewSkinId: null }),
 
   nextRace: () => {
     const s = get();

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { sfxBoxDrop, sfxBoxOpen, sfxBoxShake, sfxReveal, unlockAudio } from "@/game/audio";
 import { haptic } from "@/engine/haptics";
 import { EGG_COLORS } from "@/game/config";
-import { rarityColor, rarityLabel, type Rarity, type Skin } from "@/game/skins";
+import { rarityColor, rarityLabel, type Rarity, type Skin, type VisualId } from "@/game/skins";
 import { useGameStore } from "@/game/store";
 import { cn } from "@/lib/utils";
 
@@ -236,6 +236,9 @@ function CandyCapsule({
 }
 
 function SkinMark({ skin, egg }: { skin: Skin; egg: string }) {
+  if (skin.modelType === "full_character") {
+    return <FullSkinMark visualId={skin.visualId} tint={skin.tint} />;
+  }
   return (
     <div className="relative h-40 w-40">
       {skin.kind === "wings" && (
@@ -290,6 +293,49 @@ function SkinMark({ skin, egg }: { skin: Skin; egg: string }) {
           style={{ background: skin.tint }}
         />
       )}
+    </div>
+  );
+}
+
+function FullSkinMark({ visualId, tint }: { visualId: VisualId; tint: string }) {
+  if (visualId === "knight") {
+    return (
+      <div className="relative h-40 w-40">
+        <span className="absolute left-1/2 top-14 h-24 w-14 -translate-x-1/2 rounded-b-full bg-[#6B2A38]" />
+        <span
+          className="absolute left-1/2 top-8 h-[5.8rem] w-[4.6rem] -translate-x-1/2 rounded-[50%]"
+          style={{ background: "#8A93A3" }}
+        />
+        <span className="absolute left-1/2 top-6 h-10 w-16 -translate-x-1/2 rounded-t-full bg-[#2A3038]" />
+        <span className="absolute left-1/2 top-12 h-2 w-10 -translate-x-1/2 rounded-full bg-[#4EC8E8]" />
+        <span
+          className="absolute left-1/2 top-[4.4rem] h-3 w-16 -translate-x-1/2 rounded-full"
+          style={{ background: tint }}
+        />
+      </div>
+    );
+  }
+  if (visualId === "bear") {
+    return (
+      <div className="relative h-40 w-40">
+        <span
+          className="absolute left-1/2 top-10 h-[5.6rem] w-[5.2rem] -translate-x-1/2 rounded-[50%]"
+          style={{ background: tint }}
+        />
+        <span className="absolute left-9 top-6 size-8 rounded-full" style={{ background: tint }} />
+        <span className="absolute right-9 top-6 size-8 rounded-full" style={{ background: tint }} />
+        <span className="absolute left-1/2 top-[4.8rem] h-10 w-12 -translate-x-1/2 rounded-[50%] bg-[#F3D5A8]" />
+        <span className="absolute left-1/2 top-16 h-6 w-8 -translate-x-1/2 rounded-full bg-[#F3D5A8]" />
+        <span className="absolute left-1/2 top-[4.4rem] size-2 -translate-x-1/2 rounded-full bg-[#2A1C18]" />
+      </div>
+    );
+  }
+  return (
+    <div className="relative h-40 w-40">
+      <span
+        className="absolute left-1/2 top-8 h-[5.5rem] w-[4.4rem] -translate-x-1/2 rounded-[50%]"
+        style={{ background: tint }}
+      />
     </div>
   );
 }

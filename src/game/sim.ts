@@ -57,6 +57,7 @@ export type SimWorld = {
   lookYaw: number;
   lookPitch: number;
   lookIdle: number;
+  showcaseYaw: number;
   coinsRun: number;
   taken: Set<string>;
   racers: RacerSim[];
@@ -80,6 +81,7 @@ export const sim: SimWorld = {
   lookYaw: 0,
   lookPitch: 0,
   lookIdle: 0,
+  showcaseYaw: 0,
   coinsRun: 0,
   taken: new Set(),
   racers: [],
@@ -134,6 +136,7 @@ export function resetSimRacers() {
   sim.lookYaw = 0;
   sim.lookPitch = 0;
   sim.lookIdle = 0;
+  sim.showcaseYaw = 0;
   sim.coinsRun = 0;
   sim.taken = new Set();
   sim.moveState = "idle";

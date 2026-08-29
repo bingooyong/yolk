@@ -37,7 +37,7 @@ import {
   syncCharacterPresentation,
   type CharacterPresentation,
 } from "./character-presentation";
-import { EggMesh } from "./EggMesh";
+import { CharacterVisual } from "./visuals/CharacterVisual";
 import { actions, consumeSteerOverride, pollInput } from "./input";
 import { contactShadowTex } from "./look";
 import {
@@ -743,7 +743,7 @@ export function EggRacer({
         <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
         <group ref={visual}>
           <FeelTrail color={color} active={isPlayer} />
-          <EggMesh
+          <CharacterVisual
             color={color}
             accessory={accessory}
             skinId={skinId}
@@ -932,7 +932,10 @@ function PlayerMarker({ color }: { color: string }) {
 
 export function RacerField() {
   const colorId = useGameStore((s) => s.colorId);
-  const skinId = useGameStore((s) => s.equippedSkin);
+  const equipped = useGameStore((s) => s.equippedSkin);
+  const preview = useGameStore((s) => s.previewSkinId);
+  const phase = useGameStore((s) => s.phase);
+  const skinId = phase === "title" && preview ? preview : equipped;
   const raceId = useGameStore((s) => s.raceId);
   const levelId = useGameStore((s) => s.levelId);
   const color = eggHex(colorId);

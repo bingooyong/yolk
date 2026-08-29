@@ -85,6 +85,15 @@ describe("character presentation contact contract", () => {
     assert.ok(rolling.scaleX > idle.scaleX);
     assert.ok(rolling.scaleZ > idle.scaleZ);
   });
+
+  it("animation profiles change idle motion without gameplay state", () => {
+    const presentation = createCharacterPresentation({ x: 0, y: 0.68, z: 0 });
+    const d = getCharacterPose(presentation, 0.7, "default");
+    const b = getCharacterPose(presentation, 0.7, "bouncy");
+    const h = getCharacterPose(presentation, 0.7, "hero");
+    assert.notEqual(d.lift, b.lift);
+    assert.notEqual(d.lift, h.lift);
+  });
 });
 
 function assert_almostEqual(actual: number, expected: number, epsilon: number) {

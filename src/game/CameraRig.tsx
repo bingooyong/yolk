@@ -49,16 +49,39 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
         sim.lookPitch += (0 - sim.lookPitch) * (1 - Math.exp(-1.15 * dt));
       }
     } else if (phase === "title" || phase === "results") {
-      sim.lookYaw += (0 - sim.lookYaw) * (1 - Math.exp(-3 * dt));
-      sim.lookPitch += (0 - sim.lookPitch) * (1 - Math.exp(-3 * dt));
+      const hub = useGameStore.getState().hub;
+      if (hub !== "character") {
+        sim.lookYaw += (0 - sim.lookYaw) * (1 - Math.exp(-3 * dt));
+        sim.lookPitch += (0 - sim.lookPitch) * (1 - Math.exp(-3 * dt));
+      }
     }
 
     if (phase === "title") {
-      const side = portrait ? 1.35 : 1.85;
-      const back = portrait ? 4.0 : 4.6;
-      const up = portrait ? 1.55 : 1.75;
-      desired.current.set(px + side + Math.sin(t * 0.35) * 0.2, py + up, pz + back);
-      lookAt.current.set(px, py + 0.52, pz);
+      const hub = useGameStore.getState().hub;
+      if (hub === "character") {
+        sim.showcaseYaw += touch.lookX * 0.01;
+        if (Math.abs(touch.lookX) > 0.2) sim.lookIdle = 0;
+        else {
+          sim.lookIdle += dt;
+          if (sim.lookIdle > 1.1) sim.showcaseYaw += dt * 0.32;
+        }
+        touch.lookX = 0;
+        touch.lookY = 0;
+        const yaw = sim.showcaseYaw;
+        const dist = portrait ? 3.6 : 4.1;
+        desired.current.set(
+          px + Math.sin(yaw) * dist,
+          py + (portrait ? 1.35 : 1.5),
+          pz + Math.cos(yaw) * dist,
+        );
+        lookAt.current.set(px, py + 0.45, pz);
+      } else {
+        const side = portrait ? 1.35 : 1.85;
+        const back = portrait ? 4.0 : 4.6;
+        const up = portrait ? 1.55 : 1.75;
+        desired.current.set(px + side + Math.sin(t * 0.35) * 0.2, py + up, pz + back);
+        lookAt.current.set(px, py + 0.52, pz);
+      }
     } else {
       const dist = (portrait ? CAM_DIST + 1.1 : CAM_DIST) + (sim.playerDashing ? 0.35 : 0);
       const height = portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT;

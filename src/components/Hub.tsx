@@ -1,10 +1,11 @@
-import { useState, type ReactNode } from "react";
-import { Backpack, Egg, Flag, Home, Play, User } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
+import { Backpack, Egg, Flag, Home, Lock, Play, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sfxClick, unlockAudio } from "@/game/audio";
 import { EGG_COLORS } from "@/game/config";
 import { LEVELS, LEVEL_ORDER } from "@/game/levels";
-import { GACHA_COST, SKINS, getSkin, rarityColor, rarityLabel, type SkinKind } from "@/game/skins";
+import { GACHA_COST, SKINS, getSkin, listSkins, rarityColor, rarityLabel, unlockLabel, type SkinCategory, type SkinKind } from "@/game/skins";
+import { sim } from "@/game/sim";
 import { useGameStore, type Hub as HubId } from "@/game/store";
 import { cn } from "@/lib/utils";
 
@@ -61,9 +62,14 @@ export function Hub() {
         </div>
       )}
 
+      {hub === "character" && <WardrobeOrbit />}
+
       {hub !== "home" && (
         <div
-          className="pointer-events-auto absolute inset-x-0 z-20 flex max-h-[58%] flex-col"
+          className={cn(
+            "pointer-events-auto absolute inset-x-0 z-20 flex flex-col",
+            hub === "character" ? "max-h-[44%]" : "max-h-[58%]",
+          )}
           style={{
             bottom: "max(76px, calc(60px + env(safe-area-inset-bottom)))",
             paddingLeft: "max(12px, env(safe-area-inset-left))",
@@ -73,7 +79,7 @@ export function Hub() {
           <div className="overflow-auto rounded-t-3xl border border-border bg-ink/88 p-4 shadow-panel backdrop-blur-md md:mx-auto md:w-[min(460px,92vw)]">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-2xl">
-                {hub === "play" ? "比赛" : hub === "character" ? "角色" : hub === "inventory" ? "背包" : "我的"}
+                {hub === "play" ? "比赛" : hub === "character" ? "衣橱" : hub === "inventory" ? "背包" : "我的"}
               </h2>
               <Button variant="ghost" onClick={() => setHub("home")} aria-label="Back">
                 返回
@@ -95,7 +101,7 @@ export function Hub() {
         <div className="mx-auto flex max-w-lg items-end justify-around px-2 pt-2">
           <NavBtn id="home" label="首页" icon={<Home className="size-5" />} />
           <NavBtn id="play" label="比赛" icon={<Play className="size-5" />} big />
-          <NavBtn id="character" label="角色" icon={<Egg className="size-5" />} />
+          <NavBtn id="character" label="衣橱" icon={<Egg className="size-5" />} />
           <NavBtn id="inventory" label="背包" icon={<Backpack className="size-5" />} />
           <NavBtn id="profile" label="我的" icon={<User className="size-5" />} />
         </div>
@@ -186,39 +192,114 @@ function PlayPane({ onStart }: { onStart: () => void }) {
   );
 }
 
+function WardrobeOrbit() {
+  const pid = useRef<number | null>(null);
+  const last = useRef(0);
+  return (
+    <div
+      className="pointer-events-auto absolute inset-x-[8%] z-10 h-[36%]"
+      style={{ top: "14%" }}
+      aria-label="Rotate character"
+      onPointerDown={(e) => {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+        pid.current = e.pointerId;
+        last.current = e.clientX;
+      }}
+      onPointerMove={(e) => {
+        if (pid.current !== e.pointerId) return;
+        sim.showcaseYaw += (e.clientX - last.current) * 0.012;
+        last.current = e.clientX;
+        sim.lookIdle = 0;
+      }}
+      onPointerUp={() => {
+        pid.current = null;
+      }}
+      onPointerCancel={() => {
+        pid.current = null;
+      }}
+    />
+  );
+}
+
 function CharacterPane() {
   const equipped = useGameStore((s) => s.equippedSkin);
+  const preview = useGameStore((s) => s.previewSkinId);
   const owned = useGameStore((s) => s.ownedSkins);
   const setSkin = useGameStore((s) => s.setSkin);
+  const setPreviewSkin = useGameStore((s) => s.setPreviewSkin);
   const colorId = useGameStore((s) => s.colorId);
   const setColor = useGameStore((s) => s.setColor);
-  const skin = getSkin(equipped);
+  const [cat, setCat] = useState<SkinCategory | "all">("all");
+  const viewing = getSkin(preview ?? equipped);
+  const have = owned.includes(viewing.id);
+  const cats: { id: SkinCategory | "all"; label: string }[] = [
+    { id: "all", label: "全部" },
+    { id: "yolk", label: "蛋黄" },
+    { id: "animal", label: "动物" },
+    { id: "fantasy", label: "奇幻" },
+    { id: "mecha", label: "机甲" },
+  ];
   return (
     <>
-      <p className="text-sm text-fg-muted">
-        {skin.name} · {rarityLabel(skin.rarity)}
+      <p className="text-sm">
+        {viewing.name} · {rarityLabel(viewing.rarity)} {have ? "· 已拥有" : "· 未拥有"}
       </p>
-      <p className="mt-3 text-xs text-fg-subtle">外观</p>
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        {SKINS.map((s) => {
-          const have = owned.includes(s.id);
+      <p className="mt-1 text-xs text-fg-muted">{viewing.description || "拖动画布可 360° 查看"}</p>
+      {!have && <p className="mt-1 text-xs text-fg-subtle">获取方式：{unlockLabel(viewing.unlock)}</p>}
+      <div className="mt-3 flex flex-wrap gap-1">
+        {cats.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            className={cn(
+              "rounded-full border px-2 py-1 text-[11px]",
+              cat === c.id ? "border-accent text-fg" : "border-border text-fg-muted",
+            )}
+            onClick={() => setCat(c.id)}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {listSkins(cat).map((s) => {
+          const got = owned.includes(s.id);
+          const on = (preview ?? equipped) === s.id;
           return (
             <button
               key={s.id}
               type="button"
-              disabled={!have}
-              onClick={() => setSkin(s.id)}
+              aria-label={got ? s.name : `${s.name}，未拥有`}
+              aria-pressed={on}
+              onClick={() => setPreviewSkin(s.id)}
               className={cn(
                 "rounded-xl border px-2 py-2 text-left text-xs",
-                equipped === s.id ? "border-accent" : "border-border",
-                !have && "opacity-35",
+                on ? "border-accent" : "border-border",
+                !got && "opacity-80",
               )}
             >
-              <span className="mb-1 block size-2 rounded-full" style={{ backgroundColor: rarityColor(s.rarity) }} />
+              <span className="mb-1 flex items-center gap-1">
+                <span className="size-2 rounded-full" style={{ backgroundColor: rarityColor(s.rarity) }} />
+                {!got && <Lock className="size-3 text-fg-subtle" aria-hidden />}
+              </span>
               {s.name}
             </button>
           );
         })}
+      </div>
+      <div className="mt-3 flex gap-2">
+        <Button
+          className="flex-1"
+          aria-label={viewing.id === equipped ? "已装备当前皮肤" : have ? "装备当前皮肤" : "未拥有无法装备"}
+          disabled={!have || viewing.id === equipped}
+          onClick={() => {
+            if (!have) return;
+            setSkin(viewing.id);
+            setPreviewSkin(viewing.id);
+          }}
+        >
+          {viewing.id === equipped ? "已装备" : have ? "装备" : "未拥有"}
+        </Button>
       </div>
       <p className="mt-4 text-xs text-fg-subtle">蛋壳颜色</p>
       <div className="mt-2 flex flex-wrap gap-2">

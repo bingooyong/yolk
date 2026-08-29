@@ -98,3 +98,10 @@ test("settings continue writing to the existing v4 save key", () => {
   assert.equal(saved.coins, 80);
   assert.equal(saved.playerName, "Saved Yolk");
 });
+
+test("setSkin ignores unowned full characters", () => {
+  const before = gameStore.useGameStore.getState().equippedSkin;
+  gameStore.useGameStore.getState().setSkin("knight");
+  assert.equal(gameStore.useGameStore.getState().equippedSkin, before);
+  assert.notEqual(before, "knight");
+});
