@@ -1,0 +1,4 @@
+{"file":".trellis/spec/frontend/index.md","reason":"Frontend module and quality conventions relevant to R3F changes"}
+{"file":".trellis/tasks/08-28-visual-upgrade-phase2/research/rendering-audit.md","reason":"Rendering foundation evidence and P0 fixes"}
+{"file":".trellis/tasks/08-28-visual-upgrade-phase2/research/character-level-audit.md","reason":"Character/course contact, animation, material, and benchmark evidence"}
+{"file":".trellis/tasks/08-28-visual-upgrade-phase2/research/ui-performance-audit.md","reason":"UI, runtime, QA, and performance evidence"}

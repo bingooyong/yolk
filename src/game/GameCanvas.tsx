@@ -2,12 +2,16 @@ import { Suspense, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Physics } from "@react-three/rapier";
 import * as THREE from "three";
-import { qualityToDpr, useDevice } from "@/engine/device";
-import { CameraRig, FollowLight } from "./CameraRig";
+import { useDevice } from "@/engine/device";
+import { PHYSICS_DT } from "@/engine/pipeline";
+import { getCanvasRemountKey, getVisualProfile, VISUAL_FOUNDATION } from "@/engine/visualProfile";
+import { CameraRig } from "./CameraRig";
 import { RacerField } from "./EggRacer";
+import { LightingSystem } from "./LightingSystem";
 import { Track } from "./Track";
 import { currentLevel } from "./course";
 import { installControlsTest } from "./input";
+import { observePerformanceRenderer } from "./performanceInstrumentation";
 import { sim } from "./sim";
 import { useGameStore } from "./store";
 
@@ -37,20 +41,10 @@ function HudPump() {
   return null;
 }
 
-function Tone() {
-  const { gl } = useThree();
-  useEffect(() => {
-    gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1.18;
-    gl.outputColorSpace = THREE.SRGBColorSpace;
-  }, [gl]);
-  return null;
-}
-
 function Scene() {
   const paused = useGameStore((s) => s.phase === "paused");
   return (
-    <Physics gravity={[0, -28, 0]} timeStep={1 / 60} interpolate paused={paused}>
+    <Physics gravity={[0, -28, 0]} timeStep={PHYSICS_DT} interpolate paused={paused}>
       <Track />
       <RacerField />
       <Ranker />
@@ -58,14 +52,24 @@ function Scene() {
   );
 }
 
+function PerformanceRendererBridge() {
+  const gl = useThree((state) => state.gl);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("debug") !== "perf") return;
+    observePerformanceRenderer(gl);
+  }, [gl]);
+  return null;
+}
+
 export default function GameCanvas() {
   const device = useDevice();
   const gfx = useGameStore((s) => s.gfx);
   const quality = gfx === "auto" ? device.quality : gfx;
-  const dpr = qualityToDpr(quality);
-  const shadows = quality !== "low";
+  const profile = getVisualProfile(quality);
   const levelId = useGameStore((s) => s.levelId);
   const theme = currentLevel().theme;
+  const canvasKey = getCanvasRemountKey(levelId, quality);
+  const renderer = VISUAL_FOUNDATION.renderer;
 
   useEffect(() => {
     installControlsTest(
@@ -76,31 +80,34 @@ export default function GameCanvas() {
 
   return (
     <Canvas
-      key={levelId}
+      key={canvasKey}
       className="absolute inset-0"
-      shadows={shadows}
-      dpr={dpr}
-      camera={{ position: [0, 6, 14], fov: device.portrait ? 58 : 50, near: 0.4, far: 160 }}
+      shadows={profile.shadows}
+      dpr={profile.dpr}
+      camera={{
+        position: [0, 6, 14],
+        fov: device.portrait ? 58 : 50,
+        near: VISUAL_FOUNDATION.camera.near,
+        far: VISUAL_FOUNDATION.camera.far,
+      }}
       gl={{
-        antialias: quality !== "low",
+        antialias: profile.contextAntialias,
         powerPreference: "high-performance",
         alpha: false,
         stencil: false,
         depth: true,
       }}
       onCreated={({ gl }) => {
-        gl.setClearColor(theme.sky);
         gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.18;
+        gl.toneMappingExposure = renderer.exposure;
+        gl.outputColorSpace = THREE.SRGBColorSpace;
       }}
     >
       <color attach="background" args={[theme.sky]} />
       <fog attach="fog" args={[theme.fog, theme.fogNear, theme.fogFar]} />
-      <ambientLight intensity={0.62} />
-      <hemisphereLight args={["#FFF1DC", "#2A5AAA", 0.95]} />
-      <FollowLight quality={quality} />
+      <LightingSystem quality={quality} />
       <CameraRig portrait={device.portrait} />
-      <Tone />
+      <PerformanceRendererBridge />
       <HudPump />
       <Suspense fallback={null}>
         <Scene />

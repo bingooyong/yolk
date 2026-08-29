@@ -1,0 +1,24 @@
+{
+  "low": {
+    "canvas": [
+      {
+        "width": 487,
+        "height": 1055,
+        "clientWidth": 390,
+        "clientHeight": 844
+      }
+    ],
+    "consoleErrors": []
+  },
+  "medium": {
+    "canvas": [
+      {
+        "width": 585,
+        "height": 1266,
+        "clientWidth": 390,
+        "clientHeight": 844
+      }
+    ],
+    "consoleErrors": []
+  }
+}

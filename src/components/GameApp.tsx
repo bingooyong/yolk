@@ -1,28 +1,25 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import { GameUI } from "@/components/GameUI";
+import { PerformanceDebugOverlay } from "@/components/PerformanceDebug";
 import { TouchControls } from "@/components/TouchControls";
 import { installInput } from "@/game/input";
 import { MusicDirector } from "@/game/MusicDirector";
+import { useGameStore } from "@/game/store";
 import { resumeAudio, suspendAudio } from "@/game/audio";
 
-const gameCanvasLoad =
-  typeof window !== "undefined" ? import("@/game/GameCanvas") : null;
-
-const GameCanvas = lazy(
-  () => gameCanvasLoad ?? import("@/game/GameCanvas"),
-) as ComponentType;
+const GameCanvas = lazy(() => import("@/game/GameCanvas")) as ComponentType;
 
 export function GameApp() {
   const [ready, setReady] = useState(false);
+  const [debugPerf, setDebugPerf] = useState(false);
 
   useEffect(() => {
-    setReady(true);
     const off = installInput();
     const resume = () => {
       if (document.hidden) suspendAudio();
       else resumeAudio();
     };
-    const block = (e: Event) => e.preventDefault();
+    const block = (event: Event) => event.preventDefault();
     document.addEventListener("visibilitychange", resume);
     document.addEventListener("gesturestart", block);
     document.addEventListener("gesturechange", block);
@@ -38,6 +35,13 @@ export function GameApp() {
     };
   }, []);
 
+  useEffect(() => {
+    useGameStore.getState().reconcilePersisted();
+    const enabled = new URLSearchParams(window.location.search).get("debug") === "perf";
+    setDebugPerf(enabled);
+    setReady(true);
+  }, []);
+
   return (
     <div className="game-root relative h-dvh w-full overflow-hidden bg-sky">
       {ready ? (
@@ -47,6 +51,7 @@ export function GameApp() {
       ) : (
         <Boot />
       )}
+      {debugPerf && <PerformanceDebugOverlay />}
       <MusicDirector />
       <GameUI />
       <TouchControls />

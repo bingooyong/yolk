@@ -76,15 +76,3 @@ export function useDevice(): DeviceProfile {
   }, []);
   return profile;
 }
-
-export function qualityToDpr(q: Quality): [number, number] {
-  if (q === "low") return [1, 1.25];
-  if (q === "medium") return [1, 1.5];
-  return [1, 2];
-}
-
-export function shadowMapSize(q: Quality): number {
-  if (q === "low") return 0;
-  if (q === "medium") return 1024;
-  return 1536;
-}

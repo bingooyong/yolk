@@ -1,29 +1,93 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { CuboidCollider, RigidBody, type RapierRigidBody } from "@react-three/rapier";
+import {
+  CuboidCollider,
+  RigidBody,
+  useBeforePhysicsStep,
+  type RapierRigidBody,
+} from "@react-three/rapier";
 import * as THREE from "three";
+import { PHYSICS_DT } from "@/engine/pipeline";
+import { VISUAL_FOUNDATION } from "@/engine/visualProfile";
 import { currentLevel, moverVel, type TrapTileDef } from "./course";
 import type { Hammer, Mover, Pendulum, Spinner } from "./levels";
 import { crateTex, skyTex, stripeTex } from "./look";
+import { Level1BenchmarkArt } from "./Level1BenchmarkArt";
 import { sim } from "./sim";
 import { useGameStore } from "./store";
 
 const _side = new THREE.Color();
 
+type MeadowPadRole = "checkpoint" | "field" | "lift" | "shortcut" | "bounce" | "finish";
+
+function meadowPadRole(platformId: string): MeadowPadRole {
+  if (platformId.startsWith("pounce")) return "shortcut";
+  if (platformId === "step1" || platformId === "gapA") return "lift";
+  if (platformId === "jelly") return "bounce";
+  if (platformId === "start" || platformId === "plaza") return "checkpoint";
+  if (platformId === "final") return "finish";
+  return "field";
+}
+
 function Pad({
   size,
   color,
+  role,
 }: {
   size: [number, number, number];
   color: string;
+  role?: MeadowPadRole;
 }) {
   const materials = useMemo(() => {
-    const top = new THREE.MeshLambertMaterial({ color });
-    const side = new THREE.MeshLambertMaterial({
-      color: _side.set(color).multiplyScalar(0.72),
-    });
+    if (!role) {
+      const top = new THREE.MeshLambertMaterial({ color });
+      const side = new THREE.MeshLambertMaterial({
+        color: _side.set(color).multiplyScalar(0.72),
+      });
+      return [side, side, top, side, side, side];
+    }
+
+    const palette = {
+      checkpoint: { top: "#F7DF8A", side: "#C9A450" },
+      field: { top: "#7BD9A4", side: "#3D8D69" },
+      lift: { top: "#A5EBAD", side: "#54A46B" },
+      shortcut: { top: "#F7C36A", side: "#B77A3B" },
+      bounce: { top: "#E993AC", side: "#A14D6B" },
+      finish: { top: "#FBE49A", side: "#CBA655" },
+    }[role];
+    const top =
+      role === "bounce"
+        ? new THREE.MeshStandardMaterial({
+            color: palette.top,
+            emissive: "#FF9BB4",
+            emissiveIntensity: 0.24,
+            roughness: 0.29,
+            metalness: 0.02,
+          })
+        : role === "shortcut"
+          ? new THREE.MeshStandardMaterial({
+              color: palette.top,
+              emissive: "#8C5A19",
+              emissiveIntensity: 0.1,
+              roughness: 0.52,
+              metalness: 0.04,
+            })
+          : new THREE.MeshStandardMaterial({
+              color: palette.top,
+              roughness: role === "checkpoint" || role === "finish" ? 0.64 : 0.8,
+              metalness: 0.03,
+            });
+    const side = new THREE.MeshLambertMaterial({ color: palette.side });
     return [side, side, top, side, side, side];
-  }, [color]);
+  }, [color, role]);
+
+  useEffect(
+    () => () => {
+      for (const material of new Set(materials)) material.dispose();
+    },
+    [materials],
+  );
+
   return (
     <mesh receiveShadow castShadow material={materials}>
       <boxGeometry args={size} />
@@ -35,6 +99,7 @@ export function Track() {
   const levelId = useGameStore((s) => s.levelId);
   const raceId = useGameStore((s) => s.raceId);
   const level = currentLevel();
+  const isLevel1Benchmark = level.id === "meadow";
   return (
     <group key={`${levelId}-${raceId}`}>
       <SkyDome />
@@ -43,15 +108,13 @@ export function Track() {
         const kind =
           p.kind === "ice" || p.kind === "bounce" || p.kind === "conveyor" ? p.kind : "platform";
         return (
-          <RigidBody
-            key={p.id}
-            type="fixed"
-            colliders={false}
-            position={p.pos}
-            userData={{ kind }}
-          >
+          <RigidBody key={p.id} type="fixed" colliders={false} position={p.pos} userData={{ kind }}>
             <CuboidCollider args={[p.size[0] / 2, p.size[1] / 2, p.size[2] / 2 + 0.08]} />
-            <Pad size={p.size} color={p.color} />
+            <Pad
+              size={p.size}
+              color={p.color}
+              role={isLevel1Benchmark ? meadowPadRole(p.id) : undefined}
+            />
           </RigidBody>
         );
       })}
@@ -72,14 +135,20 @@ export function Track() {
         <Pendulum key={p.id} {...p} />
       ))}
       {level.rings.map((r) => (
-        <BoostRing key={r.id} pos={r.pos} />
+        <BoostRing key={r.id} pos={r.pos} benchmark={isLevel1Benchmark} />
       ))}
       {level.pickups.map((p) => (
-        <PickupMesh key={p.id} {...p} />
+        <PickupMesh key={p.id} {...p} benchmark={isLevel1Benchmark} />
       ))}
 
-      <FinishArch z={level.finishZ} />
-      <Decor theme={level.theme.id} finishZ={level.finishZ} />
+      {isLevel1Benchmark ? (
+        <Level1BenchmarkArt platforms={level.platforms} finishZ={level.finishZ} />
+      ) : (
+        <>
+          <FinishArch z={level.finishZ} />
+          <Decor theme={level.theme.id} finishZ={level.finishZ} />
+        </>
+      )}
       <CloudFloor />
     </group>
   );
@@ -89,20 +158,32 @@ function TrapTile(t: TrapTileDef) {
   const ref = useRef<RapierRigidBody>(null);
   const armed = useRef(0);
   const dropped = useRef(false);
+  const elapsed = useRef(0);
   const tex = useMemo(() => stripeTex(), []);
-  useFrame((_, delta) => {
+  useBeforePhysicsStep(() => {
+    elapsed.current += PHYSICS_DT;
     const rb = ref.current;
     if (!rb || dropped.current) return;
     const p = sim.racers.find((r) => r.isPlayer);
-    if (t.drops && p && Math.abs(p.x - t.pos[0]) < 1.05 && Math.abs(p.z - t.pos[2]) < 1.05 && p.y < 1.6) {
-      armed.current += delta;
+    if (
+      t.drops &&
+      p &&
+      Math.abs(p.x - t.pos[0]) < 1.05 &&
+      Math.abs(p.z - t.pos[2]) < 1.05 &&
+      p.y < 1.6
+    ) {
+      armed.current += PHYSICS_DT;
     }
     if (armed.current > t.delay) {
       dropped.current = true;
     }
     if (dropped.current) {
       const cur = rb.translation();
-      rb.setNextKinematicTranslation({ x: cur.x, y: cur.y - 16 * delta, z: cur.z });
+      rb.setNextKinematicTranslation({
+        x: cur.x,
+        y: cur.y - 16 * PHYSICS_DT,
+        z: cur.z,
+      });
     }
   });
   return (
@@ -142,11 +223,15 @@ function NeonRails({ color, neon }: { color: string; neon: string }) {
 }
 
 function SkyDome() {
+  const ref = useRef<THREE.Mesh>(null);
   const tex = useMemo(() => skyTex(), []);
+  useFrame(({ camera }) => {
+    ref.current?.position.copy(camera.position);
+  });
   return (
-    <mesh scale={[-1, 1, 1]}>
-      <sphereGeometry args={[160, 24, 16]} />
-      <meshBasicMaterial map={tex} side={THREE.BackSide} fog={false} />
+    <mesh ref={ref} renderOrder={-1000} frustumCulled={false} scale={[-1, 1, 1]}>
+      <sphereGeometry args={[VISUAL_FOUNDATION.sky.radius, 24, 16]} />
+      <meshBasicMaterial map={tex} side={THREE.BackSide} fog={false} depthWrite={false} />
     </mesh>
   );
 }
@@ -154,16 +239,19 @@ function SkyDome() {
 function MovingPad(m: Mover) {
   const ref = useRef<RapierRigidBody>(null);
   const last = useRef(new THREE.Vector3(...m.from));
-  useFrame(({ clock }) => {
+  const elapsed = useRef(0);
+  useBeforePhysicsStep(() => {
+    const time = elapsed.current;
+    elapsed.current += PHYSICS_DT;
     const rb = ref.current;
     if (!rb) return;
-    const u = (Math.sin((clock.elapsedTime * Math.PI * 2) / m.period + m.phase) + 1) / 2;
+    const u = (Math.sin((time * Math.PI * 2) / m.period + m.phase) + 1) / 2;
     const x = m.from[0] + (m.to[0] - m.from[0]) * u;
     const y = m.from[1] + (m.to[1] - m.from[1]) * u;
     const z = m.from[2] + (m.to[2] - m.from[2]) * u;
-    const vx = (x - last.current.x) / (1 / 60);
-    const vy = (y - last.current.y) / (1 / 60);
-    const vz = (z - last.current.z) / (1 / 60);
+    const vx = (x - last.current.x) / PHYSICS_DT;
+    const vy = (y - last.current.y) / PHYSICS_DT;
+    const vz = (z - last.current.z) / PHYSICS_DT;
     last.current.set(x, y, z);
     moverVel.set(m.id, { x: vx, y: vy, z: vz });
     rb.setNextKinematicTranslation({ x, y, z });
@@ -189,8 +277,11 @@ function Hammer(h: Hammer) {
   const ref = useRef<RapierRigidBody>(null);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const e = useMemo(() => new THREE.Euler(), []);
-  useFrame(({ clock }) => {
-    e.set(0, clock.elapsedTime * h.speed + h.phase, 0);
+  const elapsed = useRef(0);
+  useBeforePhysicsStep(() => {
+    const time = elapsed.current;
+    elapsed.current += PHYSICS_DT;
+    e.set(0, time * h.speed + h.phase, 0);
     q.setFromEuler(e);
     ref.current?.setNextKinematicRotation(q);
   });
@@ -229,8 +320,11 @@ function Spinner(s: Spinner) {
   const ref = useRef<RapierRigidBody>(null);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const e = useMemo(() => new THREE.Euler(), []);
-  useFrame(({ clock }) => {
-    e.set(0, clock.elapsedTime * s.speed + s.phase, 0);
+  const elapsed = useRef(0);
+  useBeforePhysicsStep(() => {
+    const time = elapsed.current;
+    elapsed.current += PHYSICS_DT;
+    e.set(0, time * s.speed + s.phase, 0);
     q.setFromEuler(e);
     ref.current?.setNextKinematicRotation(q);
   });
@@ -260,8 +354,11 @@ function Pendulum(p: Pendulum) {
   const ref = useRef<RapierRigidBody>(null);
   const q = useMemo(() => new THREE.Quaternion(), []);
   const e = useMemo(() => new THREE.Euler(), []);
-  useFrame(({ clock }) => {
-    const a = Math.sin(clock.elapsedTime * p.speed + p.phase) * 0.85;
+  const elapsed = useRef(0);
+  useBeforePhysicsStep(() => {
+    const time = elapsed.current;
+    elapsed.current += PHYSICS_DT;
+    const a = Math.sin(time * p.speed + p.phase) * 0.85;
     e.set(0, 0, a);
     q.setFromEuler(e);
     ref.current?.setNextKinematicRotation(q);
@@ -291,22 +388,59 @@ function PickupMesh({
   id,
   kind,
   pos,
+  benchmark,
 }: {
   id: string;
   kind: "coin" | "shield" | "jelly";
   pos: [number, number, number];
+  benchmark: boolean;
 }) {
   const ref = useRef<THREE.Group>(null);
   const crate = useMemo(() => crateTex(), []);
-  useFrame(({ clock }) => {
+  const popScale = useRef(1);
+  useFrame(({ clock }, delta) => {
     const g = ref.current;
     if (!g) return;
     const gone = sim.taken.has(id);
-    g.visible = !gone;
-    if (gone) return;
+    if (!benchmark) {
+      g.visible = !gone;
+    } else {
+      popScale.current = gone
+        ? Math.max(0, popScale.current - delta * 5.5)
+        : Math.min(1, popScale.current + delta * 5);
+      g.visible = popScale.current > 0.01;
+      g.scale.setScalar(popScale.current);
+    }
+    if (!g.visible) return;
     g.position.y = pos[1] + Math.sin(clock.elapsedTime * 3 + pos[2]) * 0.1;
     g.rotation.y = clock.elapsedTime * 1.4;
   });
+  if (kind === "coin" && benchmark) {
+    return (
+      <group ref={ref} position={pos}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.31, 0.31, 0.075, 20]} />
+          <meshStandardMaterial
+            color="#F2C64F"
+            emissive="#D89B18"
+            emissiveIntensity={0.5}
+            metalness={0.78}
+            roughness={0.19}
+          />
+        </mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.31, 0.045, 8, 20]} />
+          <meshStandardMaterial
+            color="#FFF0A5"
+            emissive="#FFD666"
+            emissiveIntensity={0.72}
+            metalness={0.55}
+            roughness={0.24}
+          />
+        </mesh>
+      </group>
+    );
+  }
   if (kind === "coin") {
     return (
       <group ref={ref} position={pos}>
@@ -321,21 +455,41 @@ function PickupMesh({
     <group ref={ref} position={pos}>
       <mesh castShadow>
         <boxGeometry args={[0.72, 0.72, 0.72]} />
-        <meshLambertMaterial map={crate} />
+        {benchmark ? (
+          <meshStandardMaterial
+            color={kind === "jelly" ? "#E993AC" : "#8ED1FF"}
+            emissive={kind === "jelly" ? "#FF9BB4" : "#57D9FF"}
+            emissiveIntensity={0.34}
+            roughness={kind === "jelly" ? 0.24 : 0.35}
+            metalness={kind === "jelly" ? 0.02 : 0.18}
+          />
+        ) : (
+          <meshLambertMaterial map={crate} />
+        )}
       </mesh>
     </group>
   );
 }
 
-function BoostRing({ pos }: { pos: [number, number, number] }) {
+function BoostRing({ pos, benchmark }: { pos: [number, number, number]; benchmark: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame(({ clock }) => {
     if (ref.current) ref.current.rotation.y = clock.elapsedTime * 1.6;
   });
   return (
     <mesh ref={ref} position={pos}>
-      <torusGeometry args={[0.85, 0.1, 10, 24]} />
-      <meshLambertMaterial color="#2DB8A1" emissive="#2DB8A1" emissiveIntensity={0.35} />
+      <torusGeometry args={[0.85, 0.1, 12, 30]} />
+      {benchmark ? (
+        <meshStandardMaterial
+          color="#49E8CD"
+          emissive="#22FFC8"
+          emissiveIntensity={0.86}
+          metalness={0.42}
+          roughness={0.17}
+        />
+      ) : (
+        <meshLambertMaterial color="#2DB8A1" emissive="#2DB8A1" emissiveIntensity={0.35} />
+      )}
     </mesh>
   );
 }
@@ -384,19 +538,26 @@ function CandyTree({
 
 function Decor({ theme, finishZ }: { theme: string; finishZ: number }) {
   const color =
-    theme === "ice" ? "#8EC8F0" : theme === "factory" ? "#6A7A90" : theme === "pirate" ? "#8B6914" : "#3DCFB0";
+    theme === "ice"
+      ? "#8EC8F0"
+      : theme === "factory"
+        ? "#6A7A90"
+        : theme === "pirate"
+          ? "#8B6914"
+          : "#3DCFB0";
   const glow =
-    theme === "ice" ? "#FFFFFF" : theme === "dessert" ? "#E08AA4" : theme === "finale" ? "#E8C85A" : "#FFF6A8";
+    theme === "ice"
+      ? "#FFFFFF"
+      : theme === "dessert"
+        ? "#E08AA4"
+        : theme === "finale"
+          ? "#E8C85A"
+          : "#FFF6A8";
   const zs = [8, -6, -20, -40, Math.max(finishZ + 8, -60)];
   return (
     <>
       {zs.map((z, i) => (
-        <CandyTree
-          key={i}
-          position={[i % 2 === 0 ? -8.2 : 8.2, 0, z]}
-          color={color}
-          glow={glow}
-        />
+        <CandyTree key={i} position={[i % 2 === 0 ? -8.2 : 8.2, 0, z]} color={color} glow={glow} />
       ))}
     </>
   );

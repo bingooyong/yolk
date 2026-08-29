@@ -1,4 +1,4 @@
-import { PHYSICS_DT } from "@/engine/pipeline";
+import { PHYSICS_DT } from "../engine/pipeline.ts";
 
 export const APP_NAME = "蛋黄冲刺";
 export const APP_NAME_EN = "Yolk Rush";
@@ -70,14 +70,6 @@ export const EGG_COLORS: EggColor[] = [
 
 export const BOT_NAMES = ["小团", "糯米", "波波", "豆豆", "泡芙", "麻薯", "蛋蛋"];
 
-export const ACCESSORIES = [
-  "sprout",
-  "bow",
-  "star",
-  "leaf",
-  "antenna",
-  "tuft",
-  "none",
-] as const;
+export const ACCESSORIES = ["sprout", "bow", "star", "leaf", "antenna", "tuft", "none"] as const;
 
 export type Accessory = (typeof ACCESSORIES)[number];

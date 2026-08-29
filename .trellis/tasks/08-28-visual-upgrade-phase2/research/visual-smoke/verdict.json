@@ -1,0 +1,79 @@
+{
+  "ok": true,
+  "url": "http://127.0.0.1:4174/",
+  "outputDir": "/Users/bingooyong/Code/01Code/github.com/bingooyong/yolk/.trellis/tasks/08-28-visual-upgrade-phase2/research/visual-smoke",
+  "results": {
+    "desktop": {
+      "viewport": {
+        "name": "desktop",
+        "width": 1280,
+        "height": 800,
+        "deviceScaleFactor": 1,
+        "isMobile": false,
+        "hasTouch": false
+      },
+      "status": 200,
+      "title": "蛋黄冲刺",
+      "savedPlayerVisible": true,
+      "titleCanvas": [
+        {
+          "width": 1280,
+          "height": 800,
+          "clientWidth": 1280,
+          "clientHeight": 800
+        }
+      ],
+      "raceCanvas": [
+        {
+          "width": 1280,
+          "height": 800,
+          "clientWidth": 1280,
+          "clientHeight": 800
+        }
+      ],
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshots": {
+        "title": "/Users/bingooyong/Code/01Code/github.com/bingooyong/yolk/.trellis/tasks/08-28-visual-upgrade-phase2/research/visual-smoke/desktop-title.png",
+        "race": "/Users/bingooyong/Code/01Code/github.com/bingooyong/yolk/.trellis/tasks/08-28-visual-upgrade-phase2/research/visual-smoke/desktop-race.png"
+      }
+    },
+    "mobile": {
+      "viewport": {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "deviceScaleFactor": 3,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "status": 200,
+      "title": "蛋黄冲刺",
+      "savedPlayerVisible": true,
+      "titleCanvas": [
+        {
+          "width": 585,
+          "height": 1266,
+          "clientWidth": 390,
+          "clientHeight": 844
+        }
+      ],
+      "raceCanvas": [
+        {
+          "width": 585,
+          "height": 1266,
+          "clientWidth": 390,
+          "clientHeight": 844
+        }
+      ],
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshots": {
+        "title": "/Users/bingooyong/Code/01Code/github.com/bingooyong/yolk/.trellis/tasks/08-28-visual-upgrade-phase2/research/visual-smoke/mobile-title.png",
+        "race": "/Users/bingooyong/Code/01Code/github.com/bingooyong/yolk/.trellis/tasks/08-28-visual-upgrade-phase2/research/visual-smoke/mobile-race.png"
+      }
+    }
+  }
+}

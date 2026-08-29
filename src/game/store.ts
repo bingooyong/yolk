@@ -49,10 +49,10 @@ type Persist = {
   playerName: string;
 };
 
-const SAVE_KEY = "yolk-rush-v4";
+export const SAVE_KEY = "yolk-rush-v4";
 
-function load(): Persist {
-  const fallback: Persist = {
+function defaultPersist(): Persist {
+  return {
     bestTime: null,
     wins: 0,
     colorId: "coral",
@@ -74,6 +74,10 @@ function load(): Persist {
     xp: 0,
     playerName: "Yolk",
   };
+}
+
+function load(): Persist {
+  const fallback = defaultPersist();
   try {
     const raw =
       localStorage.getItem(SAVE_KEY) ??
@@ -125,32 +129,7 @@ function save(p: Persist) {
   }
 }
 
-const initial =
-  typeof window !== "undefined"
-    ? load()
-    : {
-        bestTime: null as number | null,
-        wins: 0,
-        colorId: "coral",
-        coins: 160,
-        ownedSkins: [...STARTER_SKINS],
-        equippedSkin: "mint_wings",
-        levelId: "meadow" as LevelId,
-        cleared: [] as string[],
-        levelBest: {} as Record<string, number>,
-        muted: false,
-        musicVol: 0.72,
-        sfxVol: 0.78,
-        camSens: 1,
-        controlScale: 1,
-        controlOpacity: 0.92,
-        hapticOn: true,
-        gfx: "auto" as const,
-        gamesPlayed: 0,
-        xp: 0,
-        playerName: "Yolk",
-      };
-
+const initial = defaultPersist();
 function persistFrom(s: {
   bestTime: number | null;
   wins: number;
@@ -256,6 +235,7 @@ type GameStore = {
   toggleHowTo: () => void;
   startRace: () => void;
   forcePlay: () => void;
+  reconcilePersisted: () => void;
   go: () => void;
   pause: () => void;
   resume: () => void;
@@ -389,6 +369,33 @@ export const useGameStore = create<GameStore>((set, get) => ({
       raceId: s.phase === "title" || s.phase === "results" ? s.raceId + 1 : s.raceId,
       howTo: false,
     });
+  },
+
+  reconcilePersisted: () => {
+    const persisted = load();
+    set({
+      bestTime: persisted.bestTime,
+      wins: persisted.wins,
+      colorId: persisted.colorId,
+      muted: persisted.muted,
+      musicVol: persisted.musicVol,
+      sfxVol: persisted.sfxVol,
+      camSens: persisted.camSens,
+      controlScale: persisted.controlScale,
+      controlOpacity: persisted.controlOpacity,
+      hapticOn: persisted.hapticOn,
+      gfx: persisted.gfx,
+      coins: persisted.coins,
+      ownedSkins: persisted.ownedSkins,
+      equippedSkin: persisted.equippedSkin,
+      levelId: persisted.levelId,
+      cleared: persisted.cleared,
+      levelBest: persisted.levelBest,
+      gamesPlayed: persisted.gamesPlayed,
+      xp: persisted.xp,
+      playerName: persisted.playerName,
+    });
+    setActiveLevel(persisted.levelId);
   },
 
   go: () => set({ phase: "playing", countLeft: 0 }),

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   CapsuleCollider,
@@ -31,8 +31,15 @@ import {
   type Accessory,
 } from "./config";
 import { currentLevel, moverVel } from "./course";
+import {
+  createCharacterPresentation,
+  getContactShadowPose,
+  syncCharacterPresentation,
+  type CharacterPresentation,
+} from "./character-presentation";
 import { EggMesh } from "./EggMesh";
 import { actions, consumeSteerOverride, pollInput } from "./input";
+import { contactShadowTex } from "./look";
 import {
   sfxBounce,
   sfxCoin,
@@ -56,7 +63,15 @@ import {
   tickAbilities,
   type AbilitySet,
 } from "./abilities";
-import { addTrauma, ensureRacer, lerpAngle, setFail, sim, type DashState, type MoveState } from "./sim";
+import {
+  addTrauma,
+  ensureRacer,
+  lerpAngle,
+  setFail,
+  sim,
+  type DashState,
+  type MoveState,
+} from "./sim";
 import { useGameStore } from "./store";
 
 type BodyUser = {
@@ -85,13 +100,19 @@ export function EggRacer({
   skinId,
   lane,
 }: Props) {
+  const spawn = (currentLevel().spawns[spawnIndex] ?? currentLevel().spawns[0]) as [
+    number,
+    number,
+    number,
+  ];
 
   const body = useRef<RapierRigidBody>(null);
   const visual = useRef<THREE.Group>(null);
-  const { world } = useRapier();
-  const controller = useRef<ReturnType<typeof world.createCharacterController> | null>(
-    null,
+  const presentation = useRef(
+    createCharacterPresentation({ x: spawn[0], y: spawn[1], z: spawn[2] }),
   );
+  const { world } = useRapier();
+  const controller = useRef<ReturnType<typeof world.createCharacterController> | null>(null);
   const raceId = useGameStore((s) => s.raceId);
 
   const local = useRef({
@@ -132,8 +153,6 @@ export function EggRacer({
     jumpT: 0,
     surface: "static" as string,
   });
-
-  const spawn = (currentLevel().spawns[spawnIndex] ?? currentLevel().spawns[0]) as [number, number, number];
 
   useEffect(() => {
     const cc = world.createCharacterController(0.08);
@@ -187,6 +206,11 @@ export function EggRacer({
     L.cp = 0;
     L.rings = new Set();
     const p = spawn;
+    presentation.current = createCharacterPresentation({
+      x: p[0],
+      y: p[1],
+      z: p[2],
+    });
     body.current?.setNextKinematicTranslation({ x: p[0], y: p[1], z: p[2] });
     const r = ensureRacer(id, {
       name,
@@ -598,14 +622,20 @@ export function EggRacer({
       }
     }
 
+    let presentationX = nx;
+    let presentationY = ny;
+    let presentationZ = nz;
     if (ny < KILL_Y) {
       const cps = level.checkpoints;
       while (L.cp < cps.length - 1 && nz < cps[L.cp + 1].z) L.cp += 1;
       const cp = cps[L.cp] ?? cps[0];
+      presentationX = lane * 0.2 + cp.pos[0];
+      presentationY = cp.pos[1];
+      presentationZ = cp.pos[2];
       rb.setNextKinematicTranslation({
-        x: lane * 0.2 + cp.pos[0],
-        y: cp.pos[1],
-        z: cp.pos[2],
+        x: presentationX,
+        y: presentationY,
+        z: presentationZ,
       });
       L.vy = 0;
       L.vx = 0;
@@ -620,6 +650,21 @@ export function EggRacer({
     }
 
     const horiz = Math.hypot(hx, hz);
+    syncCharacterPresentation(presentation.current, {
+      x: presentationX,
+      y: presentationY,
+      z: presentationZ,
+      moveState: L.moveState,
+      grounded: L.grounded,
+      horizontalSpeed: Math.hypot(L.vx, L.vz),
+      verticalVelocity: L.vy,
+      squash: L.squash,
+      lean: L.lean,
+      bank: L.bank,
+      rollSpin: L.rollSpin,
+      rollT: L.rollT,
+    });
+
     const r = ensureRacer(id, {
       name,
       color,
@@ -652,7 +697,11 @@ export function EggRacer({
       sim.playerYaw = L.yaw;
       sim.playerSpeed = horiz;
       sim.playerDashing = dashing || pouncing;
-      sim.dashFov = dashing ? DASH.fov[Math.max(0, L.dashLevel - 1)] : pouncing ? 2.4 : sim.dashFov * 0.86;
+      sim.dashFov = dashing
+        ? DASH.fov[Math.max(0, L.dashLevel - 1)]
+        : pouncing
+          ? 2.4
+          : sim.dashFov * 0.86;
       sim.moveState = L.moveState;
       sim.pad.jumpHeld = actions.jump;
       sim.pad.dashState = L.dashState;
@@ -678,26 +727,67 @@ export function EggRacer({
     vis.rotation.y = L.yaw + Math.PI;
     vis.rotation.x = L.rollT > 0 ? L.rollSpin : L.lean;
     vis.rotation.z = L.bank;
-    const s = L.squash;
-    vis.scale.set(1 / Math.sqrt(s), s, 1 / Math.sqrt(s));
   });
 
   return (
-    <RigidBody
-      ref={body}
-      type="kinematicPosition"
-      colliders={false}
-      position={spawn}
-      enabledRotations={[false, false, false]}
-      userData={{ kind: "racer", id }}
-    >
-      <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
-      <group ref={visual}>
-        <FeelTrail color={color} active={isPlayer} />
-        <EggMesh color={color} accessory={accessory} skinId={skinId} squash={1} isPlayer={isPlayer} />
-      </group>
-      {isPlayer ? <PlayerMarker color={color} /> : null}
-    </RigidBody>
+    <>
+      <ContactShadow presentation={presentation} />
+      <RigidBody
+        ref={body}
+        type="kinematicPosition"
+        colliders={false}
+        position={spawn}
+        enabledRotations={[false, false, false]}
+        userData={{ kind: "racer", id }}
+      >
+        <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
+        <group ref={visual}>
+          <FeelTrail color={color} active={isPlayer} />
+          <EggMesh
+            color={color}
+            accessory={accessory}
+            skinId={skinId}
+            isPlayer={isPlayer}
+            presentation={presentation}
+          />
+        </group>
+        {isPlayer ? <PlayerMarker color={color} /> : null}
+      </RigidBody>
+    </>
+  );
+}
+
+const contactShadowGeo = new THREE.PlaneGeometry(1, 1);
+
+function ContactShadow({ presentation }: { presentation: RefObject<CharacterPresentation> }) {
+  const mesh = useRef<THREE.Mesh>(null);
+  const texture = useMemo(() => contactShadowTex(), []);
+
+  useFrame(() => {
+    const shadow = mesh.current;
+    if (!shadow) return;
+    const pose = getContactShadowPose(presentation.current);
+    shadow.visible = pose.visible;
+    if (!pose.visible) return;
+    const p = presentation.current;
+    shadow.position.set(p.contactX, p.contactY + 0.018, p.contactZ);
+    shadow.scale.setScalar(pose.size);
+    (shadow.material as THREE.MeshBasicMaterial).opacity = pose.opacity;
+  });
+
+  return (
+    <mesh ref={mesh} geometry={contactShadowGeo} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+      <meshBasicMaterial
+        map={texture}
+        color="#221826"
+        transparent
+        opacity={0}
+        depthWrite={false}
+        polygonOffset
+        polygonOffsetFactor={-2}
+        polygonOffsetUnits={-2}
+      />
+    </mesh>
   );
 }
 
@@ -736,12 +826,7 @@ function fireDash(L: DashBody, level: 1 | 2 | 3, isPlayer: boolean) {
   }
 }
 
-function stepPlayerDash(
-  L: DashBody,
-  input: typeof actions,
-  _wishLen: number,
-  aim: () => void,
-) {
+function stepPlayerDash(L: DashBody, input: typeof actions, _wishLen: number, aim: () => void) {
   if (L.dashState === "active") return;
   if (input.dashCanceled && (L.dashState === "charging" || L.dashState === "ready")) {
     L.dashState = "idle";
@@ -887,9 +972,7 @@ export function RacerField() {
           isPlayer={false}
           spawnIndex={i + 1}
           accessory={ACCESSORIES[(i + 1) % ACCESSORIES.length]}
-          skinId={
-            ["sky_wings", "bunny", "star_cape", "sunset_wings", "halo", "bow", "crown"][i]
-          }
+          skinId={["sky_wings", "bunny", "star_cape", "sunset_wings", "halo", "bow", "crown"][i]}
           lane={-3 + i * 0.9}
         />
       ))}

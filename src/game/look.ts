@@ -6,6 +6,7 @@ let stripe: THREE.CanvasTexture | null = null;
 let grid: THREE.CanvasTexture | null = null;
 let crate: THREE.CanvasTexture | null = null;
 let sky: THREE.CanvasTexture | null = null;
+let contactShadow: THREE.CanvasTexture | null = null;
 
 function canvasTex(
   w: number,
@@ -61,6 +62,21 @@ export function glowTex() {
   glow.wrapS = THREE.ClampToEdgeWrapping;
   glow.wrapT = THREE.ClampToEdgeWrapping;
   return glow;
+}
+
+export function contactShadowTex() {
+  if (contactShadow) return contactShadow;
+  contactShadow = canvasTex(64, 64, (g, w, h) => {
+    const grd = g.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2);
+    grd.addColorStop(0, "rgba(18,12,22,0.92)");
+    grd.addColorStop(0.48, "rgba(28,20,32,0.48)");
+    grd.addColorStop(1, "rgba(34,24,38,0)");
+    g.fillStyle = grd;
+    g.fillRect(0, 0, w, h);
+  });
+  contactShadow.wrapS = THREE.ClampToEdgeWrapping;
+  contactShadow.wrapT = THREE.ClampToEdgeWrapping;
+  return contactShadow;
 }
 
 export function stripeTex() {

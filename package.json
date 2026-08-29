@@ -20,7 +20,9 @@
     "test": "node --test 'scripts/**/*.test.mjs' && node --experimental-strip-types --test src/lib/app-data/app-data.test.ts src/lib/auth/gate-identity.test.ts",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "audio:bgm": "python3 scripts/generate_bgm.py"
+    "audio:bgm": "python3 scripts/generate_bgm.py",
+    "test:visual": "node --experimental-strip-types --test src/engine/visualProfile.test.ts src/game/character-presentation.test.ts src/game/level1-benchmark.test.ts src/game/store-hydration.test.ts",
+    "smoke:visual": "node scripts/visual-smoke.mjs"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.4",
