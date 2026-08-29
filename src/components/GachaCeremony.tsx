@@ -330,6 +330,38 @@ function FullSkinMark({ visualId, tint }: { visualId: VisualId; tint: string }) 
       </div>
     );
   }
+  if (visualId === "rabbit") {
+    return (
+      <div className="relative h-40 w-40">
+        <span className="absolute left-10 top-2 h-16 w-5 -rotate-12 rounded-full" style={{ background: tint }} />
+        <span className="absolute right-10 top-2 h-16 w-5 rotate-12 rounded-full" style={{ background: tint }} />
+        <span className="absolute left-11 top-4 h-10 w-3 -rotate-12 rounded-full bg-[#F0B8C4]" />
+        <span className="absolute right-11 top-4 h-10 w-3 rotate-12 rounded-full bg-[#F0B8C4]" />
+        <span
+          className="absolute left-1/2 top-10 h-[5.4rem] w-[4.8rem] -translate-x-1/2 rounded-[50%]"
+          style={{ background: tint }}
+        />
+        <span className="absolute left-1/2 top-[4.6rem] h-8 w-10 -translate-x-1/2 rounded-[50%] bg-[#FFF6EB]" />
+        <span className="absolute left-1/2 top-16 size-2 -translate-x-1/2 rounded-full bg-[#E08AA4]" />
+      </div>
+    );
+  }
+  if (visualId === "robot") {
+    return (
+      <div className="relative h-40 w-40">
+        <span className="absolute left-1/2 top-4 size-3 -translate-x-1/2 rounded-full bg-[#E8614A]" />
+        <span className="absolute left-1/2 top-6 h-6 w-1 -translate-x-1/2 bg-[#8A93A3]" />
+        <span
+          className="absolute left-1/2 top-8 h-[5.6rem] w-[4.6rem] -translate-x-1/2 rounded-[40%]"
+          style={{ background: tint }}
+        />
+        <span className="absolute left-1/2 top-12 h-3 w-14 -translate-x-1/2 rounded-full bg-[#1C2228]" />
+        <span className="absolute left-[4.4rem] top-[3.2rem] size-2 rounded-full bg-[#4EC8E8]" />
+        <span className="absolute right-[4.4rem] top-[3.2rem] size-2 rounded-full bg-[#4EC8E8]" />
+        <span className="absolute left-1/2 top-[4.6rem] h-2 w-12 -translate-x-1/2 rounded-full bg-[#D4B45A]" />
+      </div>
+    );
+  }
   return (
     <div className="relative h-40 w-40">
       <span

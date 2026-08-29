@@ -14,4 +14,4 @@ Read `.trellis/spec/frontend/skin-system.md` and `docs/skins/skin-production-gui
 5. Wardrobe and gacha read the catalog automatically.
 6. Run `npm run test:visual` and `npx tsc --noEmit`.
 
-Phase 1 visuals: yolk, knight, bear. Rabbit / robot come later.
+Phase 1 visuals: yolk, knight, bear. Phase 2: rabbit, robot.

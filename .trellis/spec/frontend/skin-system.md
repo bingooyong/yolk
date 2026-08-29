@@ -18,7 +18,7 @@ Skin changes **who you look like**. Skin never changes **how you play**.
 - Gameplay (move, jump, pounce, roll, boost, capsule) is independent of `visualId` and `renderKind`.
 - A skin is a `SkinDefinition` in the catalog, not a branch in `EggRacer`.
 - `modelType`: `base` (default yolk), `modular` (yolk + accessory), `full_character` (replacement silhouette).
-- Visuals resolve through `visualId` (procedural full-character meshes, e.g. KnightMesh / BearMesh) **or** through `renderKind: "model"` (GLB Asset Loader). Model takes precedence over the procedural registry when both are set.
+- Visuals resolve through `visualId` (procedural full-character meshes, e.g. KnightMesh / BearMesh / RabbitMesh / RobotMesh) **or** through `renderKind: "model"` (GLB Asset Loader). Model takes precedence over the procedural registry when both are set.
 - Unowned skins may preview in wardrobe; Equip is owned-only.
 - Collision, camera gameplay, and cooldowns ignore mesh bounds.
 

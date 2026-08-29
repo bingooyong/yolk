@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { sfxClick, unlockAudio } from "@/game/audio";
 import { EGG_COLORS } from "@/game/config";
 import { LEVELS, LEVEL_ORDER } from "@/game/levels";
-import { GACHA_COST, SKINS, getSkin, listSkins, rarityColor, rarityLabel, unlockLabel, type SkinCategory, type SkinKind } from "@/game/skins";
+import { GACHA_COST, FEATURED_GACHA_SKIN_ID, SKINS, getSkin, listSkins, rarityColor, rarityLabel, unlockLabel, type SkinCategory, type SkinKind } from "@/game/skins";
 import { sim } from "@/game/sim";
 import { useGameStore, type Hub as HubId } from "@/game/store";
 import { useRejectedSkinIds } from "@/engine/skin-asset/gate-registry";
@@ -330,19 +330,29 @@ function InventoryPane() {
   const [kind, setKind] = useState<SkinKind | "all">("all");
   const kinds: { id: SkinKind | "all"; label: string }[] = [
     { id: "all", label: "全部" },
+    { id: "full", label: "角色" },
     { id: "hat", label: "头饰" },
     { id: "wings", label: "翅膀" },
     { id: "cape", label: "披风" },
     { id: "halo", label: "特效" },
   ];
+  const featured = getSkin(FEATURED_GACHA_SKIN_ID);
   const list = SKINS.filter(
     (s) =>
+      s.assetRole !== "test" &&
       !rejected.has(s.id) &&
       owned.includes(s.id) &&
       (kind === "all" || s.kind === kind),
   );
   return (
     <>
+      <div className="mb-3 rounded-2xl border border-accent/50 bg-surface-2 p-3">
+        <p className="text-[10px] uppercase tracking-wider text-fg-subtle">本期角色</p>
+        <p className="mt-1 font-medium">{featured.name}</p>
+        <p className="text-xs text-fg-muted">
+          {rarityLabel(featured.rarity)} · {featured.description || "完整角色外观"}
+        </p>
+      </div>
       <div className="flex flex-wrap gap-1">
         {kinds.map((k) => (
           <button

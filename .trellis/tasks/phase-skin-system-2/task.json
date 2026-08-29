@@ -17,9 +17,11 @@
     "src/game/visuals/CharacterVisual.tsx",
     "src/game/visuals/KnightMesh.tsx",
     "src/game/visuals/BearMesh.tsx",
+    "src/game/visuals/RabbitMesh.tsx",
+    "src/game/visuals/RobotMesh.tsx",
     "src/components/Hub.tsx",
     "src/game/store.ts",
     "src/game/EggRacer.tsx"
   ],
-  "notes": "Phase 1 shipped: architecture, wardrobe, yolk/knight/bear. Rabbit/Robot/banner/create-skin later."
+  "notes": "Phase 1 shipped: architecture, wardrobe, yolk/knight/bear. Phase 2: rabbit + robot full characters and featured gacha banner copy (weights unchanged)."
 }

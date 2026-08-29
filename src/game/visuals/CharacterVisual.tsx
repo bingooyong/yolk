@@ -17,6 +17,8 @@ import {
 } from "../../engine/skin-asset/loader";
 import { BearMesh } from "./BearMesh";
 import { KnightMesh } from "./KnightMesh";
+import { RabbitMesh } from "./RabbitMesh";
+import { RobotMesh } from "./RobotMesh";
 
 /**
  * CharacterVisual — picks the right visual for the requested Skin.
@@ -26,7 +28,7 @@ import { KnightMesh } from "./KnightMesh";
  *      On load failure / Quality Gate rejection / missing scene we fall back
  *      to the procedural EggMesh so gameplay never blocks.
  *   2. Otherwise → `visualId` registry → procedural full-character mesh
- *      (KnightMesh, BearMesh). Falls back to EggMesh for unknown ids.
+ *      (KnightMesh, BearMesh, RabbitMesh, RobotMesh). Falls back to EggMesh for unknown ids.
  *   3. Final safety net → EggMesh (the original procedural character).
  *
  * **Gameplay non-interference (R7)**:
@@ -52,6 +54,8 @@ const SKIN_VISUALS: Record<VisualId, ComponentType<CharacterVisualProps>> = {
   yolk: EggMesh,
   knight: KnightMesh,
   bear: BearMesh,
+  rabbit: RabbitMesh,
+  robot: RobotMesh,
 };
 
 export function CharacterVisual(props: CharacterVisualProps) {

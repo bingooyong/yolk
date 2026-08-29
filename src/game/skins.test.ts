@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, test } from "node:test";
 import {
+  FEATURED_GACHA_SKIN_ID,
   SKINS,
   STARTER_SKINS,
   VISUAL_IDS,
@@ -40,13 +41,17 @@ const PROCEDURAL_IDS = [
 ];
 
 describe("SKINS — catalog", () => {
-  test("catalog includes yolk knight bear", () => {
+  test("catalog includes yolk knight bear rabbit robot", () => {
     const ids = SKINS.map((s) => s.id);
     assert.ok(ids.includes("plain"));
     assert.ok(ids.includes("knight"));
     assert.ok(ids.includes("bear"));
+    assert.ok(ids.includes("rabbit"));
+    assert.ok(ids.includes("robot"));
     assert.equal(getSkin("knight").modelType, "full_character");
     assert.equal(getSkin("bear").visualId, "bear");
+    assert.equal(getSkin("rabbit").visualId, "rabbit");
+    assert.equal(getSkin("robot").category, "mecha");
     assert.equal(getSkin("knight").proceduralAnimation, "hero");
     assert.equal(getSkin("bear").proceduralAnimation, "bouncy");
     assert.equal(getSkin("missing-id").id, "plain");
@@ -61,6 +66,10 @@ describe("SKINS — catalog", () => {
   test("fantasy category includes knight", () => {
     assert.ok(listSkins("fantasy").some((s) => s.id === "knight"));
     assert.ok(listSkins("animal").some((s) => s.id === "bear"));
+    assert.ok(listSkins("animal").some((s) => s.id === "rabbit"));
+    assert.ok(listSkins("mecha").some((s) => s.id === "robot"));
+    assert.equal(listSkins("all").some((s) => s.assetRole === "test"), false);
+    assert.equal(getSkin(FEATURED_GACHA_SKIN_ID).id, "knight");
   });
 
   test("unlock copy is data-driven", () => {
@@ -74,6 +83,8 @@ describe("SKINS — catalog", () => {
     const src = readFileSync(new URL("./EggRacer.tsx", import.meta.url), "utf8");
     assert.equal(/skin(?:Id)? === ["']bear["']/.test(src), false);
     assert.equal(/skin(?:Id)? === ["']knight["']/.test(src), false);
+    assert.equal(/skin(?:Id)? === ["']rabbit["']/.test(src), false);
+    assert.equal(/skin(?:Id)? === ["']robot["']/.test(src), false);
     assert.ok(src.includes("CharacterVisual"));
   });
 });
@@ -87,8 +98,8 @@ describe("SKINS — procedural baseline (R14)", () => {
     const proceduralIds = SKINS.filter((s) => s.renderKind === "procedural").map((s) => s.id);
     assert.equal(
       proceduralIds.length,
-      PROCEDURAL_IDS.length + 2,
-      `expected ${PROCEDURAL_IDS.length + 2} procedural Skins (12 baseline + knight + bear), got ${proceduralIds.length}: ${proceduralIds.join(", ")}`,
+      PROCEDURAL_IDS.length + 4,
+      `expected ${PROCEDURAL_IDS.length + 4} procedural Skins (12 baseline + knight/bear/rabbit/robot), got ${proceduralIds.length}: ${proceduralIds.join(", ")}`,
     );
     for (const id of PROCEDURAL_IDS) {
       assert.ok(
