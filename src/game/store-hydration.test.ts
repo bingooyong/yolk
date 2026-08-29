@@ -90,11 +90,91 @@ test("post-mount reconciliation preserves valid saved player values", () => {
   assert.equal(state.levelId, "ice");
 });
 
-test("settings continue writing to the existing v4 save key", () => {
+test("v4 save is upgraded to v5 on first read and removed from legacy key", () => {
+  // After reconcilePersisted, the loader should have:
+  //   1. Written the migrated record to SAVE_KEY (yolk-rush-v5)
+  //   2. Removed the v4 key
+  const v5 = storage.getItem(gameStore.SAVE_KEY);
+  assert.ok(v5, "v5 key should be populated after upgrade");
+  const parsed = JSON.parse(v5) as Record<string, unknown>;
+  assert.equal(parsed.bestTime, 42.5);
+  assert.equal(parsed.coins, 80);
+  assert.equal(parsed.playerName, "Saved Yolk");
+  assert.equal(parsed.gfx, "low");
+
+  assert.equal(storage.getItem("yolk-rush-v4"), null, "v4 key must be removed after upgrade");
+});
+
+test("settings continue writing to the v5 save key after upgrade", () => {
   gameStore.useGameStore.getState().setGfx("medium");
 
   const saved = JSON.parse(storage.getItem(gameStore.SAVE_KEY) ?? "{}") as Record<string, unknown>;
   assert.equal(saved.gfx, "medium");
   assert.equal(saved.coins, 80);
   assert.equal(saved.playerName, "Saved Yolk");
+});
+
+test("migrateV4ToV5 preserves every valid field and fills defaults for missing ones", () => {
+  const migrated = gameStore.migrateV4ToV5({
+    bestTime: 100,
+    wins: 4,
+    coins: 250,
+    playerName: "Old Yolk",
+    levelId: "meadow",
+  });
+
+  assert.equal(migrated.bestTime, 100);
+  assert.equal(migrated.wins, 4);
+  assert.equal(migrated.coins, 250);
+  assert.equal(migrated.playerName, "Old Yolk");
+  assert.equal(migrated.gfx, "auto");
+  assert.equal(migrated.hapticOn, true);
+  assert.equal(migrated.preferredLod, undefined);
+  assert.equal(migrated.lastPreviewedSkinId, undefined);
+});
+
+test("v5-only fields round-trip through hydrate + save", () => {
+  storage.clear();
+  storage.setItem(
+    gameStore.SAVE_KEY,
+    JSON.stringify({
+      bestTime: 0,
+      coins: 100,
+      ownedSkins: ["plain", "sprout", "mint_wings"],
+      equippedSkin: "mint_wings",
+      playerName: "V5 Yolk",
+      preferredLod: "lod2",
+      lastPreviewedSkinId: "egg_demo_model",
+    }),
+  );
+
+  gameStore.useGameStore.getState().reconcilePersisted();
+  const state = gameStore.useGameStore.getState();
+  assert.equal(state.playerName, "V5 Yolk");
+
+  // Trigger a save and verify v5 fields persist
+  gameStore.useGameStore.getState().setPlayerName("V5 Reborn");
+  const saved = JSON.parse(storage.getItem(gameStore.SAVE_KEY) ?? "{}") as Record<string, unknown>;
+  assert.equal(saved.preferredLod, "lod2");
+  assert.equal(saved.lastPreviewedSkinId, "egg_demo_model");
+  assert.equal(saved.playerName, "V5 Reborn");
+});
+
+test("invalid v5 preferredLod values fall back to undefined", () => {
+  storage.clear();
+  storage.setItem(
+    gameStore.SAVE_KEY,
+    JSON.stringify({
+      preferredLod: "lod999",
+      lastPreviewedSkinId: "x".repeat(128),
+    }),
+  );
+
+  gameStore.useGameStore.getState().reconcilePersisted();
+
+  // No direct accessor on the store for v5-only fields; verify through save round-trip
+  gameStore.useGameStore.getState().setPlayerName("Validator");
+  const saved = JSON.parse(storage.getItem(gameStore.SAVE_KEY) ?? "{}") as Record<string, unknown>;
+  assert.equal(saved.preferredLod, undefined);
+  assert.equal(saved.lastPreviewedSkinId, undefined);
 });

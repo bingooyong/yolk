@@ -6,6 +6,7 @@ import { EGG_COLORS } from "@/game/config";
 import { LEVELS, LEVEL_ORDER } from "@/game/levels";
 import { GACHA_COST, SKINS, getSkin, rarityColor, rarityLabel, type SkinKind } from "@/game/skins";
 import { useGameStore, type Hub as HubId } from "@/game/store";
+import { useRejectedSkinIds } from "@/engine/skin-asset/gate-registry";
 import { cn } from "@/lib/utils";
 
 function formatTime(t: number) {
@@ -192,6 +193,7 @@ function CharacterPane() {
   const setSkin = useGameStore((s) => s.setSkin);
   const colorId = useGameStore((s) => s.colorId);
   const setColor = useGameStore((s) => s.setColor);
+  const rejected = useRejectedSkinIds();
   const skin = getSkin(equipped);
   return (
     <>
@@ -200,7 +202,7 @@ function CharacterPane() {
       </p>
       <p className="mt-3 text-xs text-fg-subtle">外观</p>
       <div className="mt-2 grid grid-cols-3 gap-2">
-        {SKINS.map((s) => {
+        {SKINS.filter((s) => !rejected.has(s.id)).map((s) => {
           const have = owned.includes(s.id);
           return (
             <button
@@ -243,6 +245,7 @@ function InventoryPane() {
   const setSkin = useGameStore((s) => s.setSkin);
   const coins = useGameStore((s) => s.coins);
   const pullGacha = useGameStore((s) => s.pullGacha);
+  const rejected = useRejectedSkinIds();
   const [kind, setKind] = useState<SkinKind | "all">("all");
   const kinds: { id: SkinKind | "all"; label: string }[] = [
     { id: "all", label: "全部" },
@@ -251,7 +254,12 @@ function InventoryPane() {
     { id: "cape", label: "披风" },
     { id: "halo", label: "特效" },
   ];
-  const list = SKINS.filter((s) => owned.includes(s.id) && (kind === "all" || s.kind === kind));
+  const list = SKINS.filter(
+    (s) =>
+      !rejected.has(s.id) &&
+      owned.includes(s.id) &&
+      (kind === "all" || s.kind === kind),
+  );
   return (
     <>
       <div className="flex flex-wrap gap-1">
@@ -274,7 +282,14 @@ function InventoryPane() {
           <li key={s.id} className="flex items-center gap-3 rounded-xl border border-border px-3 py-2">
             <span className="size-3 rounded-full" style={{ backgroundColor: s.tint }} />
             <div className="flex-1">
-              <p className="text-sm">{s.name}</p>
+              <p className="flex items-center gap-2 text-sm">
+                {s.name}
+                {s.renderKind === "model" ? (
+                  <span className="rounded-full border border-border px-1.5 py-0.5 text-[10px] uppercase text-fg-subtle">
+                    GLB · {s.assetRole === "test" ? "Test" : "Prod"}
+                  </span>
+                ) : null}
+              </p>
               <p className="text-[11px] text-fg-subtle">{rarityLabel(s.rarity)}</p>
             </div>
             <Button

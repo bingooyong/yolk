@@ -62,6 +62,76 @@ npm run smoke:visual -- --url http://127.0.0.1:<port>/ --out <project-root-artif
 
 For an iOS-facing change, also run `npm run build:ios`; do not commit generated `native/ios/YolkRush/www` build output unless the repository explicitly adopts it.
 
+## Skin 3D Asset Pipeline (08-29-skin-3d-pipeline)
+
+Adds an opt-in Model path for character Skins. Procedural EggMesh remains
+the default; the new pipeline only fires when a Skin declares
+`renderKind: "model"`.
+
+### Boundaries
+
+- `src/engine/skin-asset/loader.ts` — fetches + parses the GLB **and** the
+  sibling `<url>.quality-gate-report.json`; caches by `skinId`; returns
+  `null` on network / parse failure; throws `QualityGateRejectedError`
+  when the Quality Gate report reports `valid: false` (the runtime
+  dispatcher in `CharacterVisual` catches it, logs a warning, and falls
+  back to the procedural EggMesh so gameplay never blocks).
+- `src/engine/skin-asset/provider/{types,mock-provider,meshy-provider,rodin-provider,trellis-provider,factory,index}.ts`
+  — Provider interface + 4 implementations. Real providers throw
+  `MissingApiKeyError` on construction; server-only via
+  `server/routes/api/skins/*`.
+- `scripts/seed-demo-glb.mjs` — programmatic GLB seed for the demo asset.
+- `scripts/validate-skin-asset.mjs` — reads a GLB, writes
+  `<glb>.asset-manifest.json`. Each numeric field is annotated with a
+  `requiredLevel` (`Required` / `Optional` / `Recommended` / `Deferred`).
+- `scripts/quality-gate.mjs` — applies per-role thresholds; rejects
+  `role: "production"` Skins with Required failures; tolerates `role:
+"test"` Skins with Optional / Recommended misses.
+- `src/components/CharacterVisual.tsx` — picks procedural vs model at
+  render time. Falls back to `<EggMesh>` on any loader error or Quality
+  Gate rejection (`QualityGateRejectedError` → `console.warn` + EggMesh).
+  Wardrobe filtering by `getSkin(id)` + `isRejectedSkin(id)` (R13.5) keeps
+  rejected assets from surfacing in the picker in the first place.
+- `src/routes/dev/skin-preview.tsx` — `import.meta.env.DEV` guard via
+  `notFound()` in `beforeLoad`. Production builds 404 the URL.
+
+### Gameplay non-interference (R7)
+
+CharacterVisual mounts inside `<group ref={visual}>` (the existing
+presentation root). It does NOT alter:
+
+- The `<RigidBody>` kinematic body
+- The `CapsuleCollider` shape, half-height, or radius
+- `EGG_HALF`, `EGG_RADIUS`, `CHARACTER_CONTROLLER_OFFSET`,
+  `EGG_VISUAL_GROUND_OFFSET`
+- `useBeforePhysicsStep` / fixed-step pipeline timing
+
+`presentationProfile` is transform-only and applied multiplicatively
+with squash / lean / breath from `character-presentation.ts`.
+
+### Tests required
+
+```bash
+npm run test:skin    # factory + mock-provider + loader + validator + quality-gate
+npm run typecheck
+npm run lint
+npm run build
+```
+
+### Wrong vs correct (Model Skins)
+
+**Wrong:** adding a new `RigidBody` + `CapsuleCollider` for a Model Skin
+so the imported rig drives movement. Couples physics to the asset; any
+GLB swap retunes the collider.
+
+**Wrong:** writing `presentationProfile` values that change `position-y`
+to compensate for a misaligned export — they are visual transforms only.
+
+**Correct:** `CharacterVisual` mounts `<primitive object={scene.clone()} />`
+inside a transform-only `<group scale=… position-y=… rotation=…>`,
+leaves the existing collider untouched, and falls back to `<EggMesh>` on
+load failure.
+
 ## Wrong vs correct
 
 ### Wrong

@@ -1,6 +1,75 @@
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 
+/**
+ * Legacy visual category for procedural skins. Kept for backward compatibility —
+ * gameplay / wardrobe code may still key off these values.
+ *
+ * For new skins, prefer `renderKind` to discriminate Procedural vs Model.
+ */
 export type SkinKind = "none" | "hat" | "wings" | "cape" | "ears" | "halo" | "crown";
+
+/**
+ * Render-time discriminator. Drives CharacterVisual routing:
+ *   procedural → EggMesh (current path)
+ *   model      → SkinAssetLoader.load + presentationProfile
+ *
+ * SkinSystem addition per `08-29-skin-3d-pipeline`. Adding the field does not
+ * break any existing reader because the field defaults to "procedural" when
+ * absent and the loader / registry only consults it for Model-path.
+ */
+export type RenderKind = "procedural" | "model";
+
+export type HatKind = "sprout" | "bow" | "star" | "leaf" | "antenna" | "tuft";
+
+/**
+ * Per-skin transform-only profile. Applied by CharacterVisual on top of the
+ * render asset — must never affect physics / movement / ability timing.
+ *
+ * Defaults (scale 1.0, offsets 0) match the existing procedural EggMesh so a
+ * freshly authored Skin slots in without surprises.
+ */
+export type PresentationProfile = {
+  scale: number;
+  verticalOffset: number;
+  rotationOffset: { x: number; y: number; z: number };
+  contactShadowScale: number;
+};
+
+export type AssetRole = "test" | "production";
+
+/**
+ * Animation contract. The first Model Skin ships as a static GLB; once AI
+ * pipelines (Meshy / Rodin) produce animations, this struct grows.
+ */
+export type AnimationProfile = {
+  status: "static" | "embedded";
+  defaultClip?: string;
+  loop?: boolean;
+};
+
+/**
+ * Reference to the asset-manifest.json that ships next to the GLB. Validator
+ * + Quality Gate write the report; CharacterVisual only reads the references.
+ *
+ * Numbers MUST come from real GLB inspection (see Asset Validator contract) —
+ * `0` in any numeric field is treated as an invalid asset.
+ */
+export type AssetManifestRef = {
+  id: string;
+  version: number;
+  format: "glb";
+  model: string;
+  thumbnail?: string;
+  triangleCount: number;
+  textureResolution: number;
+  animations: string[];
+  skeleton: boolean;
+  lod: { lod0?: string; lod1?: string; lod2?: string };
+  license: string;
+  source: string;
+  generatedAt: string;
+  sha256: string;
+};
 
 export type Skin = {
   id: string;
@@ -8,25 +77,62 @@ export type Skin = {
   rarity: Rarity;
   kind: SkinKind;
   tint: string;
-  hat?: "sprout" | "bow" | "star" | "leaf" | "antenna" | "tuft";
+  hat?: HatKind;
+
+  /** Discriminates render path. Defaults to "procedural" for legacy entries. */
+  renderKind: RenderKind;
+
+  /** Required when renderKind === "model". */
+  modelUrl?: string;
+  lod0?: string;
+  lod1?: string;
+  lod2?: string;
+  animationProfile?: AnimationProfile;
+  presentationProfile?: PresentationProfile;
+  assetManifest?: AssetManifestRef;
+
+  /** Marks this Model Skin as test asset vs production asset for Quality Gate thresholds. */
+  assetRole?: AssetRole;
 };
 
 export const SKINS: Skin[] = [
-  { id: "plain", name: "光蛋", rarity: "common", kind: "none", tint: "#FFF6EB" },
-  { id: "sprout", name: "小芽", rarity: "common", kind: "hat", tint: "#2DB8A1", hat: "sprout" },
-  { id: "bow", name: "蝴蝶结", rarity: "common", kind: "hat", tint: "#E08AA4", hat: "bow" },
-  { id: "starlet", name: "小星", rarity: "common", kind: "hat", tint: "#E8C85A", hat: "star" },
-  { id: "mint_wings", name: "薄荷翅", rarity: "rare", kind: "wings", tint: "#2DB8A1" },
-  { id: "sky_wings", name: "晴空翅", rarity: "rare", kind: "wings", tint: "#5BAFE0" },
-  { id: "star_cape", name: "星尘披风", rarity: "rare", kind: "cape", tint: "#A99AD6" },
-  { id: "bunny", name: "兔耳", rarity: "rare", kind: "ears", tint: "#FFF6EB" },
-  { id: "sunset_wings", name: "晚霞翅", rarity: "epic", kind: "wings", tint: "#E8614A" },
-  { id: "cloud_wings", name: "云朵翅", rarity: "epic", kind: "wings", tint: "#FFF6EB" },
-  { id: "halo", name: "蛋光圈", rarity: "epic", kind: "halo", tint: "#E8C85A" },
-  { id: "crown", name: "金蛋冠", rarity: "legendary", kind: "crown", tint: "#E8C85A" },
+  { id: "plain", name: "光蛋", rarity: "common", kind: "none", tint: "#FFF6EB", renderKind: "procedural" },
+  { id: "sprout", name: "小芽", rarity: "common", kind: "hat", tint: "#2DB8A1", hat: "sprout", renderKind: "procedural" },
+  { id: "bow", name: "蝴蝶结", rarity: "common", kind: "hat", tint: "#E08AA4", hat: "bow", renderKind: "procedural" },
+  { id: "starlet", name: "小星", rarity: "common", kind: "hat", tint: "#E8C85A", hat: "star", renderKind: "procedural" },
+  { id: "mint_wings", name: "薄荷翅", rarity: "rare", kind: "wings", tint: "#2DB8A1", renderKind: "procedural" },
+  { id: "sky_wings", name: "晴空翅", rarity: "rare", kind: "wings", tint: "#5BAFE0", renderKind: "procedural" },
+  { id: "star_cape", name: "星尘披风", rarity: "rare", kind: "cape", tint: "#A99AD6", renderKind: "procedural" },
+  { id: "bunny", name: "兔耳", rarity: "rare", kind: "ears", tint: "#FFF6EB", renderKind: "procedural" },
+  { id: "sunset_wings", name: "晚霞翅", rarity: "epic", kind: "wings", tint: "#E8614A", renderKind: "procedural" },
+  { id: "cloud_wings", name: "云朵翅", rarity: "epic", kind: "wings", tint: "#FFF6EB", renderKind: "procedural" },
+  { id: "halo", name: "蛋光圈", rarity: "epic", kind: "halo", tint: "#E8C85A", renderKind: "procedural" },
+  { id: "crown", name: "金蛋冠", rarity: "legendary", kind: "crown", tint: "#E8C85A", renderKind: "procedural" },
+  // Demo Model — runtime integration test asset. NOT a production character.
+  // Generated by scripts/export-demo-glb.mjs. See docs/skins/third-party-assets.md.
+  {
+    id: "egg_demo_model",
+    name: "光蛋 · GLB",
+    rarity: "rare",
+    kind: "none",
+    tint: "#FFF6EB",
+    renderKind: "model",
+    modelUrl: "/assets/skins/_demo/egg-exported.glb",
+    lod0: "/assets/skins/_demo/egg-exported.glb",
+    lod1: "/assets/skins/_demo/egg-exported.glb",
+    lod2: "/assets/skins/_demo/egg-exported.glb",
+    animationProfile: { status: "static" },
+    presentationProfile: {
+      scale: 1.0,
+      verticalOffset: 0,
+      rotationOffset: { x: 0, y: 0, z: 0 },
+      contactShadowScale: 1.0,
+    },
+    assetRole: "test",
+  },
 ];
 
-export const STARTER_SKINS = ["plain", "sprout", "mint_wings"];
+export const STARTER_SKINS = ["plain", "sprout", "mint_wings", "egg_demo_model"];
 export const GACHA_COST = 80;
 export const DUP_REFUND = 25;
 
@@ -62,7 +168,12 @@ export function pullSkin(owned: string[]): { skin: Skin; duplicate: boolean } {
     }
     return false;
   });
-  const pool = SKINS.filter((s) => s.rarity === rarity);
+  // Gacha must never hand out a runtime-integration-test asset — players
+  // can only obtain `egg_demo_model` (and any future `assetRole: "test"`
+  // skins) through the starter list or operator tooling. See R5.2.
+  const pool = SKINS.filter(
+    (s) => s.rarity === rarity && s.assetRole !== "test",
+  );
   const skin = pool[Math.floor(Math.random() * pool.length)] ?? SKINS[0];
   return { skin, duplicate: owned.includes(skin.id) };
 }
@@ -75,6 +186,29 @@ export function placeReward(place: number, finished: boolean) {
   return 22;
 }
 
-export function getSkin(id: string) {
+export function getSkin(id: string): Skin {
   return SKINS.find((s) => s.id === id) ?? SKINS[0];
 }
+
+/**
+ * Convenience helper. Equivalent to `getSkin(id).renderKind === "model"`.
+ * Falls back to `"procedural"` when the Skin is missing so callers can use
+ * it without an existence check.
+ */
+export function getRenderKind(id: string): RenderKind {
+  return getSkin(id).renderKind;
+}
+
+/**
+ * True iff this Skin must be loaded through SkinAssetLoader.
+ */
+export function isModelSkin(id: string): boolean {
+  return getRenderKind(id) === "model";
+}
+
+export const DEFAULT_PRESENTATION_PROFILE: PresentationProfile = {
+  scale: 1.0,
+  verticalOffset: 0,
+  rotationOffset: { x: 0, y: 0, z: 0 },
+  contactShadowScale: 1.0,
+};

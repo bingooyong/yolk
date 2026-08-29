@@ -37,7 +37,7 @@ import {
   syncCharacterPresentation,
   type CharacterPresentation,
 } from "./character-presentation";
-import { EggMesh } from "./EggMesh";
+import { CharacterVisual } from "@/components/CharacterVisual";
 import { actions, consumeSteerOverride, pollInput } from "./input";
 import { contactShadowTex } from "./look";
 import {
@@ -743,7 +743,7 @@ export function EggRacer({
         <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
         <group ref={visual}>
           <FeelTrail color={color} active={isPlayer} />
-          <EggMesh
+          <CharacterVisual
             color={color}
             accessory={accessory}
             skinId={skinId}

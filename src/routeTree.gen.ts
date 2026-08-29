@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevSkinPreviewRouteImport } from './routes/dev/skin-preview'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevSkinPreviewRoute = DevSkinPreviewRouteImport.update({
+  id: '/dev/skin-preview',
+  path: '/dev/skin-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dev/skin-preview': typeof DevSkinPreviewRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dev/skin-preview': typeof DevSkinPreviewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dev/skin-preview': typeof DevSkinPreviewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/dev/skin-preview'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/dev/skin-preview'
+  id: '__root__' | '/' | '/dev/skin-preview'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DevSkinPreviewRoute: typeof DevSkinPreviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/skin-preview': {
+      id: '/dev/skin-preview'
+      path: '/dev/skin-preview'
+      fullPath: '/dev/skin-preview'
+      preLoaderRoute: typeof DevSkinPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DevSkinPreviewRoute: DevSkinPreviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
