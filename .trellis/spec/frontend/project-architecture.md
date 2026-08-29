@@ -17,7 +17,7 @@ Two entries converge on the same shell:
 
 `src/components/GameApp.tsx` composes the lazy R3F canvas, game UI, touch controls, music director, optional performance overlay, input installation, gesture suppression, and post-mount persisted-state reconciliation.
 
-The iOS native layer only serves bundled files through the custom `yolkrush` scheme. It has no native JavaScript message bridge, haptics bridge, or feature API.
+The iOS native layer only serves bundled files through the custom `yolkrush` scheme. It has no native JavaScript message bridge, haptics bridge, or feature API. `engine/haptics.ts` is only the browser Vibration API and explicitly treats iOS Safari support as unreliable. Native code/assets are local, but `native/index.html` still references remote Google Fonts, so the shell is not a guaranteed fully-offline product.
 
 ## Module ownership
 
@@ -28,7 +28,7 @@ The iOS native layer only serves bundled files through the custom `yolkrush` sch
 | React composition     | `src/components/GameApp.tsx`                                               | One shared composition point for both entries.                                                                     |
 | HUD / hub / touch UI  | `src/components`                                                           | UI state comes from `useGameStore` and input singletons; do not duplicate gameplay calculations in DOM components. |
 | Renderer              | `src/game/GameCanvas.tsx`, `LightingSystem.tsx`, `engine/visualProfile.ts` | Follow `.trellis/spec/frontend/visual-rendering.md`.                                                               |
-| Simulation            | `src/game/sim.ts`, `EggRacer.tsx`, `Track.tsx`, `engine/pipeline.ts`       | Gameplay and Rapier kinematics run on fixed `PHYSICS_DT`; render hooks only present/interpolate.                   |
+| Simulation            | `src/game/sim.ts`, `EggRacer.tsx`, `Track.tsx`, `engine/pipeline.ts`       | Gameplay and Rapier kinematics run on fixed `PHYSICS_DT`; see the render-frame exceptions below.                   |
 | Level definitions     | `src/game/levels.ts`                                                       | Level data, colliders, hazards, pickups, surfaces, and unlock order.                                               |
 | Durable UI state      | `src/game/store.ts`                                                        | Zustand phase/progression/economy/settings and persisted schema.                                                   |
 | Live race state       | `src/game/sim.ts`, `input.ts`, `course.ts`                                 | Mutable singleton state for one active race.                                                                       |
@@ -36,6 +36,19 @@ The iOS native layer only serves bundled files through the custom `yolkrush` sch
 | Server infrastructure | `src/lib`, `server`                                                        | See `data-security.md`; most capability is currently dormant library infrastructure.                               |
 
 `src/game/course.ts` is a narrow re-export facade over selected `levels.ts` APIs. Its historical reason is **Unknown**; preserve imports until a dedicated migration is planned.
+
+### Critical dependency edges
+
+| Dependency                                                                                | Meaning                                                                                        |
+| ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| UI → `useGameStore` → `sim` / `levels` / `skins`                                          | Shell actions coordinate phase, progression, active level, economy, and live simulation reset. |
+| `GameCanvas` → visual profile, device, camera, lighting, `Track`, `EggRacer`, store       | One renderer composition boundary; changes fan out into physics, presentation, and UI.         |
+| `EggRacer` → Rapier, `course`/`levels`, input, abilities, config, `sim`, store, audio     | The widest gameplay dependency fan-in in the project.                                          |
+| `Track` → `levels`/`course`, `sim`, visual profile                                        | Course data drives both colliders and presentation.                                            |
+| `src/lib/db.ts` → `scripts/migration-plan.mjs`; auth client → `scripts/sign-out-plan.mjs` | These scripts are runtime dependencies, not disposable build helpers.                          |
+| Vite plugin / Nitro middleware → `scripts/grok-pwa-shared.mjs`                            | PWA behavior is shared across dev plugin and deployed middleware.                              |
+
+Do not move or delete a `scripts/*.mjs` module without checking source/server imports as well as CLI use.
 
 ## Core simulation and state flow
 
@@ -45,7 +58,7 @@ The iOS native layer only serves bundled files through the custom `yolkrush` sch
 4. `RacerField` creates one player and level-defined bots, keyed by race.
 5. Each racer uses `useBeforePhysicsStep`: input or AI intent → abilities → velocity/gravity/wind → Rapier character controller → surfaces/hazards/bumps → pickups/finish/fall → state mirror.
 6. Course movers, spinners, pendulums, hammers, and dropping traps also update in `useBeforePhysicsStep` using accumulated fixed-step time.
-7. `useFrame` may damp cameras, animate materials, sample HUD, and interpolate visuals; it must not own gameplay state transitions.
+7. Gameplay advancement and Rapier kinematic transforms must stay on the fixed step. The literal render-frame rule is narrower than “presentation only”: existing `CameraRig`, `Ranker`, and `HudPump` exceptions consume/update shared `sim` state. `CameraRig` writes look state and `sim.camYaw`; `EggRacer` then uses those values as the camera-relative movement basis. Treat this coupling as a known boundary risk, not permission to add new gameplay work to `useFrame`.
 8. Player finish calls `onPlayerFinish`; store computes reward/XP/progression and enters results.
 
 There are two intentional state families:
@@ -75,6 +88,8 @@ Do not mutate the current `Persist` shape in place and assume old saves remain v
 - `node_modules/`, `.vercel/`, `.output/`, `dist/`, logs, `screenshots/`, and `artifacts/`: generated/local.
 - `.grok/`: ignored platform/tool state; clean clones may lack files expected by broad template tests.
 - `public/audio/**`: original generated audio assets; follow `docs/audio/music-manifest.md` when replacing.
+- `public/__grok/**`: platform install assets mirrored into native output; source edits belong to platform tooling, not ordinary game work.
+- `package-lock.json`: committed npm-generated lockfile; do not hand-edit. Dependency changes require a dedicated task and both manifests must move together.
 
 ## High-risk modules
 

@@ -22,7 +22,7 @@ createLevel1BenchmarkLayout(platforms: Platform[], finishZ?: number): Level1Benc
 
 ## Contracts
 
-1. Gameplay changes run in `useBeforePhysicsStep` or the fixed pipeline at `PHYSICS_DT`. `useFrame` may only interpolate or update presentation transforms/material values.
+1. Gameplay advancement and Rapier kinematic transforms run in `useBeforePhysicsStep` or the fixed pipeline at `PHYSICS_DT`. Do not add new gameplay work to `useFrame`. Existing exceptions are narrowly coupled to presentation/control: `CameraRig` updates look/`camYaw` state consumed by movement, while `Ranker` and `HudPump` project live race state; changes there require explicit game-flow tests.
 2. All renderer/tone/camera/sky/quality constants come from `visualProfile.ts`; do not scatter replacement magic numbers through components.
 3. Context MSAA is immutable. Dynamic DPR/shadow changes may update in place, but crossing the low-quality MSAA boundary must use `getCanvasRemountKey`.
 4. The camera-following sky shell radius must remain inside the camera far plane on every course.

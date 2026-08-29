@@ -38,3 +38,12 @@
 - [x] Run `git diff --check` on Trellis writes.
 - [x] Inventory dirty paths and separate this task's writes from external concurrent work.
 - [x] Produce final report sections A–G required by the PRD.
+
+## Stage 5 — Adversarial spec review
+
+- [x] Challenge every new durable claim against committed source.
+- [x] Correct overbroad `useFrame` wording and residual module-table contradiction.
+- [x] Add omitted modules, dependency edges, security fail-closed behavior, native runtime limits, and operations constraints.
+- [x] Remove imprecise/causal wording.
+- [x] Record the full issue matrix in `adversarial-review.md`.
+- [x] Re-run consistency keyword and dirty-path checks.

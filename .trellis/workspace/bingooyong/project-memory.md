@@ -23,7 +23,7 @@ Yolk Rush is a Chinese-first 3D party obstacle race built as one full-screen Rea
 
 - The visual P0 task fixed sky clipping, immutable MSAA behavior, render-rate Rapier movement, character contact, material response, deterministic Level 1 art, and hydration instability.
 - `src/game/course.ts` is a narrow compatibility/re-export facade over `levels.ts`; why it was introduced is unknown.
-- The project grew rapidly from a template/initial shell to abilities, hub/results, and a visual benchmark in only a few commits, leaving some dead presentation branches and dormant dependencies.
+- The project moved rapidly from a template/initial shell to abilities, hub/results, and a visual benchmark in only a few commits. Dead presentation branches and dormant-looking dependencies coexist with that growth; causality beyond the git timeline is UNKNOWN.
 - `CLAUDE.md` contains useful architecture notes but is untracked local guidance; Trellis specs are the durable source of truth.
 
 ## Known debt and pitfalls
@@ -33,6 +33,10 @@ Yolk Rush is a Chinese-first 3D party obstacle race built as one full-screen Rea
 - `installInput` leaks an anonymous `visibilitychange` listener on repeated mount/unmount.
 - HUD sampling is not a clean edge-triggered cadence.
 - Race time is player-gated; post-player-finish bot semantics are unclear.
+- Camera render frames mutate look/`camYaw` state that player movement consumes; ranking and HUD sampling also live in render hooks.
+- Source modules import `scripts/migration-plan.mjs` and `scripts/sign-out-plan.mjs`; those scripts are runtime dependencies.
+- Auth disabled plus `DATABASE_URL` set intentionally fails closed.
+- Native HTML still loads Google Fonts, and browser Vibration API haptics are unreliable on iOS.
 - `GameUI.tsx` contains dead legacy title/gacha/results code.
 - Current game state is client-authoritative; users can edit localStorage.
 - P2P expects `/api/rtc`, but no route or game integration exists.

@@ -44,3 +44,19 @@ Current non-Trellis dirty files therefore do not belong to this task. They must 
 - `git diff --check` is valid for tracked Trellis files modified here.
 - Dirty-path inventory distinguishes this task’s writes from external parallel work.
 - No product test/typecheck/lint run is meaningful for this documentation-only task; those commands remain the product gate for future code changes.
+
+## Adversarial review follow-up
+
+An additional adversarial pass challenged the new specs against committed source. It found and corrected:
+
+- overbroad `useFrame` wording that ignored camera-control, ranking, and HUD coupling;
+- omitted ability/economy, device/haptics, preview bridge, error UI, and runtime script dependencies;
+- insufficient qualification of dormant auth/data capability;
+- missing disabled-auth plus `DATABASE_URL` fail-closed behavior;
+- missing account-linking, cookie-pairing, and error-disclosure constraints;
+- missing native Google-font and iOS haptics limitations;
+- missing lockfile/platform-asset and broad-smoke invocation rules;
+- a causal overstatement in project memory;
+- imprecise “PGLite pool” terminology.
+
+The review matrix is in `adversarial-review.md`. No business code was changed.
