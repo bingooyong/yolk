@@ -9,4 +9,5 @@ export {
   type Platform,
   type Pickup,
   type TrapTileDef,
+  type LowGate,
 } from "./levels";

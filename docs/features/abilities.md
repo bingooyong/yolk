@@ -13,4 +13,5 @@ Gamepad: A jump · B pounce · X roll · RT/RB boost · right stick look
 
 Pounce is traversal, not an attack. Standing pounce uses facing. Jump may cancel into pounce.
 
-Meadow right-side pads at x=5.6 are an optional pounce shortcut (not required).
+Meadow right-side pads at x=5.6 (`pounceA` / `pounceB`) are a pounce shortcut. The center line is jumpable without pounce so bots can finish. Roll gates are player-only overlap volumes — the capsule does not shrink.
+

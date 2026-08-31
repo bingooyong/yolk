@@ -12,7 +12,9 @@ import { Track } from "./Track";
 import { currentLevel } from "./course";
 import { installControlsTest } from "./input";
 import { observePerformanceRenderer } from "./performanceInstrumentation";
-import { sim } from "./sim";
+import { getPresentationMode, PRESENTATION_PROFILES } from "./presentation/profiles";
+import { ShowcaseStage } from "./presentation/ShowcaseStage";
+import { sessionStats, sim } from "./sim";
 import { useGameStore } from "./store";
 
 function Ranker() {
@@ -43,9 +45,14 @@ function HudPump() {
 
 function Scene() {
   const paused = useGameStore((s) => s.phase === "paused");
+  const phase = useGameStore((s) => s.phase);
+  const hub = useGameStore((s) => s.hub);
+  const revealing = useGameStore((s) => Boolean(s.lastPull) && s.phase === "title");
+  const env = PRESENTATION_PROFILES[getPresentationMode(phase, hub, revealing)].environment;
   return (
     <Physics gravity={[0, -28, 0]} timeStep={PHYSICS_DT} interpolate paused={paused}>
-      <Track />
+      {env.showTrack ? <Track /> : null}
+      {env.showStage ? <ShowcaseStage collider={!env.showTrack} meadow={env.showTrack} /> : null}
       <RacerField />
       <Ranker />
     </Physics>
@@ -70,12 +77,24 @@ export default function GameCanvas() {
   const theme = currentLevel().theme;
   const canvasKey = getCanvasRemountKey(levelId, quality);
   const renderer = VISUAL_FOUNDATION.renderer;
+  const phase = useGameStore((s) => s.phase);
+  const hub = useGameStore((s) => s.hub);
+  const revealing = useGameStore((s) => Boolean(s.lastPull) && s.phase === "title");
+  const env = PRESENTATION_PROFILES[getPresentationMode(phase, hub, revealing)].environment;
+  const sky = env.showTrack || !env.background ? theme.sky : env.background;
+  const fogColor = env.showTrack || !env.fog ? theme.fog : env.fog;
+  const fogNear = env.showTrack ? theme.fogNear : env.fogNear;
+  const fogFar = env.showTrack ? theme.fogFar : env.fogFar;
 
   useEffect(() => {
     installControlsTest(
       () => sim.playerYaw,
       () => sim.playerSpeed,
     );
+    window.__yolkStats = sessionStats;
+    return () => {
+      delete window.__yolkStats;
+    };
   }, []);
 
   return (
@@ -103,8 +122,8 @@ export default function GameCanvas() {
         gl.outputColorSpace = THREE.SRGBColorSpace;
       }}
     >
-      <color attach="background" args={[theme.sky]} />
-      <fog attach="fog" args={[theme.fog, theme.fogNear, theme.fogFar]} />
+      <color attach="background" args={[sky]} />
+      <fog attach="fog" args={[fogColor, fogNear, fogFar]} />
       <LightingSystem quality={quality} />
       <CameraRig portrait={device.portrait} />
       <PerformanceRendererBridge />

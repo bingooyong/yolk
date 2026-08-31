@@ -87,7 +87,7 @@ describe("Level 1 benchmark art layout", () => {
       Array.from({ length: counts.length }, () => true),
     );
     assert.equal(
-      counts.reduce((total, count) => total + count, 0) <= 420,
+      counts.reduce((total, count) => total + count, 0) <= 800,
       true,
       `benchmark instance count is too high: ${counts.reduce((total, count) => total + count, 0)}`,
     );

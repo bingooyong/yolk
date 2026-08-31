@@ -1,0 +1,25 @@
+{
+  "id": "phase6-level-design-gameplay",
+  "name": "phase6-level-design-gameplay",
+  "title": "Phase 6 Level Design & Gameplay — Level 1 gold standard",
+  "description": "Audit eight courses, lock Level 1 as a teaching race with shortcut/recovery/skills, do not rebuild 2–8.",
+  "status": "in_progress",
+  "priority": "P0",
+  "creator": "bingooyong",
+  "assignee": "grok-build",
+  "createdAt": "2026-08-31",
+  "completedAt": null,
+  "parent": null,
+  "subtasks": [],
+  "children": [],
+  "relatedFiles": [
+    "docs/levels/current-level-audit.md",
+    "docs/levels/level1-meadow.md",
+    "src/game/levels.ts",
+    "src/game/EggRacer.tsx",
+    "src/game/Track.tsx",
+    "src/game/sim.ts",
+    ".trellis/spec/frontend/level-design.md"
+  ],
+  "notes": "Do not rebuild levels 2–8, Rapier, Action Pad, gacha, or the skin pipeline. Do not touch archived Skin/Visual tasks."
+}

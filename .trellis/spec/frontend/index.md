@@ -20,6 +20,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [State Management](./state-management.md) | Local state, global state, server state | To fill |
 | [Visual Rendering](./visual-rendering.md) | Three.js/R3F fixed-step, quality, lighting, character, environment, and visual QA contracts | Active |
 | [Skin System](./skin-system.md) | Character visuals vs gameplay; catalog, visualId registry, wardrobe preview, Provider/Quality Gate pipeline | Active |
+| [Level Design](./level-design.md) | Course identity, safe/shortcut/recovery rules, compile() as bot helper, Level 1 gold standard | Active |
 | [Project Architecture](./project-architecture.md) | Dual web/iOS entries, module boundaries, simulation/state flow, persistence, generated paths, and high-risk areas | Active |
 | [Data & Security](./data-security.md) | Local game authority, server-only DB/auth/app-data boundaries, trust borders, and environment contracts | Active |
 | [Testing & Operations](./testing-operations.md) | Command matrix, focused/broad tests, visual QA, web/native builds, and generated-path policy | Active |

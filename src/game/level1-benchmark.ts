@@ -25,14 +25,18 @@ const ROUTE_PLATFORM_IDS = new Set([
   "path",
   "step1",
   "land1",
+  "path2",
+  "rollLane",
+  "boostLane",
+  "fork",
+  "safeLane",
   "plaza",
-  "jelly",
-  "landj",
   "gapA",
+  "landj",
   "final",
 ]);
 
-const SHORTCUT_PLATFORM_IDS = new Set(["pounceA", "pounceB"]);
+const SHORTCUT_PLATFORM_IDS = new Set(["pounceA", "pounceB", "riskA", "riskB", "riskC"]);
 
 function placement(
   x: number,
@@ -61,7 +65,7 @@ function makeForeground(): Pick<Level1BenchmarkLayout, "grassTufts" | "flowers" 
   const flowerColors = ["#FF7A90", "#FFD166", "#8ED1FF", "#C792F7"];
   const rockColors = ["#9AA9B2", "#7F8F99", "#B7C3C9"];
 
-  for (let i = 0; i < 176; i += 1) {
+  for (let i = 0; i < 280; i += 1) {
     const side = i % 2 === 0 ? -1 : 1;
     const row = Math.floor(i / 2);
     const lane = i % 5;
@@ -106,7 +110,7 @@ function makeMidground(): Pick<Level1BenchmarkLayout, "candyCanes" | "gumdrops">
   const gumdrops: InstancedPlacement[] = [];
   const gumdropColors = ["#FF9EB5", "#9BE8FF", "#FFD166", "#B8F28A"];
 
-  for (let i = 0; i < 9; i += 1) {
+  for (let i = 0; i < 16; i += 1) {
     const side = i % 2 === 0 ? -1 : 1;
     candyCanes.push(
       placement(
@@ -119,7 +123,7 @@ function makeMidground(): Pick<Level1BenchmarkLayout, "candyCanes" | "gumdrops">
     );
   }
 
-  for (let i = 0; i < 13; i += 1) {
+  for (let i = 0; i < 22; i += 1) {
     const side = i % 2 === 0 ? 1 : -1;
     gumdrops.push(
       placement(
@@ -141,7 +145,7 @@ function makeBackground(): Pick<Level1BenchmarkLayout, "hills" | "clouds"> {
   const clouds: InstancedPlacement[] = [];
   const hillColors = ["#63C38B", "#4EB47C", "#78D19B"];
 
-  for (let i = 0; i < 16; i += 1) {
+  for (let i = 0; i < 24; i += 1) {
     const side = i % 2 === 0 ? -1 : 1;
     hills.push(
       placement(
@@ -155,7 +159,7 @@ function makeBackground(): Pick<Level1BenchmarkLayout, "hills" | "clouds"> {
     );
   }
 
-  for (let i = 0; i < 18; i += 1) {
+  for (let i = 0; i < 26; i += 1) {
     const side = i % 2 === 0 ? 1 : -1;
     clouds.push(
       placement(

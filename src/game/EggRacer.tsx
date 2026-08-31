@@ -38,6 +38,7 @@ import {
   type CharacterPresentation,
 } from "./character-presentation";
 import { CharacterVisual } from "./visuals/CharacterVisual";
+import { getPresentationMode, PRESENTATION_PROFILES } from "./presentation/profiles";
 import { actions, consumeSteerOverride, pollInput } from "./input";
 import { contactShadowTex } from "./look";
 import {
@@ -68,6 +69,7 @@ import {
   ensureRacer,
   lerpAngle,
   setFail,
+  setHint,
   sim,
   type DashState,
   type MoveState,
@@ -114,6 +116,11 @@ export function EggRacer({
   const { world } = useRapier();
   const controller = useRef<ReturnType<typeof world.createCharacterController> | null>(null);
   const raceId = useGameStore((s) => s.raceId);
+  const hub = useGameStore((s) => s.hub);
+  const phase = useGameStore((s) => s.phase);
+  const revealing = useGameStore((s) => Boolean(s.lastPull) && s.phase === "title");
+  const env = PRESENTATION_PROFILES[getPresentationMode(phase, hub, revealing)].environment;
+  const showMarker = isPlayer && env.showTrack && !env.showStage;
 
   const local = useRef({
     vy: 0,
@@ -152,6 +159,7 @@ export function EggRacer({
     landT: 0,
     jumpT: 0,
     surface: "static" as string,
+    gateHit: 0,
   });
 
   useEffect(() => {
@@ -205,6 +213,7 @@ export function EggRacer({
     L.jumpT = 0;
     L.cp = 0;
     L.rings = new Set();
+    L.gateHit = 0;
     const p = spawn;
     presentation.current = createCharacterPresentation({
       x: p[0],
@@ -283,17 +292,29 @@ export function EggRacer({
       const WAYPOINTS = currentLevel().waypoints;
       const wp = WAYPOINTS[Math.min(L.wp, WAYPOINTS.length - 1)];
       if (wp) {
-        const tx = wp.x + lane * 0.35;
-        const tz = wp.z;
+        const next = WAYPOINTS[L.wp + 1];
+        const aim = wp.jump && next && t.z < wp.z ? next : wp;
+        const tx = aim.x + lane * 0.35;
+        const tz = aim.z;
         const dx = tx - t.x;
         const dz = tz - t.z;
         const dist = Math.hypot(dx, dz);
-        if (dist < 1.7 && L.wp < WAYPOINTS.length - 1) L.wp += 1;
+        const distWp = Math.hypot(wp.x + lane * 0.35 - t.x, wp.z - t.z);
+        if (L.wp < WAYPOINTS.length - 1) {
+          if (wp.jump) {
+            if (t.z < wp.z - 2.2) L.wp += 1;
+          } else if (distWp < 1.7) {
+            L.wp += 1;
+          }
+        }
         if (dist > 0.05) {
           wishX = dx / dist;
           wishZ = dz / dist;
         }
-        if (wp.jump && dist < 4.5 && L.grounded) wantJump = true;
+        if (wp.jump && L.grounded) {
+          const nd = next ? Math.hypot(next.x + lane * 0.35 - t.x, next.z - t.z) : dist;
+          if (nd < 6.4) wantJump = true;
+        }
         if (wp.dash && dist < 5.5 && L.dashCd <= 0) wantDash = true;
         if (Math.random() < 0.004) wantJump = true;
       }
@@ -320,6 +341,7 @@ export function EggRacer({
     L.stun = Math.max(0, L.stun - dt);
     L.invuln = Math.max(0, L.invuln - dt);
     L.dashRecover = Math.max(0, L.dashRecover - dt);
+    L.gateHit = Math.max(0, L.gateHit - dt);
     if (L.dashT > 0) L.dashT -= dt;
     L.pounceT = Math.max(0, L.pounceT - dt);
     L.rollT = Math.max(0, L.rollT - dt);
@@ -349,6 +371,7 @@ export function EggRacer({
         aimDash();
         sfxPounce();
         addTrauma(0.03);
+        sim.pounces += 1;
       } else if (!exclusive && actions.rollPressed && canUse(L.abilities, "roll")) {
         activate(L.abilities, "roll");
         L.rollT = ABILITY.roll.duration;
@@ -357,6 +380,7 @@ export function EggRacer({
         aimDash();
         sfxRoll();
         addTrauma(0.025);
+        sim.rolls += 1;
       }
       if (L.pounceT <= 0 && L.rollT <= 0) {
         stepPlayerDash(L, actions, wishLen, aimDash);
@@ -420,7 +444,10 @@ export function EggRacer({
       L.squash = JUMP_FEEL.squash;
       L.moveState = "jump_start";
       L.jumpT = 0.14;
-      if (isPlayer) sfxJump();
+      if (isPlayer) {
+        sfxJump();
+        sim.jumps += 1;
+      }
     }
 
     const level = currentLevel();
@@ -622,6 +649,35 @@ export function EggRacer({
       }
     }
 
+    if (isPlayer && !L.finished) {
+      const cps = level.checkpoints;
+      while (L.cp < cps.length - 1 && nz < cps[L.cp + 1].z) {
+        L.cp += 1;
+        sim.checkpointsHit += 1;
+      }
+    }
+
+    if (isPlayer && !rolling && L.gateHit <= 0 && L.invuln <= 0) {
+      for (const gate of level.gates) {
+        if (
+          Math.abs(nx - gate.pos[0]) < gate.size[0] / 2 + 0.42 &&
+          Math.abs(ny - gate.pos[1]) < gate.size[1] / 2 + 0.55 &&
+          Math.abs(nz - gate.pos[2]) < gate.size[2] / 2 + 0.42
+        ) {
+          L.gateHit = 0.4;
+          L.stun = 0.28;
+          L.vx *= 0.2;
+          L.vz = 5.2;
+          nz = gate.pos[2] + gate.size[2] / 2 + 2.6;
+          rb.setNextKinematicTranslation({ x: nx, y: ny, z: nz });
+          if (sim.failUntil <= sim.time) sfxHit();
+          addTrauma(0.05);
+          setHint("矮门要滚过去 · 点滚动");
+          break;
+        }
+      }
+    }
+
     let presentationX = nx;
     let presentationY = ny;
     let presentationZ = nz;
@@ -742,16 +798,16 @@ export function EggRacer({
       >
         <CapsuleCollider args={[EGG_HALF, EGG_RADIUS]} />
         <group ref={visual}>
-          <FeelTrail color={color} active={isPlayer} />
+          <FeelTrail color={color} active={isPlayer && showMarker} />
           <CharacterVisual
             color={color}
             accessory={accessory}
             skinId={skinId}
-            isPlayer={isPlayer}
+            isPlayer={isPlayer && showMarker}
             presentation={presentation}
           />
         </group>
-        {isPlayer ? <PlayerMarker color={color} /> : null}
+        {showMarker ? <PlayerMarker color={color} /> : null}
       </RigidBody>
     </>
   );
@@ -823,6 +879,7 @@ function fireDash(L: DashBody, level: 1 | 2 | 3, isPlayer: boolean) {
   if (isPlayer) {
     sfxDashRelease(lv);
     addTrauma(DASH.shake[lv - 1]);
+    sim.boosts += 1;
   }
 }
 
@@ -934,8 +991,14 @@ export function RacerField() {
   const colorId = useGameStore((s) => s.colorId);
   const equipped = useGameStore((s) => s.equippedSkin);
   const preview = useGameStore((s) => s.previewSkinId);
+  const pulled = useGameStore((s) => s.lastPull?.skin.id);
   const phase = useGameStore((s) => s.phase);
-  const skinId = phase === "title" && preview ? preview : equipped;
+  const hub = useGameStore((s) => s.hub);
+  const revealing = Boolean(pulled) && phase === "title";
+  const skinId =
+    pulled ??
+    (phase === "title" && hub === "character" && preview ? preview : equipped);
+  const showBots = PRESENTATION_PROFILES[getPresentationMode(phase, hub, revealing)].environment.showBots;
   const raceId = useGameStore((s) => s.raceId);
   const levelId = useGameStore((s) => s.levelId);
   const color = eggHex(colorId);
@@ -966,19 +1029,21 @@ export function RacerField() {
         skinId={skinId}
         lane={0}
       />
-      {bots.map((c, i) => (
-        <EggRacer
-          key={`${raceId}-bot-${i}`}
-          id={`bot-${i}`}
-          name={["小团", "糯米", "波波", "豆豆", "泡芙", "麻薯", "蛋蛋"][i]}
-          color={c}
-          isPlayer={false}
-          spawnIndex={i + 1}
-          accessory={ACCESSORIES[(i + 1) % ACCESSORIES.length]}
-          skinId={["sky_wings", "bunny", "star_cape", "sunset_wings", "halo", "bow", "crown"][i]}
-          lane={-3 + i * 0.9}
-        />
-      ))}
+      {showBots
+        ? bots.map((c, i) => (
+            <EggRacer
+              key={`${raceId}-bot-${i}`}
+              id={`bot-${i}`}
+              name={["小团", "糯米", "波波", "豆豆", "泡芙", "麻薯", "蛋蛋"][i]}
+              color={c}
+              isPlayer={false}
+              spawnIndex={i + 1}
+              accessory={ACCESSORIES[(i + 1) % ACCESSORIES.length]}
+              skinId={["sky_wings", "bunny", "star_cape", "sunset_wings", "halo", "bow", "crown"][i]}
+              lane={-3 + i * 0.9}
+            />
+          ))
+        : null}
     </>
   );
 }

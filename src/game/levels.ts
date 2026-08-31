@@ -33,6 +33,18 @@ export type TrapTileDef = {
 };
 export type WindZone = { id: string; pos: [number, number, number]; size: [number, number, number]; force: [number, number, number] };
 export type Waypoint = { x: number; y: number; z: number; jump: boolean; dash: boolean };
+export type LowGate = {
+  id: string;
+  pos: [number, number, number];
+  size: [number, number, number];
+};
+export type LevelSection = {
+  id: string;
+  startZ: number;
+  endZ: number;
+  purpose: string;
+  mechanics: string[];
+};
 
 export type LevelTheme = {
   id: string;
@@ -62,6 +74,7 @@ export type Level = {
   rings: Ring[];
   pickups: Pickup[];
   traps: TrapTileDef[];
+  gates: LowGate[];
   winds: WindZone[];
   checkpoints: { z: number; pos: [number, number, number] }[];
   spawns: [number, number, number][];
@@ -83,16 +96,40 @@ function plat(
   return { id, kind, pos: [x, top - thick / 2, z], size: [w, thick, d], color };
 }
 
+function extend(
+  id: string,
+  prev: Platform,
+  gap: number,
+  w: number,
+  d: number,
+  x: number,
+  top: number,
+  color: string,
+  kind: Surface = "static",
+): Platform {
+  const prevFwd = prev.pos[2] - prev.size[2] / 2;
+  const z = prevFwd - gap - d / 2;
+  return plat(id, x, z, w, d, top, color, kind);
+}
+
+export function platformGap(a: Platform, b: Platform) {
+  return a.pos[2] - a.size[2] / 2 - (b.pos[2] + b.size[2] / 2);
+}
+
+export function platformTop(p: Platform) {
+  return p.pos[1] + p.size[1] / 2;
+}
+
 function compile(partial: Omit<Level, "waypoints" | "coinCount">): Level {
   const walk = [
     ...partial.platforms
-      .filter((p) => Math.abs(p.pos[0]) < 4.2)
+      .filter((p) => Math.abs(p.pos[0]) < 4.2 && platformTop(p) > -0.5)
       .map((p) => ({
-      x: p.pos[0],
-      y: p.pos[1] + p.size[1] / 2,
-      z: p.pos[2],
-      d: p.size[2],
-    })),
+        x: p.pos[0],
+        y: p.pos[1] + p.size[1] / 2,
+        z: p.pos[2],
+        d: p.size[2],
+      })),
     ...partial.movers.map((m) => ({
       x: (m.from[0] + m.to[0]) / 2,
       y: m.from[1] + m.size[1] / 2,
@@ -128,63 +165,134 @@ function compile(partial: Omit<Level, "waypoints" | "coinCount">): Level {
   };
 }
 
+export const MEADOW_GAPS = {
+  connect: 0.14,
+  jump: 3.45,
+  pounce: 6.25,
+} as const;
+
 function meadow(): Level {
   const C = "#7ED9B8";
   const G = "#9EE7A8";
   const P = "#F3D984";
-  const J = "#E08AA4";
+  const Rec = "#5EA882";
+  const { connect: CONNECT, jump: JUMP, pounce: POUNCE } = MEADOW_GAPS;
+
+  const start = plat("start", 0, 8, 16, 16, 0, P, "checkpoint");
+  const path = extend("path", start, CONNECT, 12, 14, 0, 0, C);
+  const step1 = extend("step1", path, CONNECT, 10, 10, 0, 0, G);
+  const land1 = extend("land1", step1, JUMP, 10, 9, 0, 0, C);
+  const path2 = extend("path2", land1, CONNECT, 10, 16, 0, 0, P, "checkpoint");
+  const rollLane = extend("rollLane", path2, CONNECT, 10, 11, 0, 0, C);
+  const boostLane = extend("boostLane", rollLane, CONNECT, 10, 22, 0, 0, C);
+  const fork = extend("fork", boostLane, CONNECT, 12, 8, 0, 0, P);
+  const safeLane = extend("safeLane", fork, CONNECT, 9, 16, 0, 0, C);
+  const plaza = extend("plaza", safeLane, CONNECT, 12, 10, 0, 0, P, "checkpoint");
+  const gapA = extend("gapA", plaza, CONNECT, 9, 8, 0, 0, G);
+  const landj = extend("landj", gapA, JUMP, 9, 8, 0, 0, C);
+  const final = extend("final", landj, CONNECT, 14, 16, 0, 0, P, "finish");
+
+  const pounceA = plat("pounceA", 5.6, land1.pos[2] - 4.4, 3.4, 3.2, 0.18, P);
+  const pounceB = extend("pounceB", pounceA, POUNCE, 3.6, 4.0, 5.6, 0.22, G);
+
+  const riskA = plat("riskA", 5.5, fork.pos[2] - 4, 3.8, 3.6, 0.12, P);
+  const riskB = extend("riskB", riskA, JUMP, 3.8, 3.6, 5.5, 0.12, G);
+  const riskC = extend("riskC", riskB, JUMP, 3.8, 4.0, 4.8, 0.1, G);
+
+  const jumpMidZ = (step1.pos[2] - step1.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
+  const recJump = plat("recJump", 0, jumpMidZ, 12, 6.4, -2.7, Rec);
+  const recJump2 = plat("recJump2", -5.1, land1.pos[2], 5.2, 6, -1.45, Rec);
+  const recJump3 = plat("recJump3", -5.2, land1.pos[2] - 5.4, 5.4, 4.4, -0.2, Rec);
+
+  const pounceMidZ = (pounceA.pos[2] - pounceA.size[2] / 2 + pounceB.pos[2] + pounceB.size[2] / 2) / 2;
+  const recPounce = plat("recPounce", 5.6, pounceMidZ, 4.4, 5.2, -2.7, Rec);
+
+  const mixMidZ = (gapA.pos[2] - gapA.size[2] / 2 + landj.pos[2] + landj.size[2] / 2) / 2;
+  const recMix = plat("recMix", 0, mixMidZ, 10, 5.6, -2.7, Rec);
+  const recMix2 = plat("recMix2", -5.0, landj.pos[2], 5.2, 5, -1.4, Rec);
+
+  const platforms = [
+    start,
+    path,
+    step1,
+    land1,
+    path2,
+    rollLane,
+    boostLane,
+    fork,
+    safeLane,
+    plaza,
+    gapA,
+    landj,
+    final,
+    pounceA,
+    pounceB,
+    riskA,
+    riskB,
+    riskC,
+    recJump,
+    recJump2,
+    recJump3,
+    recPounce,
+    recMix,
+    recMix2,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 1.15;
+
   return compile({
     id: "meadow",
     theme: {
       id: "meadow",
       name: "糖果草原",
-      blurb: "跑、跳过台阶。右边缺口用扑能抄近路。",
+      blurb: "先跳近缺口。远台跳不够，右边扑能抄。矮门要滚，直道就冲。",
       stars: 1,
       sky: "#9EE8FF",
       fog: "#B8ECFF",
       fogNear: 28,
-      fogFar: 120,
+      fogFar: 160,
       rail: "#3DCFB0",
       neon: "#FFF6A8",
       ground: "#7ED9B8",
     },
-    finishZ: -76,
-    startZ: 8,
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
     bots: 4,
-    platforms: [
-      plat("start", 0, 8, 16, 15.84, 0, P, "checkpoint"),
-      plat("path", 0, -8, 12, 15.76, 0, C),
-      plat("step1", 0, -18.6, 10, 5.2, 0.28, G),
-      plat("land1", 0, -26.7, 11, 10.84, 0, C),
-      plat("plaza", 0, -39.62, 12, 14.76, 0, P, "checkpoint"),
-      plat("pounceA", 5.6, -20.4, 3.4, 3.2, 0.18, P),
-      plat("pounceB", 5.6, -29.6, 3.6, 4.0, 0.22, G),
-      { ...plat("jelly", 0, -50, 5.2, 5.84, 0, J, "bounce") },
-      plat("landj", 0, -58, 10, 9.84, 0, C),
-      plat("gapA", 0, -66.54, 9, 6.92, 0, G),
-      plat("final", 0, -76, 14, 11.84, 0, P, "finish"),
-    ],
+    platforms,
     movers: [],
     hammers: [],
     spinners: [],
     pendulums: [],
-    rings: [{ id: "r1", pos: [0, 1.5, -19] }],
+    rings: [
+      { id: "rJump", pos: [0, 1.55, jumpMidZ] },
+      { id: "rPounce", pos: [5.6, 1.7, pounceMidZ] },
+      { id: "rBoost", pos: [0, 1.55, boostLane.pos[2]] },
+    ],
     pickups: [
-      { id: "c1", kind: "coin", pos: [-1.8, 1.1, 4] },
-      { id: "c2", kind: "coin", pos: [1.8, 1.1, 4] },
-      { id: "c3", kind: "coin", pos: [0, 1.35, -18] },
-      { id: "c4", kind: "coin", pos: [0, 1.4, -32] },
-      { id: "c5", kind: "coin", pos: [0, 1.4, -48] },
-      { id: "c6", kind: "coin", pos: [0, 1.5, -68] },
-      { id: "c7", kind: "coin", pos: [5.6, 1.45, -21] },
-      { id: "c8", kind: "coin", pos: [5.6, 1.55, -29.4] },
+      { id: "cStartL", kind: "coin", pos: [-2.2, topOf(start), start.pos[2] - 2] },
+      { id: "cStartR", kind: "coin", pos: [2.2, topOf(start), start.pos[2] - 2] },
+      { id: "cJump", kind: "coin", pos: [0, 1.7, jumpMidZ] },
+      { id: "cPounceA", kind: "coin", pos: [5.6, 1.5, pounceA.pos[2]] },
+      { id: "cPounceB", kind: "coin", pos: [5.6, 1.6, pounceB.pos[2]] },
+      { id: "cRoll", kind: "coin", pos: [0, topOf(rollLane), rollLane.pos[2]] },
+      { id: "cBoost1", kind: "coin", pos: [0, topOf(boostLane), boostLane.pos[2] + 6] },
+      { id: "cBoost2", kind: "coin", pos: [0, topOf(boostLane), boostLane.pos[2]] },
+      { id: "cBoost3", kind: "coin", pos: [0, topOf(boostLane), boostLane.pos[2] - 6] },
+      { id: "cSafe", kind: "coin", pos: [0, topOf(safeLane), safeLane.pos[2]] },
+      { id: "cRisk", kind: "coin", pos: [5.5, 1.5, riskA.pos[2]] },
+      { id: "sRisk", kind: "shield", pos: [5.5, 1.45, riskB.pos[2]] },
+      { id: "cMix", kind: "coin", pos: [0, 1.65, mixMidZ] },
     ],
     traps: [],
+    gates: [
+      { id: "gateRoll", pos: [0, 1.55, rollLane.pos[2]], size: [11.4, 3.4, 0.85] },
+      { id: "gateMix", pos: [0, 1.55, landj.pos[2] - 1.1], size: [10.4, 3.4, 0.85] },
+    ],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -40, pos: [0, 0.7, -38] },
-      { z: -58, pos: [0, 0.7, -56] },
+      { z: path2.pos[2] + 2, pos: [0, 0.7, path2.pos[2] + 2] },
+      { z: plaza.pos[2] + 2, pos: [0, 0.7, plaza.pos[2] + 2] },
     ],
     spawns: [
       [0, 0.72, 4],
@@ -195,6 +303,17 @@ function meadow(): Level {
     ],
   });
 }
+
+export const MEADOW_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -16, purpose: "move", mechanics: ["move"] },
+  { id: "jump", startZ: -16, endZ: -36, purpose: "teach jump", mechanics: ["jump"] },
+  { id: "pounce", startZ: -36, endZ: -58, purpose: "pounce shortcut", mechanics: ["pounce"] },
+  { id: "roll", startZ: -58, endZ: -72, purpose: "teach roll", mechanics: ["roll"] },
+  { id: "boost", startZ: -72, endZ: -96, purpose: "teach boost", mechanics: ["boost"] },
+  { id: "split", startZ: -96, endZ: -120, purpose: "safe vs risk", mechanics: ["jump"] },
+  { id: "mix", startZ: -120, endZ: -140, purpose: "jump then roll", mechanics: ["jump", "roll"] },
+  { id: "finale", startZ: -140, endZ: -160, purpose: "sprint", mechanics: ["boost"] },
+];
 
 function ice(): Level {
   const I = "#C8E8FF";
@@ -253,6 +372,7 @@ function ice(): Level {
       { id: "s1", kind: "shield", pos: [0, 1.2, -48] },
     ],
     traps: [],
+    gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -326,6 +446,7 @@ function factory(): Level {
       { id: "c3", kind: "coin", pos: [0, 1.3, -76] },
     ],
     traps: [],
+    gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -402,6 +523,7 @@ function skyJump(): Level {
       { id: "j1", kind: "jelly", pos: [0, 2.4, -54] },
     ],
     traps: [],
+    gates: [],
     winds: [{ id: "up", pos: [0, 2, -64], size: [4, 4, 4], force: [0, 6, 0] }],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -473,7 +595,7 @@ function pirate(): Level {
       const rows = [-20, -23.2, -26.4, -29.6, -32.8, -36];
       return rows.flatMap((z, ri) =>
         cols.map((x, ci) => {
-          const path = ci === 0 && ri % 2 === 0 || ci === 1 && ri % 2 === 1;
+          const path = (ci === 0 && ri % 2 === 0) || (ci === 1 && ri % 2 === 1);
           return {
             id: `t${ri}${ci}`,
             pos: [x, -0.22, z] as [number, number, number],
@@ -484,6 +606,7 @@ function pirate(): Level {
         }),
       );
     })(),
+    gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -555,6 +678,7 @@ function dessert(): Level {
       { id: "c3", kind: "coin", pos: [0, 1.4, -56] },
     ],
     traps: [],
+    gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -627,6 +751,7 @@ function cloud(): Level {
       { id: "c3", kind: "coin", pos: [0, 1.5, -64] },
     ],
     traps: [],
+    gates: [],
     winds: [
       { id: "tail", pos: [0, 1, -64], size: [5, 3, 10], force: [0, 0, -10] },
     ],
@@ -705,6 +830,7 @@ function finale(): Level {
       { id: "c3", kind: "coin", pos: [0, 1.6, -96] },
     ],
     traps: [],
+    gates: [],
     winds: [{ id: "finalwind", pos: [0, 1.4, -100], size: [6, 4, 8], force: [0, 0, -8] }],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },

@@ -58,6 +58,7 @@ export type SimWorld = {
   lookPitch: number;
   lookIdle: number;
   showcaseYaw: number;
+  showcaseDistance: number;
   coinsRun: number;
   taken: Set<string>;
   racers: RacerSim[];
@@ -67,6 +68,11 @@ export type SimWorld = {
   falls: number;
   coinsTotal: number;
   pad: PadHud;
+  jumps: number;
+  pounces: number;
+  rolls: number;
+  boosts: number;
+  checkpointsHit: number;
 };
 
 export const sim: SimWorld = {
@@ -81,7 +87,8 @@ export const sim: SimWorld = {
   lookYaw: 0,
   lookPitch: 0,
   lookIdle: 0,
-  showcaseYaw: 0,
+  showcaseYaw: Math.PI - 0.55,
+  showcaseDistance: 2.48,
   coinsRun: 0,
   taken: new Set(),
   racers: [],
@@ -90,6 +97,11 @@ export const sim: SimWorld = {
   failUntil: 0,
   falls: 0,
   coinsTotal: 0,
+  jumps: 0,
+  pounces: 0,
+  rolls: 0,
+  boosts: 0,
+  checkpointsHit: 0,
   pad: {
     jumpHeld: false,
     jumpPulse: 0,
@@ -137,12 +149,18 @@ export function resetSimRacers() {
   sim.lookPitch = 0;
   sim.lookIdle = 0;
   sim.showcaseYaw = 0;
+  sim.showcaseDistance = 2.25;
   sim.coinsRun = 0;
   sim.taken = new Set();
   sim.moveState = "idle";
   sim.failHint = "";
   sim.failUntil = 0;
   sim.falls = 0;
+  sim.jumps = 0;
+  sim.pounces = 0;
+  sim.rolls = 0;
+  sim.boosts = 0;
+  sim.checkpointsHit = 0;
   sim.pad.jumpHeld = false;
   sim.pad.dashState = "idle";
   sim.pad.dashCharge = 0;
@@ -153,10 +171,54 @@ export function resetSimRacers() {
   sim.pad.boost = idleHud();
 }
 
-export function setFail(hint: string) {
+export function setHint(hint: string) {
   sim.failHint = hint;
   sim.failUntil = sim.time + 2.6;
+}
+
+export function setFail(hint: string) {
+  setHint(hint);
   sim.falls += 1;
+}
+
+export type SessionStats = {
+  jumps: number;
+  pounces: number;
+  rolls: number;
+  boosts: number;
+  falls: number;
+  checkpoints: number;
+  coins: number;
+  time: number;
+  finish: boolean;
+  playerZ: number;
+  botsFinished: number;
+  botMinZ: number;
+};
+
+export function sessionStats(): SessionStats {
+  const player = sim.racers.find((r) => r.isPlayer);
+  const bots = sim.racers.filter((r) => !r.isPlayer);
+  return {
+    jumps: sim.jumps,
+    pounces: sim.pounces,
+    rolls: sim.rolls,
+    boosts: sim.boosts,
+    falls: sim.falls,
+    checkpoints: sim.checkpointsHit,
+    coins: sim.coinsRun,
+    time: sim.time,
+    finish: Boolean(player?.finished),
+    playerZ: player?.z ?? 0,
+    botsFinished: bots.filter((r) => r.finished).length,
+    botMinZ: bots.reduce((z, r) => Math.min(z, r.z), 0),
+  };
+}
+
+declare global {
+  interface Window {
+    __yolkStats?: () => SessionStats;
+  }
 }
 
 export function playerColorHex(id: string) {

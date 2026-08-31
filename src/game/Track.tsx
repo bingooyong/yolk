@@ -9,7 +9,7 @@ import {
 import * as THREE from "three";
 import { PHYSICS_DT } from "@/engine/pipeline";
 import { VISUAL_FOUNDATION } from "@/engine/visualProfile";
-import { currentLevel, moverVel, type TrapTileDef } from "./course";
+import { currentLevel, moverVel, type TrapTileDef, type LowGate } from "./course";
 import type { Hammer, Mover, Pendulum, Spinner } from "./levels";
 import { crateTex, skyTex, stripeTex } from "./look";
 import { Level1BenchmarkArt } from "./Level1BenchmarkArt";
@@ -21,11 +21,12 @@ const _side = new THREE.Color();
 type MeadowPadRole = "checkpoint" | "field" | "lift" | "shortcut" | "bounce" | "finish";
 
 function meadowPadRole(platformId: string): MeadowPadRole {
-  if (platformId.startsWith("pounce")) return "shortcut";
+  if (platformId.startsWith("pounce") || platformId.startsWith("risk")) return "shortcut";
   if (platformId === "step1" || platformId === "gapA") return "lift";
   if (platformId === "jelly") return "bounce";
-  if (platformId === "start" || platformId === "plaza") return "checkpoint";
+  if (platformId === "start" || platformId === "plaza" || platformId === "path2") return "checkpoint";
   if (platformId === "final") return "finish";
+  if (platformId.startsWith("rec")) return "field";
   return "field";
 }
 
@@ -140,6 +141,9 @@ export function Track() {
       {level.pickups.map((p) => (
         <PickupMesh key={p.id} {...p} benchmark={isLevel1Benchmark} />
       ))}
+      {level.gates.map((g) => (
+        <CandyLowGate key={g.id} gate={g} />
+      ))}
 
       {isLevel1Benchmark ? (
         <Level1BenchmarkArt platforms={level.platforms} finishZ={level.finishZ} />
@@ -204,20 +208,44 @@ function TrapTile(t: TrapTileDef) {
 }
 
 function NeonRails({ color, neon }: { color: string; neon: string }) {
+  const finishZ = currentLevel().finishZ;
+  const midZ = (8 + finishZ) / 2;
+  const depth = Math.max(130, 8 - finishZ + 24);
   return (
     <group>
       {([-10.2, 10.2] as const).map((x) => (
         <group key={x}>
-          <mesh position={[x, 1.15, -40]} castShadow>
-            <boxGeometry args={[0.55, 2.5, 130]} />
+          <mesh position={[x, 1.15, midZ]} castShadow>
+            <boxGeometry args={[0.55, 2.5, depth]} />
             <meshLambertMaterial color={color} />
           </mesh>
-          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 1.85, -40]}>
-            <boxGeometry args={[0.1, 0.16, 130]} />
+          <mesh position={[x > 0 ? x - 0.3 : x + 0.3, 1.85, midZ]}>
+            <boxGeometry args={[0.1, 0.16, depth]} />
             <meshBasicMaterial color={neon} />
           </mesh>
         </group>
       ))}
+    </group>
+  );
+}
+
+function CandyLowGate({ gate }: { gate: LowGate }) {
+  const w = Math.min(9.4, gate.size[0] - 0.4);
+  const postH = 1.35;
+  return (
+    <group position={[gate.pos[0], 1.08, gate.pos[2]]}>
+      <mesh position={[-w / 2 + 0.28, -0.15, 0]} castShadow>
+        <cylinderGeometry args={[0.22, 0.28, postH, 8]} />
+        <meshLambertMaterial color="#E08AA4" />
+      </mesh>
+      <mesh position={[w / 2 - 0.28, -0.15, 0]} castShadow>
+        <cylinderGeometry args={[0.22, 0.28, postH, 8]} />
+        <meshLambertMaterial color="#E08AA4" />
+      </mesh>
+      <mesh position={[0, 0.02, 0]} castShadow>
+        <boxGeometry args={[w - 0.4, 0.28, 0.34]} />
+        <meshLambertMaterial color="#F3D984" />
+      </mesh>
     </group>
   );
 }
@@ -564,9 +592,12 @@ function Decor({ theme, finishZ }: { theme: string; finishZ: number }) {
 }
 
 function CloudFloor() {
+  const finishZ = currentLevel().finishZ;
+  const midZ = (8 + finishZ) / 2;
+  const depth = Math.max(280, 8 - finishZ + 80);
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -12, -90]}>
-      <planeGeometry args={[90, 280]} />
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -12, midZ]}>
+      <planeGeometry args={[90, depth]} />
       <meshLambertMaterial color="#6BB8F0" transparent opacity={0.35} />
     </mesh>
   );
