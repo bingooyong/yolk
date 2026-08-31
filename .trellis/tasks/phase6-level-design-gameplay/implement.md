@@ -1,5 +1,3 @@
-# Implement — Phase 6
-
 - [x] Audit + 8-level identity + Level 1 ASCII
 - [x] Skills: designer / implementer / playtester / polisher
 - [x] Level 1 meadow gold standard
@@ -9,4 +7,8 @@
 - [x] `ice()` blockout: wide ice, jump, tongue, crack risk, floe shortcut, slide
 - [x] Ice pad sheen (existing ice colors, no new art system)
 - [x] Ice layout tests
-- [ ] Levels 3–8 still identity-only
+- [x] Level 3 factory spec (`docs/levels/level3-factory.md`)
+- [x] `factory()` blockout: wait-window hammers, catwalk skip, jump, recovery
+- [x] Factory metal pad sheen (existing factory colors)
+- [x] Factory layout tests
+- [ ] Levels 4–8 still identity-only

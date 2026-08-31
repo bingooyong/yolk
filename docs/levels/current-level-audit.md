@@ -1,6 +1,6 @@
 # Current Level Audit — Phase 6 Step 1
 
-Source of truth: `src/game/levels.ts` on current main. This is a design audit, not a rewrite. Levels 2–8 stay as they are this slice.
+Source of truth: `src/game/levels.ts` on current main. This is a design audit, not a rewrite. Levels 2–8 stay as they are this slice. Ice and factory later matched their identities (`docs/levels/level2-ice.md`, `docs/levels/level3-factory.md`). Sky–finale remain identity-only.
 
 ## Verdict
 

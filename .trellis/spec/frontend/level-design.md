@@ -27,7 +27,7 @@ Skills: `.grok/skills/level-*/SKILL.md`.
 
 ## Level 1 gold standard
 
-`docs/levels/level1-meadow.md`. Level 2: `docs/levels/level2-ice.md`. Other courses keep their **identity** from `docs/levels/current-level-audit.md` until a later slice rebuilds them.
+`docs/levels/level1-meadow.md`. Level 2: `docs/levels/level2-ice.md`. Level 3: `docs/levels/level3-factory.md`. Other courses keep their **identity** from `docs/levels/current-level-audit.md` until a later slice rebuilds them.
 
 ## Validation
 

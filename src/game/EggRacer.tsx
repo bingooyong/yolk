@@ -552,7 +552,7 @@ export function EggRacer({
       if (isPlayer) {
         sfxHit();
         addTrauma(0.1);
-        setFail("被机关撞到了 · 看它转完再过");
+        setHint("被机关撞到了 · 看它转完再过");
       }
     }
 

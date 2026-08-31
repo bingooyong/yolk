@@ -219,6 +219,7 @@ declare global {
   interface Window {
     __yolkStats?: () => SessionStats;
     __yolkSetLevel?: (id: string) => void;
+    __yolkForcePlay?: () => void;
   }
 }
 

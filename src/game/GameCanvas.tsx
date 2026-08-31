@@ -96,9 +96,13 @@ export default function GameCanvas() {
       if (!isLevelId(id)) return;
       useGameStore.getState().setLevel(id);
     };
+    window.__yolkForcePlay = () => {
+      useGameStore.getState().forcePlay();
+    };
     return () => {
       delete window.__yolkStats;
       delete window.__yolkSetLevel;
+      delete window.__yolkForcePlay;
     };
   }, []);
 

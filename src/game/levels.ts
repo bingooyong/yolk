@@ -459,10 +459,74 @@ export const ICE_SECTIONS: LevelSection[] = [
   { id: "finale", startZ: -130, endZ: -160, purpose: "sprint", mechanics: ["move"] },
 ];
 
+export const FACTORY_GAPS = {
+  connect: 0.14,
+  jump: 3.45,
+} as const;
+
 function factory(): Level {
   const M = "#8A9BB0";
   const Y = "#E8C85A";
-  const R = "#E8614A";
+  const D = "#6A7A90";
+  const Rec = "#5A6A7C";
+  const { connect: CONNECT, jump: JUMP } = FACTORY_GAPS;
+
+  const start = plat("start", 0, 8, 14, 16, 0, Y, "checkpoint");
+  const intro = extend("intro", start, CONNECT, 10, 16, 0, 0, M);
+  const ham1 = extend("ham1", intro, CONNECT, 7.2, 14, 0, 0, D);
+  const safe1 = extend("safe1", ham1, CONNECT, 11, 10, 0, 0, Y);
+  const hall2 = extend("hall2", safe1, CONNECT, 10, 14, 0, 0, M);
+  const ham2a = extend("ham2a", hall2, CONNECT, 7.2, 10, 0, 0, D);
+  const ham2b = extend("ham2b", ham2a, CONNECT, 7.2, 10, 0, 0, D);
+  const mid = extend("mid", ham2b, CONNECT, 12, 10, 0, 0, Y, "checkpoint");
+  const gap = extend("gap", mid, CONNECT, 8, 10, 0, 0, M);
+  const land = extend("land", gap, JUMP, 9, 8, 0, 0, Y);
+  const finale = extend("finale", land, CONNECT, 7.4, 12, 0, 0, D);
+  const final = extend("final", finale, CONNECT, 14, 14, 0, 0, Y, "finish");
+
+  const catA = plat("catA", 5.5, ham2a.pos[2], 3.8, 8, 0, Y);
+  const catB = extend("catB", catA, JUMP, 3.8, 10, 5.5, 0, Y);
+
+  const recHam1 = plat("recHam1", 0, ham1.pos[2], 12, 12, -2.5, Rec);
+  const recHam1b = plat("recHam1b", -5.2, safe1.pos[2], 5.2, 6, -1.4, Rec);
+  const recHam1c = plat("recHam1c", -5.2, safe1.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const ham2MidZ = (ham2a.pos[2] + ham2b.pos[2]) / 2;
+  const recHam2 = plat("recHam2", 0, ham2MidZ, 12, 16, -2.5, Rec);
+  const recHam2b = plat("recHam2b", -5.2, mid.pos[2], 5.2, 6, -1.4, Rec);
+  const recHam2c = plat("recHam2c", -5.2, mid.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const jumpMidZ = (gap.pos[2] - gap.size[2] / 2 + land.pos[2] + land.size[2] / 2) / 2;
+  const recJump = plat("recJump", 0, jumpMidZ, 12, 8, -2.5, Rec);
+  const recJump2 = plat("recJump2", -5.0, land.pos[2], 5.2, 5, -1.4, Rec);
+
+  const platforms = [
+    start,
+    intro,
+    ham1,
+    safe1,
+    hall2,
+    ham2a,
+    ham2b,
+    mid,
+    gap,
+    land,
+    finale,
+    final,
+    catA,
+    catB,
+    recHam1,
+    recHam1b,
+    recHam1c,
+    recHam2,
+    recHam2b,
+    recHam2c,
+    recJump,
+    recJump2,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
+
   return compile({
     id: "factory",
     theme: {
@@ -472,67 +536,67 @@ function factory(): Level {
       stars: 3,
       sky: "#7A90A8",
       fog: "#8AA0B8",
-      fogNear: 22,
-      fogFar: 100,
+      fogNear: 24,
+      fogFar: 150,
       rail: "#E8C85A",
       neon: "#FFD36A",
       ground: "#6A7A90",
     },
-    finishZ: -86,
-    startZ: 8,
-    bots: 6,
-    platforms: [
-      plat("start", 0, 8, 14, 16, 0, Y, "checkpoint"),
-      plat("hall", 0, -10, 11, 16, 0, M),
-      plat("ham", 0, -26, 11, 14, 0, M),
-      plat("belt", 0, -42, 10, 12, 0, Y, "conveyor"),
-      plat("mid", 0, -54, 10, 8, 0, M, "checkpoint"),
-      plat("spin", 0, -66, 9, 12, 0, M),
-      plat("final", 0, -86, 14, 12, 0, Y, "finish"),
-    ],
-    movers: [
-      {
-        id: "piston",
-        size: [4.6, 0.6, 4.6],
-        color: "#F0A07A",
-        from: [-4, 0.2, -76],
-        to: [4, 0.2, -76],
-        period: 3.2,
-        phase: 0,
-      },
-    ],
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
+    bots: 5,
+    platforms,
+    movers: [],
     hammers: [
-      { id: "h1", pos: [0, 1.15, -22], arm: 3.0, speed: 1.05, phase: 0 },
-      { id: "h2", pos: [0, 1.15, -30], arm: 3.0, speed: -1.12, phase: 1.1 },
+      { id: "h1", pos: [0, 1.15, ham1.pos[2]], arm: 3.0, speed: 0.85, phase: 0 },
+      { id: "h2a", pos: [0, 1.15, ham2a.pos[2]], arm: 3.0, speed: 1.05, phase: 0 },
+      { id: "h2b", pos: [0, 1.15, ham2b.pos[2]], arm: 3.0, speed: 1.05, phase: 1.25 },
+      { id: "h3", pos: [0, 1.15, finale.pos[2]], arm: 3.0, speed: 1.15, phase: 0.4 },
     ],
-    spinners: [{ id: "s1", pos: [0, 1.05, -66], arm: 2.9, speed: 1.45, phase: 0 }],
-    pendulums: [{ id: "p1", pos: [0, 4.0, -80], length: 3.0, speed: 1.1, phase: 0 }],
-    rings: [{ id: "r1", pos: [0, 1.5, -42] }],
+    spinners: [],
+    pendulums: [],
+    rings: [
+      { id: "rHam1", pos: [0, 1.55, ham1.pos[2] + 4] },
+      { id: "rJump", pos: [0, 1.55, jumpMidZ] },
+    ],
     pickups: [
-      { id: "c1", kind: "coin", pos: [0, 1.2, -10] },
-      { id: "s1", kind: "shield", pos: [3.4, 1.15, -26] },
-      { id: "c2", kind: "coin", pos: [0, 1.3, -54] },
-      { id: "c3", kind: "coin", pos: [0, 1.3, -76] },
+      { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
+      { id: "cHam1L", kind: "coin", pos: [-2.2, topOf(ham1), ham1.pos[2]] },
+      { id: "cHam1R", kind: "coin", pos: [2.2, topOf(ham1), ham1.pos[2]] },
+      { id: "cSafe", kind: "coin", pos: [0, topOf(safe1), safe1.pos[2]] },
+      { id: "cCat", kind: "coin", pos: [5.5, 1.25, catA.pos[2]] },
+      { id: "sCat", kind: "shield", pos: [5.5, 1.2, catB.pos[2]] },
+      { id: "cHam2", kind: "coin", pos: [2.2, topOf(ham2a), ham2a.pos[2]] },
+      { id: "cJump", kind: "coin", pos: [0, 1.35, jumpMidZ] },
+      { id: "cFinale", kind: "coin", pos: [0, topOf(finale), finale.pos[2] - 3] },
     ],
     traps: [],
     gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -54, pos: [0, 0.7, -52] },
-      { z: -76, pos: [0, 0.7, -74] },
+      { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
+      { z: land.pos[2] + 2, pos: [0, 0.7, land.pos[2] + 2] },
     ],
     spawns: [
       [0, 0.72, 4],
-      [-2.6, 0.72, 8],
-      [-1.3, 0.72, 7],
-      [1.3, 0.72, 8],
-      [2.6, 0.72, 7.2],
-      [3.1, 0.72, 8.2],
-      [-3.1, 0.72, 7.6],
+      [-2.2, 0.72, 8],
+      [-1, 0.72, 7],
+      [1, 0.72, 8],
+      [2.2, 0.72, 7.2],
+      [2.8, 0.72, 8.2],
     ],
   });
 }
+
+export const FACTORY_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -16, purpose: "see the hammer", mechanics: ["move"] },
+  { id: "ham1", startZ: -16, endZ: -40, purpose: "one wait-window", mechanics: ["hammer"] },
+  { id: "ham2", startZ: -40, endZ: -80, purpose: "rhythm pair or catwalk", mechanics: ["hammer"] },
+  { id: "jump", startZ: -80, endZ: -110, purpose: "jump after the lesson", mechanics: ["jump"] },
+  { id: "finale", startZ: -110, endZ: -160, purpose: "last window then sprint", mechanics: ["hammer"] },
+];
+
 
 function skyJump(): Level {
   const B = "#5BAFE0";

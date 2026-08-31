@@ -22,3 +22,15 @@
 - [x] Bots finished the safe line in playtest (`botMinZ` past finishZ)
 - [x] No hammers / roll gates / required pounce
 - [x] `npm run test:visual` includes `ice-layout.test.ts`
+
+## Level 3 旋转工厂
+
+- [x] Hammers are the core, not a gadget parade (no spinner / pendulum / piston / conveyor)
+- [x] First hammer is a readable wait-window (observe, then go)
+- [x] Double-hammer is the same rhythm, not a new gadget
+- [x] Catwalk at `|x|>=4.2` skips the pair; bots ignore it
+- [x] Jump pit walk-fail / jump-land (`FACTORY_GAPS.jump` 3.45)
+- [x] Recovery under halls; knocked-off is medium fail
+- [x] Hammer hits are soft (`setHint`), not counted as falls
+- [x] Bots finish the safe line
+- [x] `npm run test:visual` includes `factory-layout.test.ts`

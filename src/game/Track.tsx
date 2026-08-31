@@ -35,11 +35,13 @@ function Pad({
   color,
   role,
   ice,
+  metal,
 }: {
   size: [number, number, number];
   color: string;
   role?: MeadowPadRole;
   ice?: boolean;
+  metal?: boolean;
 }) {
   const materials = useMemo(() => {
     if (ice && !role) {
@@ -52,6 +54,19 @@ function Pad({
       });
       const side = new THREE.MeshLambertMaterial({
         color: _side.set(color).multiplyScalar(0.62),
+      });
+      return [side, side, top, side, side, side];
+    }
+    if (metal && !role) {
+      const top = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.32,
+        metalness: 0.34,
+        emissive: "#E8C85A",
+        emissiveIntensity: 0.06,
+      });
+      const side = new THREE.MeshLambertMaterial({
+        color: _side.set(color).multiplyScalar(0.58),
       });
       return [side, side, top, side, side, side];
     }
@@ -95,7 +110,7 @@ function Pad({
             });
     const side = new THREE.MeshLambertMaterial({ color: palette.side });
     return [side, side, top, side, side, side];
-  }, [color, role, ice]);
+  }, [color, role, ice, metal]);
 
   useEffect(
     () => () => {
@@ -130,6 +145,7 @@ export function Track() {
               size={p.size}
               color={p.color}
               ice={p.kind === "ice"}
+              metal={level.id === "factory" && !p.id.startsWith("rec")}
               role={isLevel1Benchmark ? meadowPadRole(p.id) : undefined}
             />
           </RigidBody>
@@ -597,7 +613,7 @@ function Decor({ theme, finishZ }: { theme: string; finishZ: number }) {
         : theme === "finale"
           ? "#E8C85A"
           : "#FFF6A8";
-  const zs = [8, -6, -20, -40, Math.max(finishZ + 8, -60)];
+  const zs = [8, -6, -20, -40, -64, -88, Math.max(finishZ + 8, -60)];
   return (
     <>
       {zs.map((z, i) => (
