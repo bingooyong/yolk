@@ -1,8 +1,8 @@
 {
   "id": "phase6-level-design-gameplay",
   "name": "phase6-level-design-gameplay",
-  "title": "Phase 6 Level Design & Gameplay — Level 1 gold standard",
-  "description": "Audit eight courses, lock Level 1 as a teaching race with shortcut/recovery/skills, do not rebuild 2–8.",
+  "title": "Phase 6 Level Design & Gameplay — L1 meadow + L2 ice",
+  "description": "Gold-standard teaching races: meadow (jump/pounce/roll/boost) then ice (steering). Do not rebuild 3–8 this phase.",
   "status": "in_progress",
   "priority": "P0",
   "creator": "bingooyong",
@@ -15,11 +15,13 @@
   "relatedFiles": [
     "docs/levels/current-level-audit.md",
     "docs/levels/level1-meadow.md",
+    "docs/levels/level2-ice.md",
     "src/game/levels.ts",
+    "src/game/ice-layout.test.ts",
     "src/game/EggRacer.tsx",
     "src/game/Track.tsx",
     "src/game/sim.ts",
     ".trellis/spec/frontend/level-design.md"
   ],
-  "notes": "Do not rebuild levels 2–8, Rapier, Action Pad, gacha, or the skin pipeline. Do not touch archived Skin/Visual tasks."
+  "notes": "Do not rebuild factory–finale, Rapier, Action Pad, gacha, or the skin pipeline. Do not touch archived Skin/Visual tasks."
 }

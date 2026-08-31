@@ -130,7 +130,9 @@ function compile(partial: Omit<Level, "waypoints" | "coinCount">): Level {
         z: p.pos[2],
         d: p.size[2],
       })),
-    ...partial.movers.map((m) => ({
+    ...partial.movers
+      .filter((m) => Math.abs((m.from[0] + m.to[0]) / 2) < 4.2)
+      .map((m) => ({
       x: (m.from[0] + m.to[0]) / 2,
       y: m.from[1] + m.size[1] / 2,
       z: m.from[2],
@@ -238,7 +240,7 @@ function meadow(): Level {
     recMix2,
   ];
 
-  const topOf = (p: Platform) => platformTop(p) + 1.15;
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
 
   return compile({
     id: "meadow",
@@ -271,17 +273,17 @@ function meadow(): Level {
     pickups: [
       { id: "cStartL", kind: "coin", pos: [-2.2, topOf(start), start.pos[2] - 2] },
       { id: "cStartR", kind: "coin", pos: [2.2, topOf(start), start.pos[2] - 2] },
-      { id: "cJump", kind: "coin", pos: [0, 1.7, jumpMidZ] },
-      { id: "cPounceA", kind: "coin", pos: [5.6, 1.5, pounceA.pos[2]] },
-      { id: "cPounceB", kind: "coin", pos: [5.6, 1.6, pounceB.pos[2]] },
+      { id: "cJump", kind: "coin", pos: [0, 1.35, jumpMidZ] },
+      { id: "cPounceA", kind: "coin", pos: [5.6, 1.25, pounceA.pos[2]] },
+      { id: "cPounceB", kind: "coin", pos: [5.6, 1.3, pounceB.pos[2]] },
       { id: "cRoll", kind: "coin", pos: [0, topOf(rollLane), rollLane.pos[2]] },
       { id: "cBoost1", kind: "coin", pos: [0, topOf(boostLane), boostLane.pos[2] + 6] },
       { id: "cBoost2", kind: "coin", pos: [0, topOf(boostLane), boostLane.pos[2]] },
       { id: "cBoost3", kind: "coin", pos: [0, topOf(boostLane), boostLane.pos[2] - 6] },
       { id: "cSafe", kind: "coin", pos: [0, topOf(safeLane), safeLane.pos[2]] },
-      { id: "cRisk", kind: "coin", pos: [5.5, 1.5, riskA.pos[2]] },
-      { id: "sRisk", kind: "shield", pos: [5.5, 1.45, riskB.pos[2]] },
-      { id: "cMix", kind: "coin", pos: [0, 1.65, mixMidZ] },
+      { id: "cRisk", kind: "coin", pos: [5.5, 1.25, riskA.pos[2]] },
+      { id: "sRisk", kind: "shield", pos: [5.5, 1.2, riskB.pos[2]] },
+      { id: "cMix", kind: "coin", pos: [0, 1.35, mixMidZ] },
     ],
     traps: [],
     gates: [
@@ -315,69 +317,127 @@ export const MEADOW_SECTIONS: LevelSection[] = [
   { id: "finale", startZ: -140, endZ: -160, purpose: "sprint", mechanics: ["boost"] },
 ];
 
+export const ICE_GAPS = {
+  connect: 0.14,
+  jump: 2.2,
+} as const;
+
 function ice(): Level {
   const I = "#C8E8FF";
   const S = "#8EC8F0";
   const D = "#5BAFE0";
+  const Rec = "#7AA8C8";
+  const { connect: CONNECT, jump: JUMP } = ICE_GAPS;
+
+  const start = plat("start", 0, 8, 14, 16, 0, S, "checkpoint");
+  const ice1 = extend("ice1", start, CONNECT, 12, 18, 0, 0, I, "ice");
+  const gap = extend("gap", ice1, CONNECT, 8.8, 12, 0, 0, I, "ice");
+  const ice2 = extend("ice2", gap, JUMP, 9, 10, 0, 0, I, "ice");
+  const lane = extend("lane", ice2, CONNECT, 10, 8, 0, 0, I, "ice");
+  const tongue = extend("tongue", lane, CONNECT, 6.4, 16, 0, 0, I, "ice");
+  const mid = extend("mid", tongue, CONNECT, 10, 8, 0, 0, S, "checkpoint");
+  const water = extend("water", mid, CONNECT, 8, 8, 0, 0, I, "ice");
+  const land = extend("land", water, JUMP, 9, 8, 0, 0, S);
+  const slide = extend("slide", land, CONNECT, 6.5, 14, 0, -0.4, I, "ice");
+  const land2 = extend("land2", slide, CONNECT, 9, 8, 0, 0, S);
+  const final = extend("final", land2, CONNECT, 14, 14, 0, 0, D, "finish");
+
+  const crackR = extend("crackR", lane, CONNECT, 3.8, 10, 5.5, 0, I, "ice");
+  const crackR2 = extend("crackR2", crackR, JUMP, 3.8, 4.2, 5.2, 0, I, "ice");
+
+  const jumpMidZ = (gap.pos[2] - gap.size[2] / 2 + ice2.pos[2] + ice2.size[2] / 2) / 2;
+  const recIce = plat("recIce", 0, jumpMidZ, 14, 8, -2.5, Rec);
+  const recIce2 = plat("recIce2", -5.1, ice2.pos[2], 5.2, 6, -1.45, Rec);
+  const recIce3 = plat("recIce3", -5.2, ice2.pos[2] - 5.2, 5.4, 4.2, -0.2, Rec);
+
+  const crackL = plat("crackL", -5.3, tongue.pos[2], 5.2, 14, -2.7, Rec);
+
+  const waterMidZ = (water.pos[2] - water.size[2] / 2 + land.pos[2] + land.size[2] / 2) / 2;
+  const recWater = plat("recWater", 0, waterMidZ, 12, 7, -2.5, Rec);
+  const recWater2 = plat("recWater2", -5.0, land.pos[2], 5.2, 5, -1.4, Rec);
+
+  const landBack = land.pos[2] + land.size[2] / 2;
+  const crackFwd = crackR.pos[2] - crackR.size[2] / 2;
+
+  const platforms = [
+    start,
+    ice1,
+    gap,
+    ice2,
+    lane,
+    tongue,
+    mid,
+    water,
+    land,
+    slide,
+    land2,
+    final,
+    crackR,
+    crackR2,
+    crackL,
+    recIce,
+    recIce2,
+    recIce3,
+    recWater,
+    recWater2,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
+
   return compile({
     id: "ice",
     theme: {
       id: "ice",
       name: "冰雪滑坡",
-      blurb: "冰面很滑。提前松摇杆，别在裂缝上急转。",
+      blurb: "冰面很滑。提前改方向。裂缝别急转，浮冰能抄近路。",
       stars: 2,
       sky: "#D8F0FF",
       fog: "#E8F6FF",
       fogNear: 24,
-      fogFar: 110,
+      fogFar: 150,
       rail: "#8EC8F0",
       neon: "#FFFFFF",
       ground: "#C8E8FF",
     },
-    finishZ: -78,
-    startZ: 8,
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
     bots: 5,
-    platforms: [
-      plat("start", 0, 8, 14, 16, 0, S, "checkpoint"),
-      plat("ice1", 0, -8, 10, 16, 0, I, "ice"),
-      plat("gap", 0, -20, 7, 5, 0, D),
-      plat("ice2", 0, -30, 9, 12, 0, I, "ice"),
-      plat("crackL", -3.4, -40, 4.2, 6, 0, I, "ice"),
-      plat("crackR", 3.4, -40, 4.2, 6, 0, I, "ice"),
-      plat("mid", 0, -48, 8, 6, 0, S, "checkpoint"),
-      plat("slide", 0, -58, 6.5, 10, -0.4, I, "ice"),
-      plat("land", 0, -68, 9, 6, 0, S),
-      plat("final", 0, -78, 13, 10, 0, D, "finish"),
-    ],
+    platforms,
     movers: [
       {
         id: "floe",
-        size: [4.2, 0.55, 4.2],
+        size: [4.0, 0.55, 4.0],
         color: "#E8F6FF",
-        from: [-3.8, -0.05, -24],
-        to: [3.8, -0.05, -24],
-        period: 3.8,
+        from: [5.6, -0.05, crackFwd],
+        to: [5.6, -0.05, landBack + 0.2],
+        period: 6.4,
         phase: 0,
       },
     ],
     hammers: [],
     spinners: [],
     pendulums: [],
-    rings: [{ id: "r1", pos: [0, 1.5, -58] }],
+    rings: [
+      { id: "rIce", pos: [0, 1.5, jumpMidZ] },
+      { id: "rSlide", pos: [0, 1.45, slide.pos[2]] },
+    ],
     pickups: [
-      { id: "c1", kind: "coin", pos: [0, 1.2, -8] },
-      { id: "c2", kind: "coin", pos: [-3.4, 1.2, -40] },
-      { id: "c3", kind: "coin", pos: [3.4, 1.2, -40] },
-      { id: "c4", kind: "coin", pos: [0, 1.3, -58] },
-      { id: "s1", kind: "shield", pos: [0, 1.2, -48] },
+      { id: "cIce1", kind: "coin", pos: [0, topOf(ice1), ice1.pos[2]] },
+      { id: "cGap", kind: "coin", pos: [0, topOf(gap), gap.pos[2]] },
+      { id: "cJump", kind: "coin", pos: [0, 1.35, jumpMidZ] },
+      { id: "cTongue", kind: "coin", pos: [0, topOf(tongue), tongue.pos[2]] },
+      { id: "cRisk", kind: "coin", pos: [5.5, 1.25, crackR.pos[2]] },
+      { id: "sRisk", kind: "shield", pos: [5.5, 1.2, crackR2.pos[2]] },
+      { id: "cFloe", kind: "coin", pos: [5.6, 1.25, waterMidZ] },
+      { id: "cSlide", kind: "coin", pos: [0, topOf(slide) + 0.15, slide.pos[2]] },
     ],
     traps: [],
     gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -48, pos: [0, 0.7, -46] },
-      { z: -68, pos: [0, 0.7, -66] },
+      { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
+      { z: land2.pos[2] + 2, pos: [0, 0.7, land2.pos[2] + 2] },
     ],
     spawns: [
       [0, 0.72, 4],
@@ -389,6 +449,15 @@ function ice(): Level {
     ],
   });
 }
+
+export const ICE_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -20, purpose: "feel ice", mechanics: ["move", "ice"] },
+  { id: "narrow", startZ: -20, endZ: -45, purpose: "stay centered then jump", mechanics: ["ice", "jump"] },
+  { id: "crack", startZ: -45, endZ: -90, purpose: "tongue vs risk", mechanics: ["ice"] },
+  { id: "water", startZ: -90, endZ: -110, purpose: "jump or floe", mechanics: ["jump"] },
+  { id: "slide", startZ: -110, endZ: -130, purpose: "ice then step up", mechanics: ["ice", "jump"] },
+  { id: "finale", startZ: -130, endZ: -160, purpose: "sprint", mechanics: ["move"] },
+];
 
 function factory(): Level {
   const M = "#8A9BB0";

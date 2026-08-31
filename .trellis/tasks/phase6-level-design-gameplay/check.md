@@ -1,16 +1,24 @@
 # Check — Phase 6
 
+## Level 1 糖果草原
+
 - [x] Holding forward + jump is not enough to play the course well (roll gate blocks; pounce/boost have a reason)
-- [x] Jump pit: walk falls, jump lands (`step1`→`land1` gap 3.45)
-- [x] Pounce pads: jump falls short, pounce (or jump→pounce) lands (`pounceA`→`pounceB` gap 6.25, `|x|>=4.2`)
-- [x] Roll gate: stand/jump stuns and bounces back, roll passes (bots still finish — player-only overlap)
+- [x] Jump pit: walk falls, jump lands
+- [x] Pounce pads: jump falls short, pounce lands
+- [x] Roll gate: stand/jump stuns and bounces back, roll passes
 - [x] Boost lane is optional but clearly faster
-- [x] Recovery shelf catches a missed jump (`recJump` top y < -0.5)
-- [x] Checkpoint after jump lesson (`path2`) and after the fork (`plaza`)
-- [x] Bots finish the safe line (at least one bot reached finishZ in playtest)
-- [x] Scripted expert ~18s; naive W+jump stuck at the roll gate. First-clear 45–90s is touch hesitation, not empty road
-- [x] Art is still candy-meadow instancing (`Level1BenchmarkArt`)
-- [x] `npm run test:visual` (57) + typecheck
-- [x] No extra RT / post / shadow maps
-- [x] Levels 2–8 unchanged except empty `gates: []`
-- [x] Archived Skin/Visual tasks untouched
+- [x] Recovery shelf catches a missed jump
+- [x] Bots finish the safe line
+- [x] Art is still candy-meadow instancing
+- [x] Finish fall no longer respawns a finished racer at a mid checkpoint
+
+## Level 2 冰雪滑坡
+
+- [x] Ice is the core, not a gadget parade
+- [x] Safe line at x=0, jump pits walk-fail / jump-land (`ICE_GAPS.jump` 2.2)
+- [x] Tongue 6.4 wide: twitch slides you off; recovery `crackL`
+- [x] `crackR` risk at `|x|>=4.2` with coins
+- [x] Floe mover at x=5.6 is ignored by `compile()` (mover x filter)
+- [x] Bots finished the safe line in playtest (`botMinZ` past finishZ)
+- [x] No hammers / roll gates / required pounce
+- [x] `npm run test:visual` includes `ice-layout.test.ts`

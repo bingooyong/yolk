@@ -9,7 +9,7 @@ import { CameraRig } from "./CameraRig";
 import { RacerField } from "./EggRacer";
 import { LightingSystem } from "./LightingSystem";
 import { Track } from "./Track";
-import { currentLevel } from "./course";
+import { currentLevel, isLevelId } from "./course";
 import { installControlsTest } from "./input";
 import { observePerformanceRenderer } from "./performanceInstrumentation";
 import { getPresentationMode, PRESENTATION_PROFILES } from "./presentation/profiles";
@@ -92,8 +92,13 @@ export default function GameCanvas() {
       () => sim.playerSpeed,
     );
     window.__yolkStats = sessionStats;
+    window.__yolkSetLevel = (id: string) => {
+      if (!isLevelId(id)) return;
+      useGameStore.getState().setLevel(id);
+    };
     return () => {
       delete window.__yolkStats;
+      delete window.__yolkSetLevel;
     };
   }, []);
 

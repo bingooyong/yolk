@@ -218,6 +218,7 @@ export function sessionStats(): SessionStats {
 declare global {
   interface Window {
     __yolkStats?: () => SessionStats;
+    __yolkSetLevel?: (id: string) => void;
   }
 }
 

@@ -3,6 +3,7 @@ export {
   LEVELS,
   LEVEL_ORDER,
   setActiveLevel,
+  isLevelId,
   moverVel,
   type Level,
   type LevelId,

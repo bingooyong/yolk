@@ -34,12 +34,27 @@ function Pad({
   size,
   color,
   role,
+  ice,
 }: {
   size: [number, number, number];
   color: string;
   role?: MeadowPadRole;
+  ice?: boolean;
 }) {
   const materials = useMemo(() => {
+    if (ice && !role) {
+      const top = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.16,
+        metalness: 0.28,
+        emissive: "#9fd4f5",
+        emissiveIntensity: 0.12,
+      });
+      const side = new THREE.MeshLambertMaterial({
+        color: _side.set(color).multiplyScalar(0.62),
+      });
+      return [side, side, top, side, side, side];
+    }
     if (!role) {
       const top = new THREE.MeshLambertMaterial({ color });
       const side = new THREE.MeshLambertMaterial({
@@ -80,7 +95,7 @@ function Pad({
             });
     const side = new THREE.MeshLambertMaterial({ color: palette.side });
     return [side, side, top, side, side, side];
-  }, [color, role]);
+  }, [color, role, ice]);
 
   useEffect(
     () => () => {
@@ -114,6 +129,7 @@ export function Track() {
             <Pad
               size={p.size}
               color={p.color}
+              ice={p.kind === "ice"}
               role={isLevel1Benchmark ? meadowPadRole(p.id) : undefined}
             />
           </RigidBody>

@@ -682,6 +682,18 @@ export function EggRacer({
     let presentationY = ny;
     let presentationZ = nz;
     if (ny < KILL_Y) {
+      if (L.finished) {
+        presentationY = 0.72;
+        presentationZ = Math.min(nz, level.finishZ);
+        rb.setNextKinematicTranslation({
+          x: presentationX,
+          y: presentationY,
+          z: presentationZ,
+        });
+        L.vy = 0;
+        L.vx = 0;
+        L.vz = 0;
+      } else {
       const cps = level.checkpoints;
       while (L.cp < cps.length - 1 && nz < cps[L.cp + 1].z) L.cp += 1;
       const cp = cps[L.cp] ?? cps[0];
@@ -702,6 +714,7 @@ export function EggRacer({
       if (isPlayer) {
         sfxHit();
         setFail("掉下去了 · 看准落点再跳");
+      }
       }
     }
 
