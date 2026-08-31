@@ -4,7 +4,9 @@ import * as THREE from "three";
 import type { Quality } from "@/engine/device";
 import { getVisualProfile, VISUAL_FOUNDATION } from "@/engine/visualProfile";
 import { skyTex } from "./look";
+import { getPresentationMode, PRESENTATION_PROFILES } from "./presentation/profiles";
 import { sim } from "./sim";
+import { useGameStore } from "./store";
 
 /**
  * A compact three-point rig plus a procedural gradient environment.
@@ -46,17 +48,28 @@ function ProceduralEnvironment({ size, intensity }: { size: number; intensity: n
 export function LightingSystem({ quality }: { quality: Quality }) {
   const profile = getVisualProfile(quality);
   const light = VISUAL_FOUNDATION.lighting;
+  const phase = useGameStore((s) => s.phase);
+  const hub = useGameStore((s) => s.hub);
+  const revealing = useGameStore((s) => Boolean(s.lastPull) && s.phase === "title");
+  const present = PRESENTATION_PROFILES[getPresentationMode(phase, hub, revealing)];
+  const studio = !present.environment.showTrack;
   const key = useRef<THREE.DirectionalLight>(null);
   const fill = useRef<THREE.DirectionalLight>(null);
   const rim = useRef<THREE.DirectionalLight>(null);
-  const offsets = useMemo(
-    () => ({
+  const offsets = useMemo(() => {
+    if (studio) {
+      return {
+        key: new THREE.Vector3(4.5, 11, -9),
+        fill: new THREE.Vector3(-6.5, 8, 2.5),
+        rim: new THREE.Vector3(7, 9, 11),
+      };
+    }
+    return {
       key: new THREE.Vector3(...light.key.offset),
       fill: new THREE.Vector3(...light.fill.offset),
       rim: new THREE.Vector3(...light.rim.offset),
-    }),
-    [light],
-  );
+    };
+  }, [light, studio]);
 
   useFrame(() => {
     const player = sim.racers.find((r) => r.isPlayer);
@@ -78,19 +91,23 @@ export function LightingSystem({ quality }: { quality: Quality }) {
   });
 
   const shadowSize = Math.max(profile.shadowMapSize, 1);
+  const ambient = studio ? present.lighting.ambient : light.ambientIntensity;
+  const keyIntensity = studio ? present.lighting.key : light.key.intensity;
+  const fillIntensity = studio ? present.lighting.fill : light.fill.intensity;
+  const rimIntensity = studio ? present.lighting.rim : light.rim.intensity;
 
   return (
     <>
-      <ambientLight intensity={light.ambientIntensity} />
+      <ambientLight intensity={ambient} />
       <hemisphereLight
         color={light.hemisphere.skyColor}
-        groundColor={light.hemisphere.groundColor}
-        intensity={light.hemisphere.intensity}
+        groundColor={studio ? "#2a2430" : light.hemisphere.groundColor}
+        intensity={studio ? 0.42 : light.hemisphere.intensity}
       />
       <directionalLight
         ref={key}
         color={light.key.color}
-        intensity={light.key.intensity}
+        intensity={keyIntensity}
         castShadow={profile.shadows}
         shadow-mapSize={[shadowSize, shadowSize]}
         shadow-camera-near={light.shadow.near}
@@ -103,16 +120,17 @@ export function LightingSystem({ quality }: { quality: Quality }) {
       >
         <object3D attach="target" />
       </directionalLight>
-      <directionalLight ref={fill} color={light.fill.color} intensity={light.fill.intensity}>
+      <directionalLight ref={fill} color={light.fill.color} intensity={fillIntensity}>
         <object3D attach="target" />
       </directionalLight>
-      <directionalLight ref={rim} color={light.rim.color} intensity={light.rim.intensity}>
+      <directionalLight ref={rim} color={light.rim.color} intensity={rimIntensity}>
         <object3D attach="target" />
       </directionalLight>
       <ProceduralEnvironment
         size={profile.environmentMapSize}
-        intensity={profile.environmentIntensity}
+        intensity={studio ? Math.min(0.55, profile.environmentIntensity + 0.2) : profile.environmentIntensity}
       />
     </>
   );
 }
+

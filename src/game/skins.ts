@@ -11,6 +11,8 @@ export type SkinKind = "none" | "hat" | "wings" | "cape" | "ears" | "halo" | "cr
 
 export type SkinCategory = "yolk" | "animal" | "mecha" | "fantasy" | "festival" | "limited";
 
+export type SkinListFilter = SkinCategory | "all" | "lab";
+
 export type ModelType = "base" | "modular" | "full_character";
 
 /**
@@ -250,9 +252,86 @@ export const SKINS: Skin[] = [
     assetRole: "test",
     unlock: "starter",
   }),
+  // Free Image-to-3D lab pilot. NOT a production character, excluded from gacha.
+  // Mesh from tencent/Hunyuan3D-2 (Turbo shape_generation) + PBR/normal repair.
+  // See docs/skins/third-party-assets.md.
+  entry({
+    id: "lab_img3d_pilot",
+    name: "实验室 · 蛋冠",
+    description: "Hunyuan3D-2 免费试作。不进抽卡。",
+    rarity: "rare",
+    kind: "full",
+    category: "fantasy",
+    tint: "#F2C14E",
+    renderKind: "model",
+    modelUrl: "/assets/skins/lab_img3d_pilot/lod0.glb",
+    lod0: "/assets/skins/lab_img3d_pilot/lod0.glb",
+    lod1: "/assets/skins/lab_img3d_pilot/lod0.glb",
+    lod2: "/assets/skins/lab_img3d_pilot/lod0.glb",
+    animationProfile: { status: "static" },
+    presentationProfile: {
+      scale: 1.28,
+      verticalOffset: 0.02,
+      rotationOffset: { x: 0, y: 0, z: 0 },
+      contactShadowScale: 1.15,
+    },
+    assetManifest: {
+      id: "lab_img3d_pilot",
+      version: 1,
+      format: "glb",
+      model: "/assets/skins/lab_img3d_pilot/lod0.glb",
+      triangleCount: 139412,
+      textureResolution: 0,
+      animations: [],
+      skeleton: false,
+      lod: {
+        lod0: "/assets/skins/lab_img3d_pilot/lod0.glb",
+        lod1: "/assets/skins/lab_img3d_pilot/lod0.glb",
+        lod2: "/assets/skins/lab_img3d_pilot/lod0.glb",
+      },
+      license: "Tencent Hunyuan 3D Community License + project concept art",
+      source: "tencent/Hunyuan3D-2 Hugging Face Space",
+      generatedAt: "2026-08-31T08:29:57.667Z",
+      sha256: "a6984dd6499abdd08011a7f45ff4571de0e9ab6bceb4229d7d4e28277c5eaa57",
+    },
+    assetRole: "test",
+    unlock: "starter",
+    tags: ["lab", "img3d", "full", "hunyuan"],
+  }),
+  entry({
+    id: "lab_user_import",
+    name: "实验室 · 导入",
+    description: "粘贴 Hunyuan GLB 公开链接即可预览。不进抽卡。",
+    rarity: "rare",
+    kind: "full",
+    category: "fantasy",
+    tint: "#F2C14E",
+    renderKind: "model",
+    modelUrl: "/assets/skins/lab_user_import/lod0.glb",
+    lod0: "/assets/skins/lab_user_import/lod0.glb",
+    lod1: "/assets/skins/lab_user_import/lod0.glb",
+    lod2: "/assets/skins/lab_user_import/lod0.glb",
+    animationProfile: { status: "static" },
+    presentationProfile: {
+      scale: 1.28,
+      verticalOffset: 0.02,
+      rotationOffset: { x: 0, y: 0, z: 0 },
+      contactShadowScale: 1.15,
+    },
+    assetRole: "test",
+    unlock: "starter",
+    tags: ["lab", "img3d", "import"],
+  }),
 ];
 
-export const STARTER_SKINS = ["plain", "sprout", "mint_wings", "egg_demo_model"];
+export const STARTER_SKINS = [
+  "plain",
+  "sprout",
+  "mint_wings",
+  "egg_demo_model",
+  "lab_img3d_pilot",
+  "lab_user_import",
+];
 export const GACHA_COST = 80;
 export const DUP_REFUND = 25;
 export const VISUAL_IDS: VisualId[] = ["yolk", "knight", "bear", "rabbit", "robot"];
@@ -285,7 +364,8 @@ export function unlockLabel(kind: SkinUnlock) {
   return kind === "starter" ? "起始解锁" : "高级盲盒";
 }
 
-export function listSkins(category: SkinCategory | "all" = "all") {
+export function listSkins(category: SkinListFilter = "all") {
+  if (category === "lab") return SKINS.filter((s) => s.assetRole === "test");
   const list = category === "all" ? SKINS : SKINS.filter((s) => s.category === category);
   return list.filter((s) => s.assetRole !== "test");
 }

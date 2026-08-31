@@ -73,6 +73,40 @@ node scripts/quality-gate.mjs public/assets/skins/_demo/egg-exported.asset-manif
 
 ---
 
+## Lab Image-to-3D Pilot
+
+### `public/assets/skins/lab_img3d_pilot/lod0.glb`
+
+| Field | Value |
+| --- | --- |
+| **Skin ID** | `lab_img3d_pilot` |
+| **Role** | `test` |
+| **Source** | Tencent [Hunyuan3D-2 Space](https://huggingface.co/spaces/tencent/Hunyuan3D-2) Turbo `shape_generation` from `docs/skins/concept-art/hunyuan-pilot-front.jpg`. Post-processed (`scripts/import-glb-url.mjs`) to add 1 PBR material, smooth normals, and unit height. |
+| **Texture** | Anonymous ZeroGPU quota was too small for `/generation_all` (135s requested vs 80s left). Paste a textured Hunyuan GLB public URL in wardrobe **实验室**. |
+| **License** | Tencent Hunyuan 3D Community License; concept art project-internal |
+| **Triangle Count** | 139412 |
+| **Material** | 1 PBR (`LabPBR`, cream, metallic=0.04, roughness=0.48) |
+| **Textures** | 0 |
+| **Animations** | 0 |
+| **Skeleton** | 0 |
+| **File Size** | ~2.59 MB |
+| **Quality Gate** | `role: test` → valid, 0 errors, 0 warnings |
+
+Not in the gacha pool. Wardrobe **实验室** tab / backpack **试作** filter only.
+
+### `lab_user_import`
+
+Empty slot. Wardrobe **实验室** accepts an https GLB URL (GitHub raw / catbox). `scripts/import-glb-url.mjs` writes `public/assets/skins/lab_user_import/lod0.glb`. Chat cannot attach GLB files.
+
+Free operator path:
+
+```bash
+python3 scripts/hunyuan-img2-3d.py docs/skins/concept-art/<name>.jpg /tmp/out.glb
+node scripts/import-glb-url.mjs --file /tmp/out.glb lab_user_import --role test
+```
+
+---
+
 ## Future Third-Party Models (Deferred)
 
 When `MeshyProvider`, `RodinProvider`, or `TrellisProvider` are connected to
@@ -98,3 +132,5 @@ model size / NaN-free / file size).
 | Skin ID | Path | Role | Provenance | License | Manifest |
 | --- | --- | --- | --- | --- | --- |
 | `egg_demo_model` | `public/assets/skins/_demo/egg-exported.glb` | `test` | `scripts/seed-demo-glb.mjs` | project-internal | ✓ |
+| `lab_img3d_pilot` | `public/assets/skins/lab_img3d_pilot/lod0.glb` | `test` | Hunyuan3D-2 Space + Imagine concept | Hunyuan 3D Community | ✓ |
+| `lab_user_import` | `public/assets/skins/lab_user_import/lod0.glb` | `test` | User-supplied public GLB URL | per source file | import slot |

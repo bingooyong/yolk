@@ -70,15 +70,6 @@ export function EggMesh({
       )}
 
       <group>
-        <mesh geometry={eggGeo} scale={1.085}>
-          <meshStandardMaterial
-            color="#1A1424"
-            roughness={0.86}
-            metalness={0.02}
-            side={THREE.BackSide}
-          />
-        </mesh>
-
         <mesh geometry={eggGeo} castShadow>
           <meshStandardMaterial color={color} roughness={0.34} metalness={0.04} />
         </mesh>
@@ -468,7 +459,10 @@ function Wings({
   const right = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {
     const { wingEnergy } = getCharacterPose(presentation.current, clock.elapsedTime);
-    const f = Math.sin(clock.elapsedTime * (6 + wingEnergy * 4.4)) * (0.2 + wingEnergy * 0.3);
+    // Idle is a slow breath, not a hover-flap. Extra energy (run / air / boost)
+    // adds a bit of beat without shaking the silhouette on the title screen.
+    const extra = Math.max(0, wingEnergy - 0.32);
+    const f = Math.sin(clock.elapsedTime * (2.1 + extra * 2.8)) * (0.04 + extra * 0.14);
     if (left.current) left.current.rotation.z = -0.34 + f;
     if (right.current) right.current.rotation.z = 0.34 - f;
   });

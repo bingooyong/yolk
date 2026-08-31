@@ -10,6 +10,7 @@ import {
   clearSkinAssetCache,
   loadSkinAsset,
   preloadSkinAsset,
+  gateReportUrlFor,
 } from "../loader.ts";
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
@@ -98,6 +99,14 @@ describe("SkinAssetLoader", () => {
     const b = await loadSkinAsset("skin-1", "/assets/test.glb");
     assert.equal(calls, 2, "second call must be served from cache (no extra fetch)");
     assert.ok(a === b, "cached promise must resolve to the same Group");
+  });
+
+  test("gateReportUrlFor strips query strings", () => {
+    assert.equal(
+      gateReportUrlFor("/assets/skins/lab_user_import/lod0.glb?t=9"),
+      "/assets/skins/lab_user_import/lod0.quality-gate-report.json",
+    );
+    assert.equal(gateReportUrlFor("/assets/a.glb"), "/assets/a.quality-gate-report.json");
   });
 
   test("returns null on a 404 — no throw", async () => {

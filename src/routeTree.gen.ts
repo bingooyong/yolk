@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DevSkinPreviewRouteImport } from './routes/dev/skin-preview'
+import { Route as ApiSkinsImportUrlRouteImport } from './routes/api/skins/import-url'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,31 +23,40 @@ const DevSkinPreviewRoute = DevSkinPreviewRouteImport.update({
   path: '/dev/skin-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSkinsImportUrlRoute = ApiSkinsImportUrlRouteImport.update({
+  id: '/api/skins/import-url',
+  path: '/api/skins/import-url',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dev/skin-preview': typeof DevSkinPreviewRoute
+  '/api/skins/import-url': typeof ApiSkinsImportUrlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dev/skin-preview': typeof DevSkinPreviewRoute
+  '/api/skins/import-url': typeof ApiSkinsImportUrlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dev/skin-preview': typeof DevSkinPreviewRoute
+  '/api/skins/import-url': typeof ApiSkinsImportUrlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dev/skin-preview'
+  fullPaths: '/' | '/dev/skin-preview' | '/api/skins/import-url'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dev/skin-preview'
-  id: '__root__' | '/' | '/dev/skin-preview'
+  to: '/' | '/dev/skin-preview' | '/api/skins/import-url'
+  id: '__root__' | '/' | '/dev/skin-preview' | '/api/skins/import-url'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DevSkinPreviewRoute: typeof DevSkinPreviewRoute
+  ApiSkinsImportUrlRoute: typeof ApiSkinsImportUrlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +75,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevSkinPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/skins/import-url': {
+      id: '/api/skins/import-url'
+      path: '/api/skins/import-url'
+      fullPath: '/api/skins/import-url'
+      preLoaderRoute: typeof ApiSkinsImportUrlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DevSkinPreviewRoute: DevSkinPreviewRoute,
+  ApiSkinsImportUrlRoute: ApiSkinsImportUrlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

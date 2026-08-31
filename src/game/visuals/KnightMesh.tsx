@@ -50,9 +50,6 @@ export function KnightMesh({ color, isPlayer = false, presentation }: Props) {
         </sprite>
       )}
 
-      <mesh geometry={shell} scale={1.06}>
-        <meshStandardMaterial color="#16141C" roughness={0.86} metalness={0.08} side={THREE.BackSide} />
-      </mesh>
       <mesh geometry={shell} castShadow>
         <meshStandardMaterial color={steel} metalness={0.74} roughness={0.26} />
       </mesh>

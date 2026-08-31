@@ -1,0 +1,25 @@
+{
+  "id": "phase4-character-content",
+  "name": "phase4-character-content",
+  "title": "Phase 4 Character Content & Presentation",
+  "description": "Turn the existing Skin engine into a character collection experience. Slice 1: CharacterPresentationSystem + Wardrobe 3D Viewer. Later slices: Gacha 3D reveal, Home stage, Victory, animation clips.",
+  "status": "in_progress",
+  "priority": "P0",
+  "creator": "bingooyong",
+  "assignee": "grok-build",
+  "createdAt": "2026-08-31",
+  "completedAt": null,
+  "parent": null,
+  "subtasks": ["slice-1-wardrobe-viewer"],
+  "children": [],
+  "relatedFiles": [
+    "src/game/presentation/",
+    "src/game/CameraRig.tsx",
+    "src/game/GameCanvas.tsx",
+    "src/game/EggRacer.tsx",
+    "src/components/Hub.tsx",
+    "src/game/skins.ts",
+    "docs/phase4/character-content-audit.md"
+  ],
+  "notes": "Do not rebuild providers/loader/gate. Knight/Bear/Rabbit/Robot stay prototype procedural meshes."
+}

@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Home, RotateCcw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Confetti } from "@/components/Confetti";
 import { sfxVictory, unlockAudio } from "@/game/audio";
 import { LEVELS, LEVEL_ORDER } from "@/game/levels";
+import { sim } from "@/game/sim";
 import { useGameStore } from "@/game/store";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +34,7 @@ export function ResultScreen({
   const idx = LEVEL_ORDER.indexOf(levelId);
   const hasNext = idx >= 0 && idx < LEVEL_ORDER.length - 1;
   const [step, setStep] = useState(0);
+  const lastX = useRef(0);
 
   useEffect(() => {
     unlockAudio();
@@ -48,26 +50,39 @@ export function ResultScreen({
   }, []);
 
   return (
-    <div className="pointer-events-auto absolute inset-0 z-30 flex items-end justify-center bg-ink/45 md:items-center">
+    <div className="result-root pointer-events-auto absolute inset-0 z-30 flex flex-col justify-end">
       <Confetti active={win && step >= 1} />
       <div
-        className="relative w-full max-w-md rounded-t-3xl border border-border bg-ink/90 p-5 shadow-panel backdrop-blur-md md:rounded-3xl md:p-7"
-        style={{ paddingBottom: "max(20px, env(safe-area-inset-bottom))" }}
-      >
+        className="result-orbit"
+        aria-label="旋转角色"
+        onPointerDown={(e) => {
+          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+          lastX.current = e.clientX;
+        }}
+        onPointerMove={(e) => {
+          if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+          sim.showcaseYaw += (e.clientX - lastX.current) * 0.012;
+          lastX.current = e.clientX;
+          sim.lookIdle = 0;
+        }}
+      />
+      <div className="result-sheet">
         <div className="flex flex-col items-center text-center">
-          <Trophy
-            className={cn(
-              "size-16 text-butter transition-transform duration-500",
-              step >= 1 ? "scale-100 rotate-0" : "scale-0 -rotate-12",
-            )}
-            strokeWidth={1.6}
-          />
-          <p className="mt-2 font-display text-4xl">{win ? "VICTORY" : "完赛"}</p>
+          <div className="flex items-center gap-2">
+            <Trophy
+              className={cn(
+                "size-5 text-butter transition-transform duration-500",
+                step >= 1 ? "scale-100 rotate-0" : "scale-0 -rotate-12",
+              )}
+              strokeWidth={1.6}
+            />
+            <p className="result-title">{win ? "VICTORY" : "完赛"}</p>
+          </div>
           <p className="text-sm text-fg-muted">{LEVELS[levelId].theme.name}</p>
         </div>
         {step >= 2 && (
-          <div className="mt-4 space-y-1 text-center text-sm">
-            <p>第 {you?.place ?? "—"} 名 · {formatTime(you?.finishTime || time)}</p>
+          <div className="mt-3 space-y-1 text-center text-sm">
+            <p>第 {you?.place ? you.place : "—"} 名 · {formatTime(you?.finishTime || time)}</p>
             {bestTime != null && <p className="text-xs text-fg-subtle">最佳 {formatTime(bestTime)}</p>}
             <p className="text-butter">+{payout} 币</p>
             {(bonus.first > 0 || bonus.perfect > 0 || bonus.noFall > 0) && (
@@ -80,10 +95,10 @@ export function ResultScreen({
           </div>
         )}
         {step >= 3 && (
-          <div className="mt-5 flex flex-col gap-2">
+          <div className="result-actions">
             {hasNext ? (
               <Button size="lg" onClick={onNext} className="w-full" aria-label="Next level">
-                NEXT LEVEL
+                NEXT
               </Button>
             ) : (
               <Button size="lg" onClick={onMenu} className="w-full">

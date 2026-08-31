@@ -48,9 +48,6 @@ export function RobotMesh({ color, isPlayer = false, presentation }: Props) {
         </sprite>
       )}
 
-      <mesh geometry={shell} scale={1.05}>
-        <meshStandardMaterial color={dark} roughness={0.7} metalness={0.2} side={THREE.BackSide} />
-      </mesh>
       <mesh geometry={shell} castShadow>
         <meshStandardMaterial color={steel} metalness={0.72} roughness={0.28} />
       </mesh>

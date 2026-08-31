@@ -21,6 +21,21 @@ Skin changes **who you look like**. Skin never changes **how you play**.
 - Visuals resolve through `visualId` (procedural full-character meshes, e.g. KnightMesh / BearMesh / RabbitMesh / RobotMesh) **or** through `renderKind: "model"` (GLB Asset Loader). Model takes precedence over the procedural registry when both are set.
 - Unowned skins may preview in wardrobe; Equip is owned-only.
 - Collision, camera gameplay, and cooldowns ignore mesh bounds.
+- Showcase cameras (wardrobe / later gacha / victory) live in `src/game/presentation/`. Gameplay pose stays in `character-presentation.ts`. Do not merge the two.
+- `resolveSkinAppearance(id)` is the only appearance source of truth. Gacha DOM marks are a fallback, not the product reveal.
+- Procedural Knight / Bear / Rabbit / Robot are **prototype** full characters. Do not label them as production GLB.
+
+### Presentation modes
+
+`getPresentationMode(phase, hub, revealing)` → `home | wardrobe | gacha | victory | gameplay`.
+
+Wardrobe (`title` + `hub=character`): hide track and bots, show `ShowcaseStage`, camera from `PRESENTATION_PROFILES.wardrobe`, default yaw π (front face). Pinch / wheel zoom clamped. Auto-orbit resumes after idle; release does not snap yaw.
+
+Gacha (`title` + `lastPull`): same studio as wardrobe, faster auto-orbit, `PRESENTATION_PROFILES.gacha`. Overlay is the candy capsule then a bottom sheet; the reveal is the live `CharacterVisual`, never a CSS SkinMark. Weights stay 60/28/10/2.
+
+Home (`title`, other hubs): meadow stays, `ShowcaseStage` podium under the racer, 3/4 front yaw (`HOME_YAW`), slow auto-orbit. Race marker/glow off. Track collider stays; stage collider is off.
+
+Victory (`results`): studio like gacha, `PRESENTATION_PROFILES.victory`. `ResultScreen` is a bottom sheet over the live character (orbit + auto-orbit), not a dimmed trophy card.
 
 ### Adding a skin
 

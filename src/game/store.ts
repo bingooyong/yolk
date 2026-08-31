@@ -10,6 +10,7 @@ import {
   type Skin,
 } from "./skins";
 import { LEVELS, LEVEL_ORDER, setActiveLevel, type LevelId } from "./levels";
+import { resetShowcaseView } from "./presentation/showcase";
 
 export type Phase = "title" | "countdown" | "playing" | "paused" | "results";
 export type LobbyTab = "play" | "gacha";
@@ -332,6 +333,7 @@ type GameStore = {
   /** v5 fields — round-trip through reconcilePersisted + persistFrom(get()). */
   preferredLod?: Persist["preferredLod"];
   lastPreviewedSkinId?: string;
+  modelUrlOverrides: Record<string, string>;
 
   lastPayout: number;
   hud: {
@@ -349,6 +351,7 @@ type GameStore = {
   setLobbyTab: (tab: LobbyTab) => void;
   setHub: (hub: Hub) => void;
   setPreviewSkin: (id: string | null) => void;
+  setModelUrlOverride: (id: string, url: string) => void;
   nextRace: () => void;
   toggleMute: () => void;
   setMusicVol: (v: number) => void;
@@ -409,6 +412,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   playerName: initial.playerName ?? "Yolk",
   preferredLod: initial.preferredLod,
   lastPreviewedSkinId: initial.lastPreviewedSkinId,
+  modelUrlOverrides: {},
 
   lastPayout: 0,
   hud: { time: 0, place: 8, dashCd: 0, coinsRun: 0, racers: [], failHint: "" },
@@ -438,12 +442,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
   },
 
   setLobbyTab: (tab) => set({ lobbyTab: tab, howTo: false }),
-  setHub: (hub) =>
+  setHub: (hub) => {
+    if (hub === "character") resetShowcaseView("wardrobe");
+    else if (hub === "home") resetShowcaseView("home");
     set({
       hub,
       previewSkinId: hub === "character" ? get().previewSkinId ?? get().equippedSkin : null,
-    }),
+    });
+  },
   setPreviewSkin: (id) => set({ previewSkinId: id }),
+  setModelUrlOverride: (id, url) =>
+    set((s) => ({ modelUrlOverrides: { ...s.modelUrlOverrides, [id]: url } })),
   toggleMute: () => {
     set({ muted: !get().muted });
     save(persistFrom(get()));
@@ -558,7 +567,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   resume: () => {
     if (get().phase === "paused") set({ phase: "playing" });
   },
-  toTitle: () => set({ phase: "title", howTo: false, lobbyTab: "play", hub: "home", previewSkinId: null }),
+  toTitle: () => {
+    resetShowcaseView("home");
+    set({ phase: "title", howTo: false, lobbyTab: "play", hub: "home", previewSkinId: null });
+  },
 
   nextRace: () => {
     const s = get();
@@ -632,6 +644,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       xp,
     };
     save(next);
+    resetShowcaseView("victory");
     set({
       phase: "results",
       bestTime: best,
@@ -645,6 +658,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       gamesPlayed,
       xp,
     });
+    get().pullSim();
   },
 
   pullGacha: () => {
@@ -656,6 +670,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (duplicate) coins += DUP_REFUND;
     else owned = [...owned, skin.id];
     const equipped = duplicate ? s.equippedSkin : skin.id;
+    resetShowcaseView("gacha");
     set({
       coins,
       ownedSkins: owned,
@@ -666,7 +681,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
     save(persistFrom({ ...get(), coins, ownedSkins: owned, equippedSkin: equipped }));
   },
 
-  clearPull: () => set({ lastPull: null }),
+  clearPull: () => {
+    resetShowcaseView("home");
+    set({ lastPull: null, hub: "home", previewSkinId: null });
+  },
 }));
+
+resetShowcaseView("home");
 
 if (typeof window !== "undefined") setActiveLevel(initial.levelId);

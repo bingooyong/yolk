@@ -25,7 +25,7 @@ A Skin should stay Procedural when:
 
 ```
 1. Concept art  →  docs/skins/concept-art/<subject>-brief.md
-2. Provider     →  MeshyProvider / RodinProvider / TrellisProvider
+2. Provider     →  Hunyuan3D-2 (free HF Space) / Meshy / Rodin / Trellis
 3. Validate     →  scripts/validate-skin-asset.mjs
 4. Quality Gate →  scripts/quality-gate.mjs --role production
 5. Register     →  src/game/skins.ts (PR with asset inventory update)
@@ -45,9 +45,16 @@ brief must include:
 
 ### Step 2 — Provider call
 
-Real providers are wired through `server/routes/api/skins/generate.ts`.
-Until a real key is provisioned, use the MockProvider to validate the
-end-to-end pipeline against `public/assets/skins/_demo/egg-exported.glb`.
+**Free path (no paid key):** run Hunyuan3D-2 Turbo shape generation, then import:
+
+```bash
+python3 scripts/hunyuan-img2-3d.py docs/skins/concept-art/<subject>.jpg /tmp/<id>.glb
+node scripts/import-glb-url.mjs --file /tmp/<id>.glb <skin-id> --role test
+```
+
+Or paste a public https GLB URL in wardrobe **实验室**. Chat cannot attach `.glb` files.
+
+Paid providers stay behind env keys (`MESHY_API_KEY` / `RODIN_API_KEY` / `TRELLIS_API_KEY`). Until a key is provisioned, MockProvider exercises the loader against `public/assets/skins/_demo/egg-exported.glb`.
 
 ```ts
 import { createProvider } from "@/engine/skin-asset/provider";

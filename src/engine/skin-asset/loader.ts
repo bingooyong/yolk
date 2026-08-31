@@ -61,17 +61,23 @@ type QualityGateReport = {
   warnings?: string[];
 };
 
+function stripUrlQuery(url: string): string {
+  const q = url.indexOf("?");
+  const h = url.indexOf("#");
+  let end = url.length;
+  if (q >= 0) end = Math.min(end, q);
+  if (h >= 0) end = Math.min(end, h);
+  return url.slice(0, end);
+}
+
 function gateUrlFor(glbUrl: string): string {
-  // Strip a trailing `.glb` (any case) if present, otherwise append the
-  // suffix. The reported URL keeps the original casing — only the
-  // detection uses a lowercased copy so `.GLB` / `.Glb` both resolve to a
-  // matching `.<name>.quality-gate-report.json` filename.
-  const lower = glbUrl.toLowerCase();
+  const clean = stripUrlQuery(glbUrl);
+  const lower = clean.toLowerCase();
   if (lower.endsWith(".glb")) {
-    const stem = glbUrl.slice(0, -4);
+    const stem = clean.slice(0, -4);
     return `${stem}.quality-gate-report.json`;
   }
-  return `${glbUrl}.quality-gate-report.json`;
+  return `${clean}.quality-gate-report.json`;
 }
 
 /**

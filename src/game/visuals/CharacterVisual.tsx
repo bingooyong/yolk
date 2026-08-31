@@ -1,7 +1,13 @@
-import { useEffect, useState, type ComponentType, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type RefObject } from "react";
+import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { Accessory } from "../config";
-import type { CharacterPresentation } from "../character-presentation";
+import {
+  EGG_VISUAL_GROUND_OFFSET,
+  getCharacterPose,
+  type CharacterPresentation,
+} from "../character-presentation";
+import { glowTex } from "../look";
 import { EggMesh } from "../EggMesh";
 import {
   DEFAULT_PRESENTATION_PROFILE,
@@ -15,6 +21,7 @@ import {
   clearSkinAssetCache,
   loadSkinAsset,
 } from "../../engine/skin-asset/loader";
+import { useGameStore } from "../store";
 import { BearMesh } from "./BearMesh";
 import { KnightMesh } from "./KnightMesh";
 import { RabbitMesh } from "./RabbitMesh";
@@ -79,26 +86,28 @@ function ModelVisual({
   presentation,
 }: CharacterVisualProps & { skin: Skin }) {
   const profile = skin.presentationProfile ?? DEFAULT_PRESENTATION_PROFILE;
+  const overrideUrl = useGameStore((s) => s.modelUrlOverrides[skin.id]);
+  const modelUrl = overrideUrl ?? skin.modelUrl;
   const [scene, setScene] = useState<THREE.Group | null>(null);
   const [failed, setFailed] = useState(false);
+  const group = useRef<THREE.Group>(null);
+  const glow = useMemo(() => glowTex(), []);
 
   useEffect(() => {
     let cancelled = false;
-    if (!skin.modelUrl) {
+    if (!modelUrl) {
       setFailed(true);
       return;
     }
-    loadSkinAsset(skin.id, skin.modelUrl)
+    setFailed(false);
+    setScene(null);
+    loadSkinAsset(skin.id, modelUrl)
       .then((g) => {
         if (cancelled) return;
         if (!g) setFailed(true);
         else setScene(g);
       })
       .catch((err: unknown) => {
-        // Quality Gate rejections are expected (production assets can be
-        // re-graded); log them so developers see the reason in DevTools.
-        // Gameplay never blocks — we still fall back to the procedural
-        // EggMesh on the path below.
         if (err instanceof QualityGateRejectedError) {
           console.warn(
             `[CharacterVisual] Skin "${err.skinId}" rejected by Quality Gate (role=${err.role}): ${err.errors.join("; ")}`,
@@ -109,15 +118,27 @@ function ModelVisual({
     return () => {
       cancelled = true;
     };
-  }, [skin.id, skin.modelUrl]);
+  }, [skin.id, modelUrl]);
 
-  // Cleanup the cache entry when the Skin is swapped so we don't hold
-  // references to old GLBs forever.
   useEffect(() => {
     return () => clearSkinAssetCache(skin.id);
   }, [skin.id]);
 
-  // Fallback path: load failed or modelUrl missing. NEVER block gameplay.
+  useFrame(({ clock }) => {
+    const pose = getCharacterPose(
+      presentation.current,
+      clock.elapsedTime,
+      skin.proceduralAnimation,
+    );
+    if (!group.current) return;
+    group.current.position.y = EGG_VISUAL_GROUND_OFFSET + pose.lift + profile.verticalOffset;
+    group.current.scale.set(
+      pose.scaleX * profile.scale,
+      pose.scaleY * profile.scale,
+      pose.scaleZ * profile.scale,
+    );
+  });
+
   if (failed || !scene) {
     return (
       <EggMesh
@@ -130,17 +151,26 @@ function ModelVisual({
     );
   }
 
-  // presentationProfile is transform-only: scale / verticalOffset /
-  // rotationOffset. These compose multiplicatively with the parent
-  // `<group ref={visual}>` squash/lean/breath from character-presentation,
-  // which is exactly the contract R7 demands.
   const rotOffset = profile.rotationOffset;
   return (
     <group
+      ref={group}
       scale={profile.scale}
-      position-y={profile.verticalOffset}
+      position={[0, EGG_VISUAL_GROUND_OFFSET + profile.verticalOffset, 0]}
       rotation={[rotOffset.x, rotOffset.y, rotOffset.z]}
     >
+      {isPlayer && (
+        <sprite position={[0, 0.08, 0]} scale={[2.1, 2.1, 1]}>
+          <spriteMaterial
+            map={glow}
+            color={color}
+            transparent
+            opacity={0.32}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </sprite>
+      )}
       <primitive object={scene.clone()} />
     </group>
   );

@@ -41,9 +41,6 @@ export function BearMesh({ color, isPlayer = false, presentation }: Props) {
         </sprite>
       )}
 
-      <mesh geometry={body} scale={1.04}>
-        <meshStandardMaterial color="#2A1C18" roughness={0.9} metalness={0} side={THREE.BackSide} />
-      </mesh>
       <mesh geometry={body} castShadow>
         <meshStandardMaterial color={fur} roughness={0.8} metalness={0.02} />
       </mesh>

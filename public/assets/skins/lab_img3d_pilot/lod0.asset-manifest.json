@@ -1,0 +1,52 @@
+{
+  "valid": true,
+  "id": "lod0",
+  "version": 1,
+  "format": "glb",
+  "model": "/assets/skins/lab_img3d_pilot/lod0.glb",
+  "triangleCount": 139412,
+  "textureResolution": 0,
+  "materials": 1,
+  "textures": 0,
+  "meshes": 1,
+  "pbr": true,
+  "animations": [],
+  "skeleton": false,
+  "boundingBox": {
+    "min": [
+      -0.4233025908470154,
+      -0.5120254158973694,
+      -0.2512594163417816
+    ],
+    "max": [
+      0.399766743183136,
+      0.4879745543003082,
+      0.2633846402168274
+    ]
+  },
+  "fileSizeKB": 2587.18,
+  "fileSizeBytes": 2649268,
+  "lod": {
+    "lod0": "/assets/skins/lab_img3d_pilot/lod0.glb",
+    "lod1": "/assets/skins/lab_img3d_pilot/lod0.glb",
+    "lod2": "/assets/skins/lab_img3d_pilot/lod0.glb"
+  },
+  "license": "project-internal",
+  "source": "/assets/skins/lab_img3d_pilot",
+  "generatedAt": "2026-08-31T08:29:57.667Z",
+  "sha256": "a6984dd6499abdd08011a7f45ff4571de0e9ab6bceb4229d7d4e28277c5eaa57",
+  "requiredLevels": {
+    "glbParseable": "Required",
+    "meshes": "Required",
+    "triangleCount": "Required",
+    "boundingBox": "Required",
+    "materials": "Required",
+    "textureEmbedded": "Optional",
+    "pbr": "Recommended",
+    "skeleton": "Recommended",
+    "animation": "Recommended",
+    "modelSize": "Required",
+    "nonFinite": "Required",
+    "fileSize": "Required"
+  }
+}
