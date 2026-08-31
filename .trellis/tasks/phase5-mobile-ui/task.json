@@ -1,0 +1,26 @@
+{
+  "id": "phase5-mobile-ui",
+  "name": "phase5-mobile-ui",
+  "title": "Phase 5 Mobile UI/UX — compact landscape",
+  "description": "Turn Hub/Settings/Gacha/Victory from portrait web sheets into iPhone-landscape game chrome. Slice 1: tokens + rail/dock + those screens. Gameplay HUD later.",
+  "status": "in_progress",
+  "priority": "P0",
+  "creator": "bingooyong",
+  "assignee": "grok-build",
+  "createdAt": "2026-08-31",
+  "completedAt": null,
+  "parent": null,
+  "subtasks": [],
+  "children": [],
+  "relatedFiles": [
+    "docs/ui/mobile-ui-audit.md",
+    "docs/ui/mobile-design-system.md",
+    "src/styles.css",
+    "src/components/Hub.tsx",
+    "src/components/GameUI.tsx",
+    "src/components/ResultScreen.tsx",
+    "src/components/GachaCeremony.tsx",
+    "src/game/CameraRig.tsx"
+  ],
+  "notes": "Do not rebuild gameplay, gacha weights, or the skin pipeline."
+}

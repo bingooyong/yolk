@@ -13,9 +13,10 @@ import { MAX_FRAME_DT } from "@/engine/pipeline";
 import { actions, touch } from "./input";
 import { decayTrauma, sim } from "./sim";
 import { useGameStore } from "./store";
+import { getPresentationMode, isShowcaseMode, PRESENTATION_PROFILES, showcaseViewOffset } from "./presentation/profiles";
 
 export function CameraRig({ portrait }: { portrait: boolean }) {
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const pos = useRef(new THREE.Vector3(0, 8, 16));
   const look = useRef(new THREE.Vector3(0, 0.6, 0));
   const desired = useRef(new THREE.Vector3());
@@ -49,39 +50,39 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
         sim.lookPitch += (0 - sim.lookPitch) * (1 - Math.exp(-1.15 * dt));
       }
     } else if (phase === "title" || phase === "results") {
-      const hub = useGameStore.getState().hub;
-      if (hub !== "character") {
-        sim.lookYaw += (0 - sim.lookYaw) * (1 - Math.exp(-3 * dt));
-        sim.lookPitch += (0 - sim.lookPitch) * (1 - Math.exp(-3 * dt));
-      }
+      sim.lookYaw += (0 - sim.lookYaw) * (1 - Math.exp(-3 * dt));
+      sim.lookPitch += (0 - sim.lookPitch) * (1 - Math.exp(-3 * dt));
     }
 
-    if (phase === "title") {
-      const hub = useGameStore.getState().hub;
-      if (hub === "character") {
-        sim.showcaseYaw += touch.lookX * 0.01;
-        if (Math.abs(touch.lookX) > 0.2) sim.lookIdle = 0;
-        else {
-          sim.lookIdle += dt;
-          if (sim.lookIdle > 1.1) sim.showcaseYaw += dt * 0.32;
+    const hub = useGameStore.getState().hub;
+    const revealing = Boolean(useGameStore.getState().lastPull);
+    const mode = getPresentationMode(phase, hub, revealing);
+    const cam = PRESENTATION_PROFILES[mode].camera;
+
+    if (isShowcaseMode(mode)) {
+      sim.showcaseYaw += touch.lookX * 0.01;
+      if (Math.abs(touch.lookX) > 0.2) sim.lookIdle = 0;
+      else {
+        sim.lookIdle += dt;
+        if (cam.autoOrbitSpeed > 0 && sim.lookIdle > cam.autoOrbitDelay) {
+          sim.showcaseYaw += dt * cam.autoOrbitSpeed;
         }
-        touch.lookX = 0;
-        touch.lookY = 0;
-        const yaw = sim.showcaseYaw;
-        const dist = portrait ? 3.6 : 4.1;
-        desired.current.set(
-          px + Math.sin(yaw) * dist,
-          py + (portrait ? 1.35 : 1.5),
-          pz + Math.cos(yaw) * dist,
-        );
-        lookAt.current.set(px, py + 0.45, pz);
-      } else {
-        const side = portrait ? 1.35 : 1.85;
-        const back = portrait ? 4.0 : 4.6;
-        const up = portrait ? 1.55 : 1.75;
-        desired.current.set(px + side + Math.sin(t * 0.35) * 0.2, py + up, pz + back);
-        lookAt.current.set(px, py + 0.52, pz);
       }
+      touch.lookX = 0;
+      touch.lookY = 0;
+      const yaw = sim.showcaseYaw;
+      const dist = THREE.MathUtils.clamp(
+        sim.showcaseDistance,
+        cam.minDistance,
+        cam.maxDistance,
+      );
+      const height = portrait ? cam.heightPortrait : cam.height;
+      desired.current.set(
+        px + Math.sin(yaw) * dist,
+        py + height,
+        pz + Math.cos(yaw) * dist,
+      );
+      lookAt.current.set(px, py + cam.lookHeight, pz);
     } else {
       const dist = (portrait ? CAM_DIST + 1.1 : CAM_DIST) + (sim.playerDashing ? 0.35 : 0);
       const height = portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT;
@@ -103,7 +104,7 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
       lookAt.current.z = pz - Math.cos(yaw) * 0.15;
     }
 
-    const k = phase === "title" ? 1.8 : 3.2;
+    const k = isShowcaseMode(mode) ? 1.8 : 3.2;
     const a = 1 - Math.exp(-k * dt);
     pos.current.lerp(desired.current, a);
     look.current.lerp(lookAt.current, a);
@@ -119,8 +120,22 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
     const persp = camera as THREE.PerspectiveCamera;
     if (persp.isPerspectiveCamera) {
       const base = portrait ? 54 : 46;
-      const target = phase === "title" ? base - 4 : base + sim.dashFov;
+      const target = isShowcaseMode(mode) ? base - 4 : base + sim.dashFov;
       persp.fov += (target - persp.fov) * (1 - Math.exp(-5 * dt));
+      const lift = cam.frameLift;
+      const offset = showcaseViewOffset({
+        mode,
+        portrait,
+        width: size.width,
+        height: size.height,
+        hub,
+        frameLift: lift,
+      });
+      if (offset) {
+        persp.setViewOffset(size.width, size.height, offset.x, offset.y, size.width, size.height);
+      } else {
+        persp.clearViewOffset();
+      }
       persp.updateProjectionMatrix();
     }
 

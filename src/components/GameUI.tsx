@@ -143,53 +143,49 @@ export function GameUI() {
             coinsRun={hud.coinsRun}
             racers={hud.racers}
           />
-          {hud.failHint ? (
-            <div className="pointer-events-none absolute bottom-[22%] left-1/2 z-20 w-[min(92%,420px)] -translate-x-1/2 rounded-2xl border border-border bg-ink/80 px-4 py-3 text-center text-sm shadow-panel">
-              {hud.failHint}
-            </div>
-          ) : null}
+          {hud.failHint ? <div className="hud-fail">{hud.failHint}</div> : null}
         </>
       )}
 
       {phase === "countdown" && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <p className="font-display text-7xl text-fg drop-shadow-lg md:text-8xl">
-            {countLeft > 0 ? countLeft : "GO"}
-          </p>
+          <p className="hud-count">{countLeft > 0 ? countLeft : "GO"}</p>
         </div>
       )}
 
-      {phase === "title" && <Hub />}
+      {phase === "title" && !lastPull && <Hub />}
 
       {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
 
       {phase === "paused" && (
-        <CenterCard>
-          <h2 className="font-display text-3xl">暂停</h2>
-          <p className="mt-2 text-sm text-fg-muted">比赛还在等你回来</p>
-          <label className="mt-4 flex items-center justify-between gap-3 text-xs text-fg-muted">
-            镜头灵敏度
-            <input
-              type="range"
-              min={0.5}
-              max={1.6}
-              step={0.05}
-              value={camSens}
-              onChange={(e) => setCamSens(Number(e.target.value))}
-              className="w-28"
-              aria-label="Camera sensitivity"
-            />
-          </label>
-          <div className="mt-6 flex flex-col gap-2">
-            <Button size="lg" onClick={resume} aria-label="Resume">
-              <Play className="size-4" />
-              继续
-            </Button>
-            <Button variant="secondary" size="lg" onClick={toTitle}>
-              返回首页
-            </Button>
+        <div className="pointer-events-auto absolute inset-0 z-30 flex items-center justify-center bg-ink/45 p-3">
+          <div className="pause-card">
+            <h2 className="font-display text-2xl">暂停</h2>
+            <p className="mt-2 text-sm text-fg-muted">比赛还在等你回来</p>
+            <label className="mt-4 flex items-center justify-between gap-3 text-xs text-fg-muted">
+              镜头灵敏度
+              <input
+                type="range"
+                min={0.5}
+                max={1.6}
+                step={0.05}
+                value={camSens}
+                onChange={(e) => setCamSens(Number(e.target.value))}
+                className="w-28"
+                aria-label="Camera sensitivity"
+              />
+            </label>
+            <div className="pause-actions mt-4 flex flex-col gap-2">
+              <Button size="lg" onClick={resume} aria-label="Resume">
+                <Play className="size-4" />
+                继续
+              </Button>
+              <Button variant="secondary" size="lg" onClick={toTitle}>
+                返回首页
+              </Button>
+            </div>
           </div>
-        </CenterCard>
+        </div>
       )}
 
       {phase === "results" && (
@@ -237,7 +233,7 @@ function HudBar({
   const ready = dashCd <= 0;
   return (
     <div
-      className="pointer-events-none absolute flex flex-col gap-2"
+      className="hud-bar pointer-events-none absolute flex flex-col gap-2"
       style={{
         top: "max(12px, env(safe-area-inset-top))",
         left: "max(12px, env(safe-area-inset-left))",
@@ -263,7 +259,7 @@ function HudBar({
           </span>
         </div>
       </div>
-      <ol className="hidden max-w-xs gap-1 sm:flex sm:flex-col">
+      <ol className="hud-standings hidden max-w-xs gap-1 sm:flex sm:flex-col">
         {racers.slice(0, 4).map((r) => (
           <li
             key={r.id}
@@ -429,8 +425,8 @@ function TitleSheet({
               </div>
               {howTo && (
                 <ul className="mt-4 space-y-2 text-sm text-fg-muted">
-                  <li>跳管高度 · 扑管缺口 · 滚管低姿态 · 加速管冲刺</li>
-                  <li>右边缺口：跳差一点，扑能过去</li>
+                  <li>跳管高度 · 扑管远台 · 滚过矮门 · 直道加速</li>
+                  <li>右边黄台：跳不够远，扑能抄近路</li>
                 </ul>
               )}
               <Button variant="secondary" size="lg" onClick={onHowTo} className="mt-4 w-full">
@@ -456,34 +452,34 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   const hapticOn = useGameStore((s) => s.hapticOn);
   const gfx = useGameStore((s) => s.gfx);
   return (
-    <div className="pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-ink/55 p-4">
-      <div className="w-full max-w-sm rounded-3xl border border-border bg-surface p-5 shadow-panel">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-2xl">设置</h2>
-          <Button variant="secondary" size="icon" aria-label="Close settings" onClick={onClose}>
+    <div className="settings-overlay pointer-events-auto absolute inset-0 z-40 flex items-center justify-center bg-ink/55 p-3">
+      <div className="settings-modal">
+        <div className="flex flex-shrink-0 items-center justify-between">
+          <h2 className="font-display text-xl">设置</h2>
+          <Button variant="secondary" size="icon" className="size-10 min-h-10" aria-label="Close settings" onClick={onClose}>
             <X className="size-4" />
           </Button>
         </div>
-        <div className="mt-4 space-y-4 text-sm text-fg-muted">
+        <div className="settings-grid text-sm text-fg-muted">
           <label className="flex items-center justify-between gap-3">
             音乐
-            <input type="range" min={0} max={1} step={0.01} value={musicVol} aria-label="Music volume" onPointerDown={() => unlockAudio()} onChange={(e) => useGameStore.getState().setMusicVol(Number(e.target.value))} className="w-36 accent-accent" />
+            <input type="range" min={0} max={1} step={0.01} value={musicVol} aria-label="Music volume" onPointerDown={() => unlockAudio()} onChange={(e) => useGameStore.getState().setMusicVol(Number(e.target.value))} className="w-28 accent-accent" />
           </label>
           <label className="flex items-center justify-between gap-3">
             音效
-            <input type="range" min={0} max={1} step={0.01} value={sfxVol} aria-label="SFX volume" onPointerDown={() => unlockAudio()} onChange={(e) => useGameStore.getState().setSfxVol(Number(e.target.value))} className="w-36 accent-accent" />
+            <input type="range" min={0} max={1} step={0.01} value={sfxVol} aria-label="SFX volume" onPointerDown={() => unlockAudio()} onChange={(e) => useGameStore.getState().setSfxVol(Number(e.target.value))} className="w-28 accent-accent" />
           </label>
           <label className="flex items-center justify-between gap-3">
             镜头灵敏度
-            <input type="range" min={0.5} max={1.6} step={0.05} value={camSens} aria-label="Camera sensitivity" onChange={(e) => useGameStore.getState().setCamSens(Number(e.target.value))} className="w-36 accent-accent" />
+            <input type="range" min={0.5} max={1.6} step={0.05} value={camSens} aria-label="Camera sensitivity" onChange={(e) => useGameStore.getState().setCamSens(Number(e.target.value))} className="w-28 accent-accent" />
           </label>
           <label className="flex items-center justify-between gap-3">
             按键大小
-            <input type="range" min={0.8} max={1.25} step={0.05} value={controlScale} aria-label="Control size" onChange={(e) => useGameStore.getState().setControlScale(Number(e.target.value))} className="w-36 accent-accent" />
+            <input type="range" min={0.8} max={1.25} step={0.05} value={controlScale} aria-label="Control size" onChange={(e) => useGameStore.getState().setControlScale(Number(e.target.value))} className="w-28 accent-accent" />
           </label>
           <label className="flex items-center justify-between gap-3">
             按键透明度
-            <input type="range" min={0.4} max={1} step={0.05} value={controlOpacity} aria-label="Control opacity" onChange={(e) => useGameStore.getState().setControlOpacity(Number(e.target.value))} className="w-36 accent-accent" />
+            <input type="range" min={0.4} max={1} step={0.05} value={controlOpacity} aria-label="Control opacity" onChange={(e) => useGameStore.getState().setControlOpacity(Number(e.target.value))} className="w-28 accent-accent" />
           </label>
           <label className="flex items-center justify-between gap-3">
             画质
@@ -499,7 +495,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
             <input type="checkbox" checked={hapticOn} aria-label="Haptic" onChange={(e) => useGameStore.getState().setHapticOn(e.target.checked)} />
           </label>
         </div>
-        <Button className="mt-5 w-full" onClick={onClose}>
+        <Button className="mt-4 w-full flex-shrink-0" onClick={onClose}>
           返回
         </Button>
       </div>
