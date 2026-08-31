@@ -598,79 +598,148 @@ export const FACTORY_SECTIONS: LevelSection[] = [
 ];
 
 
+export const SKY_GAPS = {
+  connect: 0.14,
+  jump: 3.45,
+} as const;
+
 function skyJump(): Level {
   const B = "#5BAFE0";
   const W = "#FFF6EB";
   const P = "#E08AA4";
+  const Rec = "#4A8BB8";
+  const { connect: CONNECT, jump: JUMP } = SKY_GAPS;
+
+  const start = plat("start", 0, 8, 14, 16, 0, W, "checkpoint");
+  const intro = extend("intro", start, CONNECT, 8, 10, 0, 0, B);
+  const land1 = extend("land1", intro, JUMP, 7.2, 10, 0, 0, B);
+  const jelly = extend("jelly", land1, CONNECT, 5.6, 8, 0, 0, P, "bounce");
+  const isle2 = extend("isle2", jelly, JUMP, 7.2, 10, 0, 0, B);
+  const mid = extend("mid", isle2, CONNECT, 10, 12, 0, 0, W, "checkpoint");
+  const hopA = extend("hopA", mid, CONNECT, 7.2, 10, 0, 0, B);
+  const hopB = extend("hopB", hopA, JUMP, 7.2, 10, 0, 0, B);
+  const hopC = extend("hopC", hopB, JUMP, 7.2, 10, 0, 0, B);
+  const jelly2 = extend("jelly2", hopC, CONNECT, 5.6, 8, 0, 0, P, "bounce");
+  const land2 = extend("land2", jelly2, JUMP, 7.2, 10, 0, 0, B);
+  const final = extend("final", land2, CONNECT, 14, 18, 0, 0, W, "finish");
+
+  const highA = plat("highA", 5.5, jelly.pos[2] - 4.6, 4.2, 4.4, 2.0, P);
+  const highB = extend("highB", highA, CONNECT, 4.2, 5.0, 5.5, 2.0, W);
+  const highFin = plat("highFin", 5.5, jelly2.pos[2] - 4.6, 4.2, 4.4, 2.0, P);
+
+  const jumpMidZ = (intro.pos[2] - intro.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
+  const recJump = plat("recJump", 0, land1.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
+  const recJump2 = plat("recJump2", -5.1, land1.pos[2], 5.2, 6, -1.4, Rec);
+  const recJump3 = plat("recJump3", -5.2, land1.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recJelly = plat("recJelly", 0, isle2.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
+  const recJelly2 = plat("recJelly2", -5.1, isle2.pos[2], 5.2, 6, -1.4, Rec);
+  const recJelly3 = plat("recJelly3", -5.2, isle2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const hopMidZ = (hopA.pos[2] - hopA.size[2] / 2 + hopC.pos[2] + hopC.size[2] / 2) / 2;
+  const recHop = plat("recHop", 0, hopMidZ, 12, 18, -2.5, Rec, "static", 1.2);
+  const recHop2 = plat("recHop2", -5.1, hopC.pos[2], 5.2, 6, -1.4, Rec);
+  const recHop3 = plat("recHop3", -5.2, hopC.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recFin = plat("recFin", 0, land2.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
+  const recFin2 = plat("recFin2", -5.0, land2.pos[2], 5.2, 6, -1.4, Rec);
+  const recFin3 = plat("recFin3", -5.2, land2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const platforms = [
+    start,
+    intro,
+    land1,
+    jelly,
+    isle2,
+    mid,
+    hopA,
+    hopB,
+    hopC,
+    jelly2,
+    land2,
+    final,
+    highA,
+    highB,
+    highFin,
+    recJump,
+    recJump2,
+    recJump3,
+    recJelly,
+    recJelly2,
+    recJelly3,
+    recHop,
+    recHop2,
+    recHop3,
+    recFin,
+    recFin2,
+    recFin3,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
+
   return compile({
     id: "sky",
     theme: {
       id: "sky",
       name: "天空弹跳岛",
-      blurb: "看清落点再跳。果冻会把你送上去。",
+      blurb: "果冻把你弹起来。看清落点再跳。高岛有金币，低岛稳。",
       stars: 3,
       sky: "#8FD4F8",
       fog: "#C8ECFF",
-      fogNear: 20,
-      fogFar: 95,
+      fogNear: 24,
+      fogFar: 150,
       rail: "#E08AA4",
       neon: "#FFFFFF",
       ground: "#5BAFE0",
     },
-    finishZ: -82,
-    startZ: 8,
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
     bots: 5,
-    platforms: [
-      plat("start", 0, 8, 12, 14, 0, W, "checkpoint"),
-      plat("a", 0, -6, 6, 6, 0, B),
-      { ...plat("b1", 0, -14, 4.4, 4.4, 0, P, "bounce") },
-      plat("c", 0, -24, 6, 6, 1.6, B),
-      { ...plat("b2", -2.4, -34, 4.2, 4.2, 1.6, P, "bounce") },
-      plat("d", 2.2, -44, 5.4, 5.4, 2.2, B),
-      plat("mid", 0, -54, 8, 6, 1.2, W, "checkpoint"),
-      plat("e", 0, -64, 5.2, 5, 1.2, B),
-      plat("final", 0, -82, 13, 10, 0, W, "finish"),
-    ],
-    movers: [
-      {
-        id: "cloud",
-        size: [4.4, 0.55, 4.4],
-        color: "#FFF6EB",
-        from: [-3.4, 1.4, -72],
-        to: [3.4, 1.4, -72],
-        period: 3.6,
-        phase: 0,
-      },
-    ],
+    platforms,
+    movers: [],
     hammers: [],
     spinners: [],
     pendulums: [],
     rings: [
-      { id: "r1", pos: [0, 2.4, -24] },
-      { id: "r2", pos: [0, 2.2, -64] },
+      { id: "rJump", pos: [0, 1.55, jumpMidZ] },
+      { id: "rHop", pos: [0, 1.55, hopMidZ] },
     ],
     pickups: [
-      { id: "c1", kind: "coin", pos: [0, 1.3, -6] },
-      { id: "c2", kind: "coin", pos: [0, 2.8, -24] },
-      { id: "c3", kind: "coin", pos: [2.2, 3.4, -44] },
-      { id: "j1", kind: "jelly", pos: [0, 2.4, -54] },
+      { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
+      { id: "cLand1", kind: "coin", pos: [0, topOf(land1), land1.pos[2]] },
+      { id: "cHighA", kind: "coin", pos: [5.5, topOf(highA), highA.pos[2]] },
+      { id: "sHigh", kind: "shield", pos: [5.5, topOf(highB), highB.pos[2]] },
+      { id: "cIsle2", kind: "coin", pos: [0, topOf(isle2), isle2.pos[2]] },
+      { id: "cHopB", kind: "coin", pos: [0, topOf(hopB), hopB.pos[2]] },
+      { id: "cHighFin", kind: "coin", pos: [5.5, topOf(highFin), highFin.pos[2]] },
+      { id: "cLand2", kind: "coin", pos: [0, topOf(land2), land2.pos[2]] },
     ],
     traps: [],
     gates: [],
-    winds: [{ id: "up", pos: [0, 2, -64], size: [4, 4, 4], force: [0, 6, 0] }],
+    winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -54, pos: [0, 1.9, -52] },
+      { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
+      { z: hopC.pos[2] + 2, pos: [0, 0.7, hopC.pos[2] + 2] },
     ],
     spawns: [
       [0, 0.72, 4],
-      [-2, 0.72, 8],
-      [2, 0.72, 7.4],
-      [-1, 0.72, 8.2],
-      [1.4, 0.72, 7],
+      [-2.2, 0.72, 8],
+      [-1, 0.72, 7],
+      [1, 0.72, 8],
+      [2.2, 0.72, 7.2],
+      [2.8, 0.72, 8.2],
     ],
   });
 }
+
+export const SKY_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -24, purpose: "islands not a road", mechanics: ["jump"] },
+  { id: "jelly", startZ: -24, endZ: -56, purpose: "bounce then choose landing", mechanics: ["bounce"] },
+  { id: "hops", startZ: -56, endZ: -96, purpose: "three island commits", mechanics: ["jump"] },
+  { id: "finale", startZ: -96, endZ: -160, purpose: "last bounce then sprint", mechanics: ["bounce"] },
+];
+
 
 function pirate(): Level {
   const Wd = "#C4A574";

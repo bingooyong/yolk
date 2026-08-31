@@ -11,4 +11,8 @@
 - [x] `factory()` blockout: wait-window hammers, catwalk skip, jump, recovery
 - [x] Factory metal pad sheen (existing factory colors)
 - [x] Factory layout tests
-- [ ] Levels 4–8 still identity-only
+- [x] Level 4 sky spec (`docs/levels/level4-sky.md`)
+- [x] `skyJump()` blockout: island jump, jelly bounce, high vs low, hop chain, recovery
+- [x] Sky bounce pad sheen (existing pink bounce color)
+- [x] Sky layout tests
+- [ ] Levels 5–8 still identity-only

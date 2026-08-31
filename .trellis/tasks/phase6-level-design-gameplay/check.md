@@ -34,3 +34,15 @@
 - [x] Hammer hits are soft (`setHint`), not counted as falls
 - [x] Bots finish the safe line
 - [x] `npm run test:visual` includes `factory-layout.test.ts`
+
+## Level 4 天空弹跳岛
+
+- [x] Bounce pads + island jumps are the core, not a gadget parade (no wind / cloud mover / hammer)
+- [x] First pit: walk falls, jump lands (naive W-only falls, recovery shelf catches)
+- [x] Jelly launches you; don't steer → low isle2
+- [x] High islands at `|x|>=4.2`; bots ignore them
+- [x] Hop chain is three jump commits
+- [x] Recovery under pits
+- [x] Bots finish the safe line (`botMinZ` past finishZ, 3–4 bots finished)
+- [x] `npm run test:visual` includes `sky-layout.test.ts`
+

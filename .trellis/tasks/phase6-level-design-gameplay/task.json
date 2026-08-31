@@ -1,8 +1,8 @@
 {
   "id": "phase6-level-design-gameplay",
   "name": "phase6-level-design-gameplay",
-  "title": "Phase 6 Level Design & Gameplay — L1 meadow + L2 ice + L3 factory",
-  "description": "Gold-standard teaching races: meadow (jump/pounce/roll/boost), ice (steering), factory (hammer wait-windows). Do not rebuild 4–8 this phase.",
+  "title": "Phase 6 Level Design & Gameplay — L1 meadow + L2 ice + L3 factory + L4 sky",
+  "description": "Gold-standard teaching races: meadow (jump/pounce/roll/boost), ice (steering), factory (hammer wait-windows), sky (bounce then choose a landing). Do not rebuild 5–8 this phase.",
   "status": "in_progress",
   "priority": "P0",
   "creator": "bingooyong",
@@ -17,13 +17,15 @@
     "docs/levels/level1-meadow.md",
     "docs/levels/level2-ice.md",
     "docs/levels/level3-factory.md",
+    "docs/levels/level4-sky.md",
     "src/game/levels.ts",
     "src/game/ice-layout.test.ts",
     "src/game/factory-layout.test.ts",
+    "src/game/sky-layout.test.ts",
     "src/game/EggRacer.tsx",
     "src/game/Track.tsx",
     "src/game/sim.ts",
     ".trellis/spec/frontend/level-design.md"
   ],
-  "notes": "Do not rebuild sky–finale, Rapier, Action Pad, gacha, or the skin pipeline. Do not touch archived Skin/Visual tasks."
+  "notes": "Do not rebuild pirate–finale, Rapier, Action Pad, gacha, or the skin pipeline. Do not touch archived Skin/Visual tasks."
 }

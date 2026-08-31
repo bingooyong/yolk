@@ -1,6 +1,6 @@
 # Current Level Audit — Phase 6 Step 1
 
-Source of truth: `src/game/levels.ts` on current main. This is a design audit, not a rewrite. Levels 2–8 stay as they are this slice. Ice and factory later matched their identities (`docs/levels/level2-ice.md`, `docs/levels/level3-factory.md`). Sky–finale remain identity-only.
+Source of truth: `src/game/levels.ts` on current main. This is a design audit, not a rewrite. Ice, factory, and sky later matched their identities (`docs/levels/level2-ice.md`, `docs/levels/level3-factory.md`, `docs/levels/level4-sky.md`). Pirate–finale remain identity-only.
 
 ## Verdict
 
@@ -114,7 +114,7 @@ Design-only for 2–8. Do not rebuild them this slice.
 
 **factory.** The closest thing to a rhythm course, still a straight hall. Hammers/spinner/pendulum/piston are a gadget parade, not SAFE→CHALLENGE→SAFE.
 
-**sky.** Best vertical variety (tops 0 / 1.6 / 2.2). Still one chain. Two checkpoints only. Falling is always hard fail.
+**sky.** Bounce pads + island jumps. High islands at `|x|>=4.2`. Recovery under pits. See `docs/levels/level4-sky.md`.
 
 **pirate.** Best route idea in the file (safe-right vs trap-left). `safe` is at x=4.2 so bots never use it. Trap `drops` pattern is the actual decision. Keep this identity when Phase 6+ reaches it.
 

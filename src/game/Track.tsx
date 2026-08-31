@@ -36,12 +36,14 @@ function Pad({
   role,
   ice,
   metal,
+  bounce,
 }: {
   size: [number, number, number];
   color: string;
   role?: MeadowPadRole;
   ice?: boolean;
   metal?: boolean;
+  bounce?: boolean;
 }) {
   const materials = useMemo(() => {
     if (ice && !role) {
@@ -67,6 +69,19 @@ function Pad({
       });
       const side = new THREE.MeshLambertMaterial({
         color: _side.set(color).multiplyScalar(0.58),
+      });
+      return [side, side, top, side, side, side];
+    }
+    if (bounce && !role) {
+      const top = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.28,
+        metalness: 0.02,
+        emissive: "#FF9BB4",
+        emissiveIntensity: 0.22,
+      });
+      const side = new THREE.MeshLambertMaterial({
+        color: _side.set(color).multiplyScalar(0.62),
       });
       return [side, side, top, side, side, side];
     }
@@ -110,7 +125,7 @@ function Pad({
             });
     const side = new THREE.MeshLambertMaterial({ color: palette.side });
     return [side, side, top, side, side, side];
-  }, [color, role, ice, metal]);
+  }, [color, role, ice, metal, bounce]);
 
   useEffect(
     () => () => {
@@ -146,6 +161,7 @@ export function Track() {
               color={p.color}
               ice={p.kind === "ice"}
               metal={level.id === "factory" && !p.id.startsWith("rec")}
+              bounce={p.kind === "bounce"}
               role={isLevel1Benchmark ? meadowPadRole(p.id) : undefined}
             />
           </RigidBody>
@@ -602,17 +618,21 @@ function Decor({ theme, finishZ }: { theme: string; finishZ: number }) {
       ? "#8EC8F0"
       : theme === "factory"
         ? "#6A7A90"
-        : theme === "pirate"
-          ? "#8B6914"
-          : "#3DCFB0";
+        : theme === "sky"
+          ? "#E08AA4"
+          : theme === "pirate"
+            ? "#8B6914"
+            : "#3DCFB0";
   const glow =
     theme === "ice"
       ? "#FFFFFF"
-      : theme === "dessert"
-        ? "#E08AA4"
-        : theme === "finale"
-          ? "#E8C85A"
-          : "#FFF6A8";
+      : theme === "sky"
+        ? "#FFFFFF"
+        : theme === "dessert"
+          ? "#E08AA4"
+          : theme === "finale"
+            ? "#E8C85A"
+            : "#FFF6A8";
   const zs = [8, -6, -20, -40, -64, -88, Math.max(finishZ + 8, -60)];
   return (
     <>
