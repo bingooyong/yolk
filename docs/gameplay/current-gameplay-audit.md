@@ -81,15 +81,15 @@ Bots: `botMinZ` past `finishZ` (−125). Safe line is fair for AI.
 
 | Driver | Result |
 |---|---|
-| Naive W only | First pit, Y≈−1.8 recovery. Still the teaching beat. |
-| Lip jumps | Reaches hop/jelly2 (~−90 to −120) with ~2–4 falls. Bots finish (`botMinZ` past −125). Scripted player still misses the last bounce lip (harness, not layout). |
-| Hold-D “high” | **Wrong input.** A/D is yaw. Holding D turns the egg off the pad. High route is a *tap* during bounce, which the camera now shows. |
-| Camera | Look-ahead restored. Recovery shot sees the next island; bounce shot sees the high pink pad on the right. |
-| Checkpoint | On-screen 「检查点」 + `sfxCheckpoint`. |
+| Naive W only | First pit, Y≈−1.8 recovery. Lesson holds. |
+| Lip + roll | Reaches the last 6m (`z≈−123`) with rolls used. Bots finish. Scripted player still dies beside the finish more often than not. |
+| High strafe (`setSteer` −1) | Reaches jelly at `x≈3.6` (right-side tell works). Pounce still not scripted onto highB. |
+| Camera | Next island and the right high pad are visible. |
+| Checkpoint | 「检查点」 + sfx. |
+| Roll | hopC cloud bar. Pink posts, yellow beam. Bots walk through. |
+| Landing | squash + sfx + puff + haptic. |
 
-Pounce gaps exist in data (highA→highB and highFin→highFin2 = 6.25). Scripted pounce was not landed because the harness never arrived on highA.
-
-**Lock:** bots + naive + camera + checkpoint. High route is a visible, authored choice; do not keep widening pads to satisfy a held-D bot.
+**Lock for this phase:** bots + naive + camera + checkpoint + a visible roll beat + a walkable right-side high tell. Do not rebuild 5–8. Do not rewrite bot AI.
 
 ---
 
@@ -120,7 +120,7 @@ Still short strips (`finishZ` −84 to −110). Gadget parades in finale. **Do n
 
 ## Engine notes (not sky-only)
 
-- Landing: squash + `sfxLand`. No dust. Acceptable until visual polish.
+- Landing: squash + `sfxLand` + puff ring + light haptic.
 - Boost FOV / charge SFX already exist.
 - `compile()` still infers bot jump/dash. Do not make it the designer.
 - Action Pad / Rapier / gacha: do not touch.

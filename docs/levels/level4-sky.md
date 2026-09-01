@@ -83,8 +83,8 @@ Bots jump/dash only, but jelly is a **surface**: walking onto it launches them t
 | intro | see that this is islands, not a road | jump | medium rec / hard |
 | jelly | bounce launches you; high vs low | bounce | medium rec |
 | high | optional coins in the air | bounce + steer | medium rec / hard |
-| hops | three island commits in a row | jump | medium rec |
-| finale | last bounce, then sprint | bounce | medium rec |
+| hops | commit island, cloud bar you roll, relief | jump + roll | medium rec / soft gate |
+| finale | jump onto jelly, bounce, sprint | bounce + boost ring | medium rec |
 | finish | sprint | move | none |
 
 ## Routes
@@ -96,7 +96,7 @@ Bots jump/dash only, but jelly is a **surface**: walking onto it launches them t
 
 ## Obstacles (only these)
 
-Two jelly bounce pads. Jump gaps of 3.45. High islands on the right. Recovery shelves. No wind, cloud mover, hammer, spinner, pendulum, conveyor, ice, roll gate, or traps.
+Two jelly bounce pads. Jump gaps of 3.45. High islands on the right. One player-only roll bar on hopC. Recovery shelves. No wind, mover, hammer, spinner, pendulum, conveyor, ice, or traps.
 
 ## Checkpoints
 
@@ -109,6 +109,6 @@ Two jelly bounce pads. Jump gaps of 3.45. High islands on the right. Recovery sh
 - Hold W into the first pit: fall. Jump: land. Lesson: this is islands.
 - Walk onto jelly: launched. Don't steer: land on low isle2.
 - Steer right in the air: highA, coins. Miss: recovery, not start.
-- Hop chain: three jumps. Panic-skip one: recovery.
-- Bots finish the safe line. They never path onto high islands.
-- No gadget besides bounce + gaps.
+- Hop chain: jump, roll the cloud bar, jump onto the last jelly, bounce.
+- Bots finish the safe line (they ignore the roll bar). They never path onto high islands.
+- No extra gadgets besides bounce, gaps, and one roll bar.

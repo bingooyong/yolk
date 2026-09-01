@@ -39,6 +39,8 @@ describe("Level 4 sky blockout", () => {
     assert.ok(Math.abs(hops - SKY_GAPS.jump) < 0.05, `hop jump ${hops}`);
     const hop2 = platformGap(byId("hopB"), byId("hopC"));
     assert.ok(Math.abs(hop2 - SKY_GAPS.jump) < 0.05, `hop2 jump ${hop2}`);
+    const ontoJelly = platformGap(byId("hopC"), byId("jelly2"));
+    assert.ok(Math.abs(ontoJelly - SKY_GAPS.jump) < 0.05, `onto jelly2 ${ontoJelly}`);
   });
 
   it("puts high islands off the bot line", () => {
@@ -83,7 +85,7 @@ describe("Level 4 sky blockout", () => {
     assert.equal(sky.pendulums.length, 0);
     assert.equal(sky.movers.length, 0);
     assert.equal(sky.winds.length, 0);
-    assert.equal(sky.gates.length, 0);
+    assert.equal(sky.gates.length, 1, "one roll cloud after the hop relief");
     assert.equal(byId("jelly").kind, "bounce");
     assert.equal(byId("jelly2").kind, "bounce");
     assert.ok(sky.platforms.every((p) => p.kind !== "ice" && p.kind !== "conveyor"));

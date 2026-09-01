@@ -191,6 +191,7 @@ export type SessionStats = {
   coins: number;
   time: number;
   finish: boolean;
+  playerX: number;
   playerZ: number;
   playerY: number;
   botsFinished: number;
@@ -210,6 +211,7 @@ export function sessionStats(): SessionStats {
     coins: sim.coinsRun,
     time: sim.time,
     finish: Boolean(player?.finished),
+    playerX: player?.x ?? 0,
     playerZ: player?.z ?? 0,
     playerY: player?.y ?? 0,
     botsFinished: bots.filter((r) => r.finished).length,

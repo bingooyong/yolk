@@ -14,3 +14,8 @@
 | land1 width | 7.2 | 8.4 | Right-side approach onto jelly was a fall off the 7.2 pad |
 | Jelly-right coin | none | x=3.2 on jelly | Tell: go right before the launch |
 | forcePlay retry | no-op if already playing | always remount race | Retry / playtest must actually restart |
+| hopC → jelly2 | connect 0.14 | jump 3.45 | Walk-on from the back bounced short of land2 |
+| hopC roll gate | none | player-only `gateCloud` | Gold kit: roll after hops; bots ignore it |
+| land2 width | 7.2 | 8.4 | Last bounce was a side-fall |
+| Landing puff | squash + sfx | ring + light haptic | Landing must be felt |
+| SessionStats.playerX | missing | recorded | High-route playtest needs lateral proof |

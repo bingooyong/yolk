@@ -620,8 +620,8 @@ function skyJump(): Level {
   const hopA = extend("hopA", mid, CONNECT, 7.2, 10, 0, 0, B);
   const hopB = extend("hopB", hopA, JUMP, 5.4, 10, 0, 0, B);
   const hopC = extend("hopC", hopB, JUMP, 9.2, 10, 0, 0, B);
-  const jelly2 = extend("jelly2", hopC, CONNECT, 8.4, 8, 0, 0, P, "bounce");
-  const land2 = extend("land2", jelly2, JUMP, 7.2, 10, 0, 0, B);
+  const jelly2 = extend("jelly2", hopC, JUMP, 8.4, 8, 0, 0, P, "bounce");
+  const land2 = extend("land2", jelly2, JUMP, 8.4, 10, 0, 0, B);
   const final = extend("final", land2, CONNECT, 14, 18, 0, 0, W, "finish");
 
   const highA = plat("highA", 4.6, jelly.pos[2] - 4.6, 4.4, 12, 2.0, P);
@@ -722,7 +722,7 @@ function skyJump(): Level {
       { id: "cLand2", kind: "coin", pos: [0, topOf(land2), land2.pos[2]] },
     ],
     traps: [],
-    gates: [],
+    gates: [{ id: "gateCloud", pos: [0, 1.55, hopC.pos[2]], size: [10.0, 3.4, 0.85] }],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -744,7 +744,7 @@ export const SKY_SECTIONS: LevelSection[] = [
   { id: "intro", startZ: 16, endZ: -24, purpose: "islands not a road", mechanics: ["jump"] },
   { id: "jelly", startZ: -24, endZ: -56, purpose: "bounce then choose landing", mechanics: ["bounce"] },
   { id: "high", startZ: -24, endZ: -56, purpose: "right-side bounce then pounce", mechanics: ["pounce"] },
-  { id: "hops", startZ: -56, endZ: -96, purpose: "commit island then relief", mechanics: ["jump"] },
+  { id: "hops", startZ: -56, endZ: -96, purpose: "commit island, roll cloud, relief", mechanics: ["jump", "roll"] },
   { id: "finale", startZ: -96, endZ: -160, purpose: "last bounce then sprint", mechanics: ["bounce"] },
 ];
 

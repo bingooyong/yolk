@@ -30,6 +30,7 @@ import {
   TURN_LERP,
   type Accessory,
 } from "./config";
+import { haptic } from "@/engine/haptics";
 import { currentLevel, moverVel } from "./course";
 import {
   createCharacterPresentation,
@@ -583,6 +584,7 @@ export function EggRacer({
       L.moveState = "landing";
       if (isPlayer) {
         sfxLand();
+        haptic("light");
       }
     }
     L.grounded = grounded;
@@ -805,6 +807,7 @@ export function EggRacer({
   return (
     <>
       <ContactShadow presentation={presentation} />
+      <LandPuff presentation={presentation} />
       <RigidBody
         ref={body}
         type="kinematicPosition"
@@ -827,6 +830,28 @@ export function EggRacer({
         {showMarker ? <PlayerMarker color={color} /> : null}
       </RigidBody>
     </>
+  );
+}
+
+function LandPuff({ presentation }: { presentation: RefObject<CharacterPresentation> }) {
+  const mesh = useRef<THREE.Mesh>(null);
+  useFrame(() => {
+    const ring = mesh.current;
+    if (!ring) return;
+    const p = presentation.current;
+    const on = p.moveState === "landing";
+    ring.visible = on;
+    if (!on) return;
+    const k = Math.max(0.15, p.squash);
+    ring.position.set(p.contactX, p.contactY + 0.04, p.contactZ);
+    ring.scale.setScalar(1.1 + (1 - k) * 2.4);
+    (ring.material as THREE.MeshBasicMaterial).opacity = 0.22 + (1 - k) * 0.25;
+  });
+  return (
+    <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2} visible={false}>
+      <ringGeometry args={[0.28, 0.52, 16]} />
+      <meshBasicMaterial color="#FFF6EB" transparent opacity={0.28} depthWrite={false} />
+    </mesh>
   );
 }
 
