@@ -18,6 +18,7 @@
     "docs/levels/level2-ice.md",
     "docs/levels/level3-factory.md",
     "docs/levels/level4-sky.md",
+    "docs/levels/lessons.md",
     "src/game/levels.ts",
     "src/game/ice-layout.test.ts",
     "src/game/factory-layout.test.ts",
@@ -27,5 +28,5 @@
     "src/game/sim.ts",
     ".trellis/spec/frontend/level-design.md"
   ],
-  "notes": "Do not rebuild pirate–finale, Rapier, Action Pad, gacha, or the skin pipeline. Do not touch archived Skin/Visual tasks."
+  "notes": "Paused after L4. Do not rebuild pirate–finale until asked. Lessons in docs/levels/lessons.md. Do not touch Rapier, Action Pad, gacha, or the skin pipeline."
 }

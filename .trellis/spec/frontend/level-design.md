@@ -23,11 +23,11 @@ Apply when changing course layout, `src/game/levels.ts`, checkpoints, roll gates
 
 `level-designer` → `level-implementer` → `level-playtester` → `level-polisher`
 
-Skills: `.grok/skills/level-*/SKILL.md`.
+Skills: `.grok/skills/level-*/SKILL.md` (persisted copy: `.agents/skills/level-*/`). Lessons from L1–L4: `docs/levels/lessons.md`. Do not rebuild pirate–finale until named.
 
 ## Level 1 gold standard
 
-`docs/levels/level1-meadow.md`. Level 2: `docs/levels/level2-ice.md`. Level 3: `docs/levels/level3-factory.md`. Level 4: `docs/levels/level4-sky.md`. Other courses keep their **identity** from `docs/levels/current-level-audit.md` until a later slice rebuilds them.
+`docs/levels/level1-meadow.md`. Level 2: `docs/levels/level2-ice.md`. Level 3: `docs/levels/level3-factory.md`. Level 4: `docs/levels/level4-sky.md`. Lessons: `docs/levels/lessons.md`. Other courses keep their **identity** from `docs/levels/current-level-audit.md` until a later slice rebuilds them.
 
 ## Validation
 

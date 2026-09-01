@@ -10,19 +10,20 @@ user-invocable: true
 
 # Level Polisher
 
-Only after **gameplay lock**. Route and core obstacles are frozen.
+Only after **gameplay lock**. Read `docs/levels/lessons.md`. Route and core obstacles are frozen.
 
 ## Do
 
-- Extend the existing theme system (`Level1BenchmarkArt`, `meadowPadRole`, instanced props).
-- Cover the new finishZ with the same grass / cane / hill / cloud bands.
+- Pad sheen via existing flags in `Track.tsx` `Pad`: `ice`, `metal` (factory, skip `rec*`), `bounce` (jelly). No new materials system.
+- `Decor` / `NeonRails` already scale with `finishZ`. Add a theme color branch if the default mint trees fight the sky (sky uses pink/white).
+- Meadow only: `Level1BenchmarkArt` / `meadowPadRole` / `ROUTE_PLATFORM_IDS`. Remap ids in the same change if the blockout renamed pads.
 - Keep `InstancedMesh`. No extra shadow maps, post, or render targets.
-- Mobile 30fps budget. `?debug=perf` if you need evidence.
-- Lighting stays in `LightingSystem` / `visualProfile`.
+- Mobile 30fps. Lighting stays in `LightingSystem` / `visualProfile`.
 
 ## Do not
 
 - Move gameplay pads “a little for composition.”
-- Invent a second meadow art path.
-- Restyle other courses.
+- Invent a second art path for a locked course.
+- Restyle other courses in this pass.
 - Copy copyrighted layouts or characters.
+- Add wind / movers / props that play as obstacles.

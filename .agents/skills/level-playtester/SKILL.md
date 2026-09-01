@@ -11,31 +11,33 @@ user-invocable: true
 
 # Level Playtester
 
-Play the running build. Do not redesign from the chair.
+Read `docs/levels/lessons.md`. Play the running build. Do not redesign from the chair.
 
-## Session stats
+## Probes (already on `window` after GameCanvas mounts)
 
-`window.__yolkStats` (and `sim` counters): jumps, pounces, rolls, boosts, falls, checkpoints, coins, time, finish.
+```
+__yolkSetLevel(id)
+__yolkForcePlay()
+__yolkStats()     // jumps, falls, playerZ, playerY, botMinZ, botsFinished, finish, time, coins
+__controlsTest.setKeys(["KeyW"] | ["KeyW","Space"])
+__controlsTest.setSteer(v)
+```
 
-A clean expert run that never pounces means the shortcut is optional *and* unreadable — say so.
+Do not dynamic-import the store (duplicates zustand). Spoof `document.visibilityState = "visible"`. Chromium: disable background timer throttling. WebGL shots: CDP `Page.captureScreenshot`.
 
 ## Human-like passes (minimum)
 
-1. **New player** — hold forward, jump when a pit appears. Did they learn, or bounce off kill plane?
-2. **Pounce discover** — jump the 6.25 pit, fail, then pounce / jump→pounce the yellow pads.
-3. **Roll** — walk into the candy bar (soft stun), then roll through.
-4. **Boost** — walk the long lane, then boost. Time delta should be obvious.
-5. **Shortcut vs safe** — both finish. Shortcut faster if landed.
-6. **Recovery** — miss a jump, land on the shelf, climb back, still racing.
-7. **Hard fail** — fall past recovery, respawn at the last completed-challenge checkpoint, not at start unless they have not cleared one.
-8. **Bots** — four bots finish the safe line without pouncing. They may clip the roll visual (player-only gate). They must not dive onto recovery.
+1. **Naive** — W only. First teaching beat **must fail** (fall / stun / slide). Recovery should catch (playerY ≈ −2.5, not a full restart).
+2. **Lip jump** — Space only in the last ~1.3m before a jump lip, held through hang (~4m past the lip) so `JUMP_CUT` does not eat the jump. In-page **16ms** loop. Playwright 80ms round-trip is too slow and jumps early.
+3. **Do not hold Space the whole race** on islands or ice. Mash period ≈ 5m; a pad of d=8 dumps you in the pit.
+4. **Pounce / roll / boost / high island** — only if this course teaches them. Shortcut faster if landed.
+5. **Hard fail** — past recovery → last completed-challenge checkpoint.
+6. **Bots** — 3–4 finish the safe line (`botMinZ` past `finishZ`). They may eat hammers (soft). They must not path onto `|x|>=4.2` or recovery.
 
-## Camera / fairness
+## Lock criterion
 
-Player sees the pit or fork before they are on the lip. If a jump is a surprise, the approach pad is too short — fix layout, do not add FOV.
+**Bots finish the safe line** and the naive player learns the beat from space. Scripted player finish is a bonus, not a gate. If they only held W+jump and still raced well, the course failed.
 
 ## Report
 
-Best / average / worst time, falls, skill uses, one sentence on whether the player made a **choice**. If they only held forward + jump, the course failed.
-
-Then hand numbers to implementer for tuning. Art is not next until gameplay lock.
+Best / average / worst time, falls, skill uses, `playerZ` / `botMinZ`, one sentence on whether the player made a **choice**. Then hand numbers to implementer. Art is not next until gameplay lock.

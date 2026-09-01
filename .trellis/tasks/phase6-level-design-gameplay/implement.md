@@ -15,4 +15,5 @@
 - [x] `skyJump()` blockout: island jump, jelly bounce, high vs low, hop chain, recovery
 - [x] Sky bounce pad sheen (existing pink bounce color)
 - [x] Sky layout tests
-- [ ] Levels 5–8 still identity-only
+- [x] Lessons + skills (`docs/levels/lessons.md`, level-pipeline / designer / implementer / playtester / polisher)
+- [ ] Levels 5–8 still identity-only (paused)
