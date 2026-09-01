@@ -90,7 +90,7 @@ Bots: `botMinZ` past `finishZ` (−125). Safe line is fair for AI.
 | Bounce | Launches without holding Space (`fromBounce`). |
 | Landing | squash + sfx + puff + haptic. |
 
-**Lock for this phase:** bots + naive + camera + checkpoint + roll beat + landable high pounce + scripted finishes. Do not rebuild 5–8. Do not rewrite bot AI.
+**Lock for this phase:** bots + naive + camera + checkpoint + roll beat + landable high pounce + scripted finishes. Spatial gold: Sky width rhythm, no corridor rails. Do not widen the other seven in this pass. Do not rewrite bot AI.
 
 ---
 

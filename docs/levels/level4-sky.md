@@ -29,50 +29,51 @@ Holding W across a gap without jumping **falls**. Stepping on jelly **launches**
 | Pounce (high) | ~6.25 (jump falls short, jump→pounce lands) |
 | Connect | 0.14 |
 | Safe line | x ≈ 0, `|x| < 4.2` |
-| High islands | `\|x\| >= 4.2`, top ≈ 1.55. Jelly is wide so you can run right *before* the launch. |
-| Recovery | top y < −0.5 |
+| High islands | `x = 8.5`, w=6, top ≈ 1.55. A room to the right of the 14-wide jelly, not a shoulder. |
+| Width rhythm | start 20 → standard 12 → jelly 14 → arena 20 → hopB 6.2 → hopC 14 → finish 20 |
+| Recovery | top y < −0.5; stairs outside the pad edge |
 
 Bots jump/dash only, but jelly is a **surface**: walking onto it launches them too. Safe line never requires pounce, roll, or the high islands. No dash-sized gaps (`> 4.4`).
 
 ## ASCII
 
 ```
- z+  START   wide plaza                     [move]
+ z+  START 20          spawn plaza, six racers spread     [arena]
       |
-     intro   first island, see the drop     [observe]
+     intro 12          see the drop                       [standard]
       | \
       |  \ recJump
      JUMP 3.45
       | /
-     land1   rest                           [SAFE]
+     land1 12                                             [SAFE]
       |
-     jelly   PINK bounce                    [feel the launch]
+     jelly 14          PINK bounce, run right             [wide / overtake]
       | \
-      |  \ highA  x=+4.6  y=1.55  coins     [steer in air]
+      |  \ highA  x=8.5  w=6  y=1.55  coins               [room, not shoulder]
       |     |
-      |    highB  x=+4.6  y=1.55 shield
+      |    highB  x=8.5  pounce 6.25
       |     |
-     isle2   LOW landing y=0                [safe, bots]
+     isle2 10          LOW landing                        [safe, bots]
       | /
-     mid     plaza CP                       [after bounce lesson]
+     mid 20×16         SKY ARENA  left / mid / right      [overtake + boost ring]
       |
-     hopA    island
+     hopA 10
       | \
       |  \ recHop
      JUMP 3.45
       |
-     hopB    island (narrow commit)
+     hopB 6.2          NARROW commit                      [choke]
      JUMP 3.45
       |
-     hopC    wide relief, ROLL cloud bar    [roll then jump]
+     hopC 14           ROLL cloud (center); edges risky   [wide relief]
       |
-     jelly2  bounce again                   [same lesson]
+     jelly2 14         bounce again
       | \
-      |  \ highFin x=+4.6 y=1.55 coins
+      |  \ highFin x=8.5
       |
-     land2   low + rec under finish
+     land2 12
       |
-     FINISH  boost ring
+     FINISH 20         boost sprint, celebrate
  z-
 ```
 

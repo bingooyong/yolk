@@ -13,6 +13,8 @@ import { MAX_FRAME_DT } from "@/engine/pipeline";
 import { actions, touch } from "./input";
 import { decayTrauma, sim } from "./sim";
 import { useGameStore } from "./store";
+import { currentLevel } from "./course";
+import { camExtraForWidth, localPlayableWidth } from "./spatial";
 import { getPresentationMode, isShowcaseMode, PRESENTATION_PROFILES, showcaseViewOffset } from "./presentation/profiles";
 
 export function CameraRig({ portrait }: { portrait: boolean }) {
@@ -84,8 +86,10 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
       );
       lookAt.current.set(px, py + cam.lookHeight, pz);
     } else {
-      const dist = (portrait ? CAM_DIST + 1.1 : CAM_DIST) + (sim.playerDashing ? 0.35 : 0);
-      const height = portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT;
+      const padW = localPlayableWidth(currentLevel().platforms, pz);
+      const extra = camExtraForWidth(padW);
+      const dist = (portrait ? CAM_DIST + 1.1 : CAM_DIST) + extra.dist + (sim.playerDashing ? 0.35 : 0);
+      const height = (portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT) + extra.height;
       const air = player && !player.grounded;
       const airLift = air ? Math.min(2.4, 0.45 + Math.max(0, py - 0.7) * 0.55) : 0;
       const yaw = sim.lookYaw;
@@ -96,7 +100,7 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
         Math.max(1.45, py + height + airLift + Math.sin(pitch) * dist * 0.85),
         pz + Math.cos(yaw) * back,
       );
-      const ahead = CAM_LOOKAHEAD * (air ? 1.15 : 1);
+      const ahead = (CAM_LOOKAHEAD + extra.ahead) * (air ? 1.15 : 1);
       lookAt.current.set(px, py + 0.45, pz - Math.cos(yaw) * ahead);
     }
 

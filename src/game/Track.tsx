@@ -149,7 +149,7 @@ export function Track() {
   return (
     <group key={`${levelId}-${raceId}`}>
       <SkyDome />
-      <NeonRails color={level.theme.rail} neon={level.theme.neon} />
+      {level.id === "sky" ? null : <NeonRails color={level.theme.rail} neon={level.theme.neon} />}
       {level.platforms.map((p) => {
         const kind =
           p.kind === "ice" || p.kind === "bounce" || p.kind === "conveyor" ? p.kind : "platform";
@@ -195,6 +195,11 @@ export function Track() {
 
       {isLevel1Benchmark ? (
         <Level1BenchmarkArt platforms={level.platforms} finishZ={level.finishZ} />
+      ) : level.id === "sky" ? (
+        <>
+          <FinishArch z={level.finishZ} />
+          <SkyWorld finishZ={level.finishZ} />
+        </>
       ) : (
         <>
           <FinishArch z={level.finishZ} />
@@ -572,18 +577,21 @@ function BoostRing({ pos, benchmark }: { pos: [number, number, number]; benchmar
 }
 
 function FinishArch({ z }: { z: number }) {
+  const finish = currentLevel().platforms.find((p) => p.kind === "finish");
+  const half = Math.max(5.4, (finish?.size[0] ?? 14) / 2 - 1.6);
+  const beam = half * 2 + 0.8;
   return (
     <group position={[0, 0, z - 2]}>
-      <mesh position={[-5.4, 2.4, 0]} castShadow>
+      <mesh position={[-half, 2.4, 0]} castShadow>
         <boxGeometry args={[0.7, 4.8, 0.7]} />
         <meshLambertMaterial color="#FFF6EB" />
       </mesh>
-      <mesh position={[5.4, 2.4, 0]} castShadow>
+      <mesh position={[half, 2.4, 0]} castShadow>
         <boxGeometry args={[0.7, 4.8, 0.7]} />
         <meshLambertMaterial color="#FFF6EB" />
       </mesh>
       <mesh position={[0, 4.8, 0]}>
-        <boxGeometry args={[11.6, 0.7, 0.7]} />
+        <boxGeometry args={[beam, 0.7, 0.7]} />
         <meshLambertMaterial color="#E8614A" />
       </mesh>
     </group>
@@ -648,10 +656,56 @@ function CloudFloor() {
   const finishZ = currentLevel().finishZ;
   const midZ = (8 + finishZ) / 2;
   const depth = Math.max(280, 8 - finishZ + 80);
+  const wide = currentLevel().id === "sky" ? 160 : 90;
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -12, midZ]}>
-      <planeGeometry args={[90, depth]} />
+      <planeGeometry args={[wide, depth]} />
       <meshLambertMaterial color="#6BB8F0" transparent opacity={0.35} />
     </mesh>
+  );
+}
+
+function SkyWorld({ finishZ }: { finishZ: number }) {
+  const cloudRef = useRef<THREE.InstancedMesh>(null);
+  const isleRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useEffect(() => {
+    const clouds = cloudRef.current;
+    const isles = isleRef.current;
+    if (!clouds || !isles) return;
+    const nCloud = 28;
+    for (let n = 0; n < nCloud; n++) {
+      const side = n % 2 === 0 ? -1 : 1;
+      dummy.position.set(side * (20 + (n % 5) * 4.5), 1.4 + (n % 4) * 1.7, 14 - n * 6.2);
+      dummy.scale.set(2.6 + (n % 3) * 0.6, 1.15 + (n % 2) * 0.35, 2.1 + (n % 4) * 0.45);
+      dummy.rotation.set(0, n * 0.37, 0);
+      dummy.updateMatrix();
+      clouds.setMatrixAt(n, dummy.matrix);
+    }
+    clouds.instanceMatrix.needsUpdate = true;
+    const nIsle = 10;
+    for (let n = 0; n < nIsle; n++) {
+      const side = n % 2 === 0 ? -1 : 1;
+      dummy.position.set(side * (22 + (n % 3) * 3.2), -0.8, 6 - n * 14);
+      dummy.scale.set(4.2 + (n % 3), 0.45, 3.4 + (n % 2));
+      dummy.rotation.set(0, 0, 0);
+      dummy.updateMatrix();
+      isles.setMatrixAt(n, dummy.matrix);
+    }
+    isles.instanceMatrix.needsUpdate = true;
+  }, [dummy, finishZ]);
+
+  return (
+    <group>
+      <instancedMesh ref={cloudRef} args={[undefined, undefined, 28]} frustumCulled={false}>
+        <sphereGeometry args={[1, 8, 6]} />
+        <meshLambertMaterial color="#F4FBFF" transparent opacity={0.7} />
+      </instancedMesh>
+      <instancedMesh ref={isleRef} args={[undefined, undefined, 10]} frustumCulled={false}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshLambertMaterial color="#7EC8E8" transparent opacity={0.55} />
+      </instancedMesh>
+    </group>
   );
 }

@@ -23,3 +23,11 @@
 | recHop span | Only under hopB | Under hopA→jelly2 | Missing hopC→jelly2 was a void, not a medium fail |
 | recFin | Ended at land2 front | Continues under the finish plaza | Last bounce miss walked off the shelf into kill at z≈−122 |
 | high islands | top y=2.0; bounce apex playerY≈2.5 | top y=1.55 | Right-side bounce could see the pad and still not land on it |
+| Spatial profile | every pad ~8, rails at ±10.2 | `SPATIAL` narrow/standard/wide/arena | Width is rhythm, not a multiplier |
+| Sky start / mid / finish | 14 / 10 / 14 | 20 / 20 / 20 | Spawn, overtake plaza, celebrate — rooms |
+| hopB | 5.4 | 6.2 | Still the choke, but 2 racers can exist |
+| jelly / hopC | 8.4 / 9.2 | 14 / 14 | Overtake + run-right; roll on a wide relief |
+| high islands x | x=4.6 w=4.4 | x=8.5 w=6 | A room beside the jelly, not a shoulder |
+| NeonRails on sky | ±10.2 walls the whole race | none | Those walls *were* the demo corridor |
+| Sky decor | 7 trees at ±8.2 | instanced far clouds + isles | World around the playable space |
+| Camera | fixed dist 6.2 | extra dist/height from local pad width | Wide plaza must actually look wide |

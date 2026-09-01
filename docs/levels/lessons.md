@@ -46,6 +46,9 @@ These are not tunables. Design inside them.
 | Coins at pad top were uncatchable | Place at `platformTop + 0.9`. |
 | Finished racer still hit `KILL_Y` | Skip kill-plane after `finished`. |
 | Dash gap `> 4.4` | Safe line never uses it unless you intend bots to dash. |
+| NeonRails at `x=±10.2` are 2.5 m walls the whole course | That is a hallway, not a world. Sky drops them. Distant clouds/islands, not hugging trees at ±8.2. |
+| Width is rhythm (`src/game/spatial.ts`) | `narrow 6.2` / `standard 12` / `wide 14` / `arena 20`. Do not `×2` every pad. Side rooms sit past the main pad edge, not on its shoulder. |
+| Camera follows local pad width | Extra distance/height/lookahead from width. Do not open FOV to fake space. |
 
 ## Authoring recipe (every new course)
 

@@ -23,6 +23,9 @@ Apply when changing course layout, `src/game/levels.ts`, checkpoints, roll gates
 14. **Checkpoints are felt.** Hitting one plays `sfxCheckpoint` (already in `audio.ts`) and a short hint. Silent `checkpointsHit++` is not feedback.
 15. **Polish one locked course at a time.** Do not rebuild dessert–finale. Do not paste meadow’s roll gate onto the sky.
 
+16. **Playable space is not path width.** `SPATIAL` in `src/game/spatial.ts` is the scale. Plazas (start / arena / finish) are rooms; chokes stay narrow on purpose. Do not multiply every pad. Sky is the spatial gold standard this phase — do not widen meadow/ice/factory/pirate in the same pass.
+17. **No corridor walls on a spatial-gold course.** Full-length `NeonRails` at ±10.2 read as demo bounds. Prefer world (clouds, distant islands, cloud sea) and height difference.
+
 ## Pipeline
 
 `level-designer` → `level-implementer` → `level-playtester` / `level-playtest` → `level-polisher`

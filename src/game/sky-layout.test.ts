@@ -60,8 +60,13 @@ describe("Level 4 sky blockout", () => {
     assert.ok(Math.abs(b - SKY_GAPS.pounce) < 0.05, `finale pounce ${b}`);
     assert.ok(byId("hopB").size[0] < byId("hopA").size[0], "hopB is the commit");
     assert.ok(byId("hopC").size[0] > byId("hopA").size[0], "hopC is relief");
-    assert.ok(byId("jelly").size[0] >= 8, "jelly is wide enough to run right");
-    assert.ok(byId("land1").size[0] >= 8, "land1 matches jelly so the right lane does not drop");
+    assert.ok(byId("hopB").size[0] <= 6.4, "hopB is the narrow choke");
+    assert.ok(byId("start").size[0] >= 18, "start is an arena spawn");
+    assert.ok(byId("mid").size[0] >= 18, "mid is the sky arena");
+    assert.ok(byId("final").size[0] >= 18, "finish is a celebrate plaza");
+    assert.ok(byId("jelly").size[0] >= 12, "jelly is an overtake / run-right pad");
+    assert.ok(byId("land1").size[0] >= 12, "land1 matches the approach");
+    assert.ok(Math.abs(byId("highA").pos[0]) >= 7, "high islands are a room, not a shoulder");
     assert.ok(byId("hopC").size[2] >= 13, "hopC must fit a roll without dumping off the lip");
     const land2 = byId("land2");
     const recFin = byId("recFin");
