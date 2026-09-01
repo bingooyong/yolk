@@ -10,6 +10,7 @@
 - [x] Bounce launches; low landing is the safe line
 - [x] High islands are a real choice (reachable with a tap-steer, faster or richer, miss = recovery). Hold-D is the wrong input (yaw).
 - [x] Pounce has two 6.25 gaps on the high chain; hopC has a player-only roll bar; finale has a boost ring
+- [x] Scripted lip+roll finishes (25–37s). High route landed a pounce and finished (h8, coins 20).
 - [x] Camera shows the next pad before the lip
 - [x] Checkpoint is felt (sfx / hint)
 - [x] Bots finish the safe line

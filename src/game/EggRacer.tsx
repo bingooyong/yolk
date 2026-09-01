@@ -162,6 +162,7 @@ export function EggRacer({
     jumpT: 0,
     surface: "static" as string,
     gateHit: 0,
+    fromBounce: false,
   });
 
   useEffect(() => {
@@ -216,6 +217,7 @@ export function EggRacer({
     L.cp = 0;
     L.rings = new Set();
     L.gateHit = 0;
+    L.fromBounce = false;
     const p = spawn;
     presentation.current = createCharacterPresentation({
       x: p[0],
@@ -429,7 +431,7 @@ export function EggRacer({
     const hx = L.vx;
     const hz = L.vz;
 
-    if (isPlayer && !actions.jump && L.vy > 1.8 && L.pounceT <= 0) {
+    if (isPlayer && !actions.jump && L.vy > 1.8 && L.pounceT <= 0 && !L.fromBounce) {
       L.vy *= JUMP_CUT;
     }
 
@@ -438,7 +440,7 @@ export function EggRacer({
       if (L.vy < -TERMINAL_V) L.vy = -TERMINAL_V;
     } else if (L.vy < 0) L.vy = 0;
 
-    if (L.jumpBuf > 0 && L.coyote > 0 && L.pounceT <= 0) {
+    if (L.jumpBuf > 0 && L.coyote > 0 && L.pounceT <= 0 && !L.fromBounce) {
       L.vy = JUMP_V;
       L.jumpBuf = 0;
       L.coyote = 0;
@@ -509,6 +511,7 @@ export function EggRacer({
     if (bounce) {
       L.vy = 10.4;
       grounded = false;
+      L.fromBounce = true;
       L.squash = 1.28;
       if (isPlayer) {
         sfxBounce();
@@ -588,6 +591,7 @@ export function EggRacer({
       }
     }
     L.grounded = grounded;
+    if (grounded) L.fromBounce = false;
     L.lastY = ny;
     L.jumpT = Math.max(0, L.jumpT - dt);
     L.landT = Math.max(0, L.landT - dt);

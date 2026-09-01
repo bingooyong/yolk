@@ -46,7 +46,7 @@ describe("Level 4 sky blockout", () => {
   it("puts high islands off the bot line", () => {
     for (const id of ["highA", "highB", "highFin", "highFin2"]) {
       assert.ok(Math.abs(byId(id).pos[0]) >= 4.2, id);
-      assert.ok(platformTop(byId(id)) > 1.5, id);
+      assert.ok(platformTop(byId(id)) > 1.4, id);
     }
     for (const wp of sky.waypoints) {
       assert.ok(Math.abs(wp.x) < 4.2, `bot wp x=${wp.x}`);
@@ -62,6 +62,19 @@ describe("Level 4 sky blockout", () => {
     assert.ok(byId("hopC").size[0] > byId("hopA").size[0], "hopC is relief");
     assert.ok(byId("jelly").size[0] >= 8, "jelly is wide enough to run right");
     assert.ok(byId("land1").size[0] >= 8, "land1 matches jelly so the right lane does not drop");
+    assert.ok(byId("hopC").size[2] >= 13, "hopC must fit a roll without dumping off the lip");
+    const land2 = byId("land2");
+    const recFin = byId("recFin");
+    const recFront = recFin.pos[2] - recFin.size[2] / 2;
+    const land2Front = land2.pos[2] - land2.size[2] / 2;
+    assert.ok(recFront < land2Front - 2, "finale recovery continues under the finish plaza");
+    const gate = sky.gates[0];
+    assert.ok(gate, "roll cloud");
+    const hopC = byId("hopC");
+    const hopCBack = hopC.pos[2] + hopC.size[2] / 2;
+    const hopCFront = hopC.pos[2] - hopC.size[2] / 2;
+    assert.ok(gate.pos[2] < hopCBack - 4, "gate is after the landing");
+    assert.ok(gate.pos[2] > hopCFront + 6, "roll ends before the next jump lip");
   });
 
   it("keeps recovery under the pits and out of compile", () => {

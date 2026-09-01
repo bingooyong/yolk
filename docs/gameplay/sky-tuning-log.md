@@ -18,4 +18,8 @@
 | hopC roll gate | none | player-only `gateCloud` | Gold kit: roll after hops; bots ignore it |
 | land2 width | 7.2 | 8.4 | Last bounce was a side-fall |
 | Landing puff | squash + sfx | ring + light haptic | Landing must be felt |
-| SessionStats.playerX | missing | recorded | High-route playtest needs lateral proof |
+| Bounce JUMP_CUT | Every frame cut bounce `vy` if Space up | `fromBounce` skips JUMP_CUT and coyote-jump | Signature is “step on jelly, launch,” not “hold jump on jelly” |
+| hopC depth / gate | d=10, gate at center; roll 6.5m dumped off the lip | d=14, gate 5.5m from the back | Gold-kit roll must end on the island so the next jump still exists |
+| recHop span | Only under hopB | Under hopA→jelly2 | Missing hopC→jelly2 was a void, not a medium fail |
+| recFin | Ended at land2 front | Continues under the finish plaza | Last bounce miss walked off the shelf into kill at z≈−122 |
+| high islands | top y=2.0; bounce apex playerY≈2.5 | top y=1.55 | Right-side bounce could see the pad and still not land on it |

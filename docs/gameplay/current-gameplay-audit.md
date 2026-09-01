@@ -81,15 +81,16 @@ Bots: `botMinZ` past `finishZ` (−125). Safe line is fair for AI.
 
 | Driver | Result |
 |---|---|
-| Naive W only | First pit, Y≈−1.8 recovery. Lesson holds. |
-| Lip + roll | Reaches the last 6m (`z≈−123`) with rolls used. Bots finish. Scripted player still dies beside the finish more often than not. |
-| High strafe (`setSteer` −1) | Reaches jelly at `x≈3.6` (right-side tell works). Pounce still not scripted onto highB. |
-| Camera | Next island and the right high pad are visible. |
+| Naive W only | First pit, Y≈−1.8 recovery (`n4`). Lesson holds. |
+| Lip + roll + boost | Multiple scripted finishes (`s2` 28s, `s3` 25s, `s4` 37s, `s9` 31s). Rolls used. Bots on the safe line pass `finishZ`. |
+| High strafe to x≈3.2 then bounce | Lands highA (`h9` y=2.2 x=4.7). Jump→pounce then finish (`h8` 27s, pounce 1, coins 20). |
+| Camera | Next island and the right high pad are visible during bounce. |
 | Checkpoint | 「检查点」 + sfx. |
-| Roll | hopC cloud bar. Pink posts, yellow beam. Bots walk through. |
+| Roll | hopC cloud bar, island deep enough that roll ends before the lip. |
+| Bounce | Launches without holding Space (`fromBounce`). |
 | Landing | squash + sfx + puff + haptic. |
 
-**Lock for this phase:** bots + naive + camera + checkpoint + a visible roll beat + a walkable right-side high tell. Do not rebuild 5–8. Do not rewrite bot AI.
+**Lock for this phase:** bots + naive + camera + checkpoint + roll beat + landable high pounce + scripted finishes. Do not rebuild 5–8. Do not rewrite bot AI.
 
 ---
 

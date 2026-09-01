@@ -29,7 +29,7 @@ Holding W across a gap without jumping **falls**. Stepping on jelly **launches**
 | Pounce (high) | ~6.25 (jump falls short, jump→pounce lands) |
 | Connect | 0.14 |
 | Safe line | x ≈ 0, `|x| < 4.2` |
-| High islands | `|x| >= 4.2`, top ≈ 2.0. Jelly is wide so you can run right *before* the launch. |
+| High islands | `\|x\| >= 4.2`, top ≈ 1.55. Jelly is wide so you can run right *before* the launch. |
 | Recovery | top y < −0.5 |
 
 Bots jump/dash only, but jelly is a **surface**: walking onto it launches them too. Safe line never requires pounce, roll, or the high islands. No dash-sized gaps (`> 4.4`).
@@ -48,9 +48,9 @@ Bots jump/dash only, but jelly is a **surface**: walking onto it launches them t
       |
      jelly   PINK bounce                    [feel the launch]
       | \
-      |  \ highA  x=+5.5  y=2.0  coins      [steer in air]
+      |  \ highA  x=+4.6  y=1.55  coins     [steer in air]
       |     |
-      |    highB  x=+5.5  y=2.0  shield
+      |    highB  x=+4.6  y=1.55 shield
       |     |
      isle2   LOW landing y=0                [safe, bots]
       | /
@@ -61,18 +61,18 @@ Bots jump/dash only, but jelly is a **surface**: walking onto it launches them t
       |  \ recHop
      JUMP 3.45
       |
-     hopB    island
+     hopB    island (narrow commit)
      JUMP 3.45
       |
-     hopC    island                         [chain: commit each]
+     hopC    wide relief, ROLL cloud bar    [roll then jump]
       |
      jelly2  bounce again                   [same lesson]
       | \
-      |  \ highFin x=+5.5 y=2.0 coins
+      |  \ highFin x=+4.6 y=1.55 coins
       |
-     land2   low
+     land2   low + rec under finish
       |
-     FINISH
+     FINISH  boost ring
  z-
 ```
 

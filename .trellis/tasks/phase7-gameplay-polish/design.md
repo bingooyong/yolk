@@ -10,7 +10,7 @@ Player experience > game feel > flow > fairness > camera > feedback > replay > c
 
 “果冻把你弹起来。看清落点再跳。高岛有金币，低岛稳。”
 
-If a change does not serve aerial commit, it does not ship this phase. Roll stays meadow’s lesson. Do not paste a low-gate onto the sky.
+If a change does not serve aerial commit, it does not ship this phase. Sky may keep **one** player-only roll cloud on the hopC relief island (gold kit: jump → pounce → roll → boost). Do not paste meadow’s full gate-and-boost lane onto the sky.
 
 ## compile()
 

@@ -619,15 +619,15 @@ function skyJump(): Level {
   const mid = extend("mid", isle2, CONNECT, 10, 12, 0, 0, W, "checkpoint");
   const hopA = extend("hopA", mid, CONNECT, 7.2, 10, 0, 0, B);
   const hopB = extend("hopB", hopA, JUMP, 5.4, 10, 0, 0, B);
-  const hopC = extend("hopC", hopB, JUMP, 9.2, 10, 0, 0, B);
+  const hopC = extend("hopC", hopB, JUMP, 9.2, 14, 0, 0, B);
   const jelly2 = extend("jelly2", hopC, JUMP, 8.4, 8, 0, 0, P, "bounce");
   const land2 = extend("land2", jelly2, JUMP, 8.4, 10, 0, 0, B);
   const final = extend("final", land2, CONNECT, 14, 18, 0, 0, W, "finish");
 
-  const highA = plat("highA", 4.6, jelly.pos[2] - 4.6, 4.4, 12, 2.0, P);
-  const highB = extend("highB", highA, POUNCE, 4.4, 6.0, 4.6, 2.0, W);
-  const highFin = plat("highFin", 4.6, jelly2.pos[2] - 4.6, 4.4, 12, 2.0, P);
-  const highFin2 = extend("highFin2", highFin, POUNCE, 4.4, 6.0, 4.6, 2.0, W);
+  const highA = plat("highA", 4.6, jelly.pos[2] - 4.6, 4.4, 12, 1.55, P);
+  const highB = extend("highB", highA, POUNCE, 4.4, 6.0, 4.6, 1.55, W);
+  const highFin = plat("highFin", 4.6, jelly2.pos[2] - 4.6, 4.4, 12, 1.55, P);
+  const highFin2 = extend("highFin2", highFin, POUNCE, 4.4, 6.0, 4.6, 1.55, W);
 
   const jumpMidZ = (intro.pos[2] - intro.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
   const recJump = plat("recJump", 0, land1.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
@@ -639,11 +639,23 @@ function skyJump(): Level {
   const recJelly3 = plat("recJelly3", -5.2, isle2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
   const hopMidZ = (hopA.pos[2] - hopA.size[2] / 2 + hopC.pos[2] + hopC.size[2] / 2) / 2;
-  const recHop = plat("recHop", 0, hopMidZ, 12, 18, -2.5, Rec, "static", 1.2);
+  const recHopBack = hopA.pos[2] - hopA.size[2] / 2 + 2;
+  const recHopFront = jelly2.pos[2] + jelly2.size[2] / 2;
+  const recHop = plat(
+    "recHop",
+    0,
+    (recHopBack + recHopFront) / 2,
+    12,
+    recHopBack - recHopFront,
+    -2.5,
+    Rec,
+    "static",
+    1.2,
+  );
   const recHop2 = plat("recHop2", -5.1, hopC.pos[2], 5.2, 6, -1.4, Rec);
   const recHop3 = plat("recHop3", -5.2, hopC.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
-  const recFin = plat("recFin", 0, land2.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
+  const recFin = plat("recFin", 0, land2.pos[2] - 4, 12, 28, -2.5, Rec, "static", 1.2);
   const recFin2 = plat("recFin2", -5.0, land2.pos[2], 5.2, 6, -1.4, Rec);
   const recFin3 = plat("recFin3", -5.2, land2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
@@ -722,7 +734,7 @@ function skyJump(): Level {
       { id: "cLand2", kind: "coin", pos: [0, topOf(land2), land2.pos[2]] },
     ],
     traps: [],
-    gates: [{ id: "gateCloud", pos: [0, 1.55, hopC.pos[2]], size: [10.0, 3.4, 0.85] }],
+    gates: [{ id: "gateCloud", pos: [0, 1.55, hopC.pos[2] + hopC.size[2] / 2 - 5.5], size: [10.0, 3.4, 0.85] }],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
@@ -745,7 +757,7 @@ export const SKY_SECTIONS: LevelSection[] = [
   { id: "jelly", startZ: -24, endZ: -56, purpose: "bounce then choose landing", mechanics: ["bounce"] },
   { id: "high", startZ: -24, endZ: -56, purpose: "right-side bounce then pounce", mechanics: ["pounce"] },
   { id: "hops", startZ: -56, endZ: -96, purpose: "commit island, roll cloud, relief", mechanics: ["jump", "roll"] },
-  { id: "finale", startZ: -96, endZ: -160, purpose: "last bounce then sprint", mechanics: ["bounce"] },
+  { id: "finale", startZ: -96, endZ: -160, purpose: "last bounce then boost sprint", mechanics: ["bounce", "boost"] },
 ];
 
 

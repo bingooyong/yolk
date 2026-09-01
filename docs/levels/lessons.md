@@ -37,8 +37,8 @@ These are not tunables. Design inside them.
 | Jump air ≈ 5.0 (`JUMP_V=9.5`, `AIR_SPEED=7.4`) | Gap **3.45**: walk dies, jump from the **lip** lives. Jump 4m early and you die in the pit. |
 | Ice already taxes steering | Ice jump **2.2**, not 3.45. |
 | Pounce ≈ 4.8, jump→pounce ≈ 6.2 | Pounce pit **6.25** on a **side** pad. Never on the bot line. |
-| Bounce is a **surface** (`vy=10.4`) | Bots that walk onto jelly get launched. A short connected jelly launches from the **back** and misses the next pad. Depth ≥ ~8 so the second bounce is near the front. |
-| Mash-jump (hold Space) period ≈ 5m | Island / takeoff pads **d ≈ 10** so the last auto-jump is at the lip. `d=8` on sky hops made mash-jump fall in the hole. |
+| Bounce is a **surface** (`vy=10.4`) | Bots that walk onto jelly get launched. A short connected jelly launches from the **back** and misses the next pad. Depth ≥ ~8 so the second bounce is near the front. **JUMP_CUT does not eat bounce** (`fromBounce`): stepping on jelly launches even if Space is up. |
+| Mash-jump (hold Space) period ≈ 5m | Island / takeoff pads **d ≈ 10** so the last auto-jump is at the lip. `d=8` on sky hops made mash-jump fall in the hole. A **roll** island needs **d ≥ 13** so roll (0.58s × 11.2 ≈ 6.5m) ends before the next lip. |
 | `FALL_GRAVITY=48`, recovery thick 0.7 | Recovery must run **under the landing pad**, not only under the gap, or holding W walks off the shelf into kill. Stairs: tops `-2.5 / -1.4 / -0.2`. |
 | Hazard hit used to increment `falls` | Soft hits = `setHint`. Only kill-plane `setFail`. |
 | Coins at pad top were uncatchable | Place at `platformTop + 0.9`. |
