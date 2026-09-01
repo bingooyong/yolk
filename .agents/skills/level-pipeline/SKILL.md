@@ -11,7 +11,7 @@ user-invocable: true
 
 # Level Pipeline
 
-**One course per run.** Meadow, ice, factory, sky are locked. Pirate–finale stay identity-only until named.
+**One course per run.** Meadow, ice, factory, sky, pirate, dessert are locked. Cloud–finale stay identity-only until named.
 
 Read `docs/levels/lessons.md` first. Then:
 
@@ -29,7 +29,7 @@ Stop. Do not author the next course in the same turn.
 
 | Locked (do not rewrite) | Identity only |
 |---|---|
-| meadow, ice, factory, sky | pirate, dessert, cloud, finale |
+| meadow, ice, factory, sky, pirate, dessert | cloud, finale |
 
 ## Hard stops
 

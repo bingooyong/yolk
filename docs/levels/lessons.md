@@ -1,7 +1,7 @@
-# Level Design Lessons — L1–L5
+# Level Design Lessons — L1–L6
 
-Source of truth after 糖果草原 / 冰雪滑坡 / 旋转工厂 / 天空弹跳岛 / 海盗港湾.
-Do not rebuild dessert–finale until asked. Pipeline: designer → implementer → playtester → polisher.
+Source of truth after 糖果草原 / 冰雪滑坡 / 旋转工厂 / 天空弹跳岛 / 海盗港湾 / 甜品工厂.
+Do not rebuild cloud–finale until asked. Pipeline: designer → implementer → playtester → polisher.
 
 ## Locked courses
 
@@ -12,9 +12,10 @@ Do not rebuild dessert–finale until asked. Pipeline: designer → implementer 
 | factory | 旋转工厂 | 看锤再过，不要慌 | wait-window + jump 3.45 | catwalk skip |
 | sky | 天空弹跳岛 | 果冻弹起来，看清落点再跳 | island jump 3.45, jelly bounce | high islands |
 | pirate | 海盗港湾 | 条纹木板会塌，左边抄近路 | drop at the lip, ship jump 3.45 | left run pier |
+| dessert | 甜品工厂 | 巧克力会滑，滚过去冲过去 | cake jump 3.45, walk the chocolate | roll/boost lock heading, syrup highway |
 
-Specs: `docs/levels/level1-meadow.md` … `level5-pirate.md`.
-Identity-only (do not author pads): dessert 糖浆上 Roll+Boost, cloud 风场冲刺, finale 最后二十米全用上.
+Specs: `docs/levels/level1-meadow.md` … `level6-dessert.md`.
+Identity-only (do not author pads): cloud 风场冲刺, finale 最后二十米全用上.
 
 ## What actually worked
 

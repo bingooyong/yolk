@@ -923,69 +923,133 @@ export const PIRATE_SECTIONS: LevelSection[] = [
   { id: "finale", startZ: -110, endZ: -160, purpose: "last water jump then sprint", mechanics: ["jump"] },
 ];
 
+export const DESSERT_GAPS = {
+  connect: 0.14,
+  jump: 3.45,
+} as const;
+
 function dessert(): Level {
   const Ch = "#8B5A2B";
   const Ca = "#F3D984";
-  const Je = "#E08AA4";
+  const Rec = "#C47890";
+  const { connect: CONNECT, jump: JUMP } = DESSERT_GAPS;
+
+  const start = plat("start", 0, 8, SPATIAL.start, 16, 0, Ca, "checkpoint");
+  const intro = extend("intro", start, CONNECT, SPATIAL.standard, 10, 0, 0, Ca);
+  const choco1 = extend("choco1", intro, CONNECT, SPATIAL.standard, 14, 0, 0, Ch, "ice");
+  const cake1 = extend("cake1", choco1, CONNECT, SPATIAL.standard, 10, 0, 0, Ca);
+  const land1 = extend("land1", cake1, JUMP, SPATIAL.standard, 10, 0, 0, Ca);
+  const mid = extend("mid", land1, CONNECT, SPATIAL.arena, 12, 0, 0, Ca, "checkpoint");
+  const choco2 = extend("choco2", mid, CONNECT, SPATIAL.standard, 22, 0, 0, Ch, "ice");
+  const cake2 = extend("cake2", choco2, CONNECT, SPATIAL.standard, 10, 0, 0, Ca);
+  const finale = extend("finale", cake2, JUMP, SPATIAL.standard, 10, 0, 0, Ca);
+  const final = extend("final", finale, CONNECT, SPATIAL.finish, 16, 0, 0, Ca, "finish");
+
+  const pit1Mid = (cake1.pos[2] - cake1.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
+  const syrup = plat(
+    "syrup",
+    6.8,
+    (cake1.pos[2] + land1.pos[2]) / 2,
+    5.2,
+    Math.abs(cake1.pos[2] - land1.pos[2]) + 8,
+    0,
+    Ch,
+    "ice",
+  );
+
+  const stairX = (land: Platform) => land.pos[0] - land.size[0] / 2 - 2.6;
+  const recJump = plat("recJump", 0, land1.pos[2] + 2, SPATIAL.recovery, 14, -2.5, Rec, "static", 1.2);
+  const recJump2 = plat("recJump2", stairX(land1), land1.pos[2], 5.2, 6, -1.4, Rec);
+  const recJump3 = plat("recJump3", stairX(land1) - 0.2, land1.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recFin = plat("recFin", 0, finale.pos[2] + 2, SPATIAL.recovery, 16, -2.5, Rec, "static", 1.2);
+  const recFin2 = plat("recFin2", stairX(finale), finale.pos[2], 5.2, 6, -1.4, Rec);
+  const recFin3 = plat("recFin3", stairX(finale) - 0.2, finale.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const platforms = [
+    start,
+    intro,
+    choco1,
+    cake1,
+    land1,
+    mid,
+    choco2,
+    cake2,
+    finale,
+    final,
+    syrup,
+    recJump,
+    recJump2,
+    recJump3,
+    recFin,
+    recFin2,
+    recFin3,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
+  const gateZ = (p: Platform) => p.pos[2] + p.size[2] / 2 - 5.5;
+
   return compile({
     id: "dessert",
     theme: {
       id: "dessert",
       name: "甜品工厂",
-      blurb: "巧克力会滑，果冻会弹。看起来能撞的，多半真能撞。",
+      blurb: "巧克力会滑。滚过去、冲过去，别在上面慢慢走。",
       stars: 4,
       sky: "#F7C9D8",
       fog: "#F8D8E4",
-      fogNear: 22,
-      fogFar: 100,
+      fogNear: 28,
+      fogFar: 160,
       rail: "#E08AA4",
       neon: "#FFF6A8",
       ground: "#F3D984",
     },
-    finishZ: -84,
-    startZ: 8,
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
     bots: 6,
-    platforms: [
-      plat("start", 0, 8, SPATIAL.start, 16, 0, Ca, "checkpoint"),
-      plat("cake", 0, -8, 10, 12, 0, Ca),
-      plat("choco", 0, -22, 9, 12, 0, Ch, "ice"),
-      { ...plat("jelly", 0, -34, 4.6, 4.6, 0, Je, "bounce") },
-      plat("belt", 0, -46, 9, 10, 0.4, Ca, "conveyor"),
-      plat("mid", 0, -56, 10, 8, 0, Je, "checkpoint"),
-      plat("spinF", 0, -66, 8.5, 10, 0, Ch),
-      plat("final", 0, -84, SPATIAL.finish, 10, 0, Ca, "finish"),
-    ],
-    movers: [
-      {
-        id: "lift",
-        size: [4.6, 0.6, 4.6],
-        color: "#E08AA4",
-        from: [0, -0.1, -74],
-        to: [0, 1.6, -74],
-        period: 3.4,
-        phase: 0,
-      },
-    ],
+    platforms,
+    movers: [],
     hammers: [],
-    spinners: [{ id: "candy", pos: [0, 1.05, -66], arm: 2.8, speed: 1.35, phase: 0 }],
+    spinners: [],
     pendulums: [],
-    rings: [{ id: "r1", pos: [0, 1.6, -46] }],
+    rings: [
+      { id: "rBoost", pos: [0, 1.55, choco2.pos[2]] },
+      { id: "rSyrup", pos: [6.8, 1.55, pit1Mid] },
+    ],
     pickups: [
-      { id: "c1", kind: "coin", pos: [0, 1.2, -8] },
-      { id: "c2", kind: "coin", pos: [0, 1.3, -22] },
-      { id: "j1", kind: "jelly", pos: [0, 1.3, -34] },
-      { id: "c3", kind: "coin", pos: [0, 1.4, -56] },
+      { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
+      { id: "cChoco1", kind: "coin", pos: [0, topOf(choco1), choco1.pos[2]] },
+      { id: "cCake1", kind: "coin", pos: [0, topOf(cake1), cake1.pos[2]] },
+      { id: "cSyrup", kind: "coin", pos: [6.8, topOf(syrup), pit1Mid] },
+      { id: "sSyrup", kind: "shield", pos: [6.8, topOf(syrup), syrup.pos[2] - 3] },
+      { id: "cMid", kind: "coin", pos: [0, topOf(mid), mid.pos[2]] },
+      { id: "cChoco2", kind: "coin", pos: [0, topOf(choco2), choco2.pos[2]] },
+      { id: "cCake2", kind: "coin", pos: [0, topOf(cake2), cake2.pos[2]] },
+      { id: "cFinale", kind: "coin", pos: [0, topOf(finale), finale.pos[2]] },
     ],
     traps: [],
-    gates: [],
+    gates: [
+      { id: "gateSyrup1", pos: [0, 1.55, gateZ(choco1)], size: [12.2, 3.4, 0.85] },
+      { id: "gateSyrup2", pos: [0, 1.55, gateZ(choco2)], size: [12.2, 3.4, 0.85] },
+    ],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -56, pos: [0, 0.7, -54] },
+      { z: land1.pos[2] + 2, pos: [0, 0.7, land1.pos[2] + 2] },
+      { z: cake2.pos[2] + 2, pos: [0, 0.7, cake2.pos[2] + 2] },
     ],
     spawns: SPREAD_SPAWNS,
   });
 }
+
+export const DESSERT_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -16, purpose: "see chocolate", mechanics: ["move"] },
+  { id: "syrup1", startZ: -16, endZ: -40, purpose: "roll on ice or bounce the gate", mechanics: ["roll", "ice"] },
+  { id: "jump1", startZ: -40, endZ: -60, purpose: "cake pit after the lesson", mechanics: ["jump"] },
+  { id: "arena", startZ: -60, endZ: -80, purpose: "sweet plaza", mechanics: ["boost"] },
+  { id: "syrup2", startZ: -80, endZ: -110, purpose: "longer chocolate, roll then boost", mechanics: ["roll", "boost", "ice"] },
+  { id: "finale", startZ: -110, endZ: -160, purpose: "last cake jump then sprint", mechanics: ["jump"] },
+];
 
 function cloud(): Level {
   const C = "#B8E0FF";
