@@ -601,6 +601,7 @@ export const FACTORY_SECTIONS: LevelSection[] = [
 export const SKY_GAPS = {
   connect: 0.14,
   jump: 3.45,
+  pounce: 6.25,
 } as const;
 
 function skyJump(): Level {
@@ -608,24 +609,25 @@ function skyJump(): Level {
   const W = "#FFF6EB";
   const P = "#E08AA4";
   const Rec = "#4A8BB8";
-  const { connect: CONNECT, jump: JUMP } = SKY_GAPS;
+  const { connect: CONNECT, jump: JUMP, pounce: POUNCE } = SKY_GAPS;
 
   const start = plat("start", 0, 8, 14, 16, 0, W, "checkpoint");
   const intro = extend("intro", start, CONNECT, 8, 10, 0, 0, B);
-  const land1 = extend("land1", intro, JUMP, 7.2, 10, 0, 0, B);
-  const jelly = extend("jelly", land1, CONNECT, 5.6, 8, 0, 0, P, "bounce");
+  const land1 = extend("land1", intro, JUMP, 8.4, 10, 0, 0, B);
+  const jelly = extend("jelly", land1, CONNECT, 8.4, 8, 0, 0, P, "bounce");
   const isle2 = extend("isle2", jelly, JUMP, 7.2, 10, 0, 0, B);
   const mid = extend("mid", isle2, CONNECT, 10, 12, 0, 0, W, "checkpoint");
   const hopA = extend("hopA", mid, CONNECT, 7.2, 10, 0, 0, B);
-  const hopB = extend("hopB", hopA, JUMP, 7.2, 10, 0, 0, B);
-  const hopC = extend("hopC", hopB, JUMP, 7.2, 10, 0, 0, B);
-  const jelly2 = extend("jelly2", hopC, CONNECT, 5.6, 8, 0, 0, P, "bounce");
+  const hopB = extend("hopB", hopA, JUMP, 5.4, 10, 0, 0, B);
+  const hopC = extend("hopC", hopB, JUMP, 9.2, 10, 0, 0, B);
+  const jelly2 = extend("jelly2", hopC, CONNECT, 8.4, 8, 0, 0, P, "bounce");
   const land2 = extend("land2", jelly2, JUMP, 7.2, 10, 0, 0, B);
   const final = extend("final", land2, CONNECT, 14, 18, 0, 0, W, "finish");
 
-  const highA = plat("highA", 5.5, jelly.pos[2] - 4.6, 4.2, 4.4, 2.0, P);
-  const highB = extend("highB", highA, CONNECT, 4.2, 5.0, 5.5, 2.0, W);
-  const highFin = plat("highFin", 5.5, jelly2.pos[2] - 4.6, 4.2, 4.4, 2.0, P);
+  const highA = plat("highA", 4.6, jelly.pos[2] - 4.6, 4.4, 12, 2.0, P);
+  const highB = extend("highB", highA, POUNCE, 4.4, 6.0, 4.6, 2.0, W);
+  const highFin = plat("highFin", 4.6, jelly2.pos[2] - 4.6, 4.4, 12, 2.0, P);
+  const highFin2 = extend("highFin2", highFin, POUNCE, 4.4, 6.0, 4.6, 2.0, W);
 
   const jumpMidZ = (intro.pos[2] - intro.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
   const recJump = plat("recJump", 0, land1.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
@@ -661,6 +663,7 @@ function skyJump(): Level {
     highA,
     highB,
     highFin,
+    highFin2,
     recJump,
     recJump2,
     recJump3,
@@ -703,15 +706,19 @@ function skyJump(): Level {
     rings: [
       { id: "rJump", pos: [0, 1.55, jumpMidZ] },
       { id: "rHop", pos: [0, 1.55, hopMidZ] },
+      { id: "rHigh", pos: [4.6, 3.4, highA.pos[2]] },
+      { id: "rFin", pos: [0, 1.55, final.pos[2] + 4] },
     ],
     pickups: [
       { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
       { id: "cLand1", kind: "coin", pos: [0, topOf(land1), land1.pos[2]] },
-      { id: "cHighA", kind: "coin", pos: [5.5, topOf(highA), highA.pos[2]] },
-      { id: "sHigh", kind: "shield", pos: [5.5, topOf(highB), highB.pos[2]] },
+      { id: "cJellyR", kind: "coin", pos: [3.2, topOf(jelly), jelly.pos[2] - 1.2] },
+      { id: "cHighA", kind: "coin", pos: [4.6, topOf(highA), highA.pos[2]] },
+      { id: "sHigh", kind: "shield", pos: [4.6, topOf(highB), highB.pos[2]] },
       { id: "cIsle2", kind: "coin", pos: [0, topOf(isle2), isle2.pos[2]] },
       { id: "cHopB", kind: "coin", pos: [0, topOf(hopB), hopB.pos[2]] },
-      { id: "cHighFin", kind: "coin", pos: [5.5, topOf(highFin), highFin.pos[2]] },
+      { id: "cHighFin", kind: "coin", pos: [4.6, topOf(highFin), highFin.pos[2]] },
+      { id: "cHighFin2", kind: "coin", pos: [4.6, topOf(highFin2), highFin2.pos[2]] },
       { id: "cLand2", kind: "coin", pos: [0, topOf(land2), land2.pos[2]] },
     ],
     traps: [],
@@ -736,7 +743,8 @@ function skyJump(): Level {
 export const SKY_SECTIONS: LevelSection[] = [
   { id: "intro", startZ: 16, endZ: -24, purpose: "islands not a road", mechanics: ["jump"] },
   { id: "jelly", startZ: -24, endZ: -56, purpose: "bounce then choose landing", mechanics: ["bounce"] },
-  { id: "hops", startZ: -56, endZ: -96, purpose: "three island commits", mechanics: ["jump"] },
+  { id: "high", startZ: -24, endZ: -56, purpose: "right-side bounce then pounce", mechanics: ["pounce"] },
+  { id: "hops", startZ: -56, endZ: -96, purpose: "commit island then relief", mechanics: ["jump"] },
   { id: "finale", startZ: -96, endZ: -160, purpose: "last bounce then sprint", mechanics: ["bounce"] },
 ];
 

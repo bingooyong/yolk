@@ -43,6 +43,7 @@ import { actions, consumeSteerOverride, pollInput } from "./input";
 import { contactShadowTex } from "./look";
 import {
   sfxBounce,
+  sfxCheckpoint,
   sfxCoin,
   sfxDash,
   sfxDashCharge,
@@ -654,6 +655,9 @@ export function EggRacer({
       while (L.cp < cps.length - 1 && nz < cps[L.cp + 1].z) {
         L.cp += 1;
         sim.checkpointsHit += 1;
+        sfxCheckpoint();
+        addTrauma(0.035);
+        setHint("检查点");
       }
     }
 

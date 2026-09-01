@@ -518,15 +518,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   forcePlay: () => {
     const s = get();
-    if (s.phase === "playing") return;
     setActiveLevel(s.levelId);
     resetSimRacers();
     sim.coinsTotal = LEVELS[s.levelId].coinCount;
     set({
       phase: "playing",
       countLeft: 0,
-      raceId: s.phase === "title" || s.phase === "results" ? s.raceId + 1 : s.raceId,
+      raceId: s.raceId + 1,
       howTo: false,
+      raceCoins: 0,
+      lastPull: null,
     });
   },
 

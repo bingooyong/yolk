@@ -11,7 +11,7 @@ Same pipeline as Levels 1–3. Do not add wind, cloud movers, hammers, ice, or a
 | | |
 |---|---|
 | Primary | Aerial commit: bounce (or jump) then choose a landing |
-| Optional | Right high islands (`\|x\| >= 4.2`) — coins, then drop back |
+| Optional | Right high islands (`\|x\| >= 4.2`) — bounce onto them, then pounce the 6.25 gap |
 | Risk | Steer to the high island while still in the air. Miss = pit |
 | Recovery | Shelves under every island gap |
 
@@ -26,9 +26,10 @@ Holding W across a gap without jumping **falls**. Stepping on jelly **launches**
 | Length | startZ 8 → finishZ ≈ −130 |
 | Jump gap | 3.45 (walk falls, jump lands) |
 | Bounce gap | 3.45 after jelly (second bounce carries you; high islands use the extra height) |
+| Pounce (high) | ~6.25 (jump falls short, jump→pounce lands) |
 | Connect | 0.14 |
 | Safe line | x ≈ 0, `|x| < 4.2` |
-| High islands | `|x| >= 4.2`, top ≈ 2.0 |
+| High islands | `|x| >= 4.2`, top ≈ 2.0. Jelly is wide so you can run right *before* the launch. |
 | Recovery | top y < −0.5 |
 
 Bots jump/dash only, but jelly is a **surface**: walking onto it launches them too. Safe line never requires pounce, roll, or the high islands. No dash-sized gaps (`> 4.4`).

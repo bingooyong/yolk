@@ -1,0 +1,26 @@
+{
+  "id": "phase7-gameplay-polish",
+  "name": "phase7-gameplay-polish",
+  "title": "Phase 7 Gameplay Polish — Sky Bounce gold standard",
+  "description": "Stop expanding. Audit all 8, polish 天空弹跳岛 until it is worth playing 10 times. No new systems, no new levels, no gacha/skin/Rapier rebuild.",
+  "status": "in_progress",
+  "priority": "P0",
+  "creator": "bingooyong",
+  "assignee": "grok-build",
+  "createdAt": "2026-09-01",
+  "completedAt": null,
+  "parent": null,
+  "subtasks": [],
+  "children": [],
+  "relatedFiles": [
+    "docs/gameplay/current-gameplay-audit.md",
+    "docs/gameplay/sky-tuning-log.md",
+    "docs/levels/level4-sky.md",
+    "src/game/levels.ts",
+    "src/game/CameraRig.tsx",
+    "src/game/EggRacer.tsx",
+    "src/game/sky-layout.test.ts",
+    ".trellis/spec/frontend/level-design.md"
+  ],
+  "notes": "Do not rebuild pirate–finale. Do not add gadgets. Do not rewrite bot AI. Do not touch archived Skin/Visual tasks."
+}

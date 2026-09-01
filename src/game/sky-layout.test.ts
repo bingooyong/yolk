@@ -42,13 +42,24 @@ describe("Level 4 sky blockout", () => {
   });
 
   it("puts high islands off the bot line", () => {
-    for (const id of ["highA", "highB", "highFin"]) {
+    for (const id of ["highA", "highB", "highFin", "highFin2"]) {
       assert.ok(Math.abs(byId(id).pos[0]) >= 4.2, id);
       assert.ok(platformTop(byId(id)) > 1.5, id);
     }
     for (const wp of sky.waypoints) {
       assert.ok(Math.abs(wp.x) < 4.2, `bot wp x=${wp.x}`);
     }
+  });
+
+  it("makes the high chain a pounce problem, not a walk", () => {
+    const a = platformGap(byId("highA"), byId("highB"));
+    const b = platformGap(byId("highFin"), byId("highFin2"));
+    assert.ok(Math.abs(a - SKY_GAPS.pounce) < 0.05, `high pounce ${a}`);
+    assert.ok(Math.abs(b - SKY_GAPS.pounce) < 0.05, `finale pounce ${b}`);
+    assert.ok(byId("hopB").size[0] < byId("hopA").size[0], "hopB is the commit");
+    assert.ok(byId("hopC").size[0] > byId("hopA").size[0], "hopC is relief");
+    assert.ok(byId("jelly").size[0] >= 8, "jelly is wide enough to run right");
+    assert.ok(byId("land1").size[0] >= 8, "land1 matches jelly so the right lane does not drop");
   });
 
   it("keeps recovery under the pits and out of compile", () => {

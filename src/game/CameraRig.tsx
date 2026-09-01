@@ -86,22 +86,18 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
     } else {
       const dist = (portrait ? CAM_DIST + 1.1 : CAM_DIST) + (sim.playerDashing ? 0.35 : 0);
       const height = portrait ? CAM_HEIGHT + 0.35 : CAM_HEIGHT;
-      const air = player && !player.grounded ? 0.38 : 0;
+      const air = player && !player.grounded;
+      const airLift = air ? Math.min(2.4, 0.45 + Math.max(0, py - 0.7) * 0.55) : 0;
       const yaw = sim.lookYaw;
       const pitch = sim.lookPitch;
       const back = dist * Math.cos(pitch);
       desired.current.set(
         px - Math.sin(yaw) * back,
-        Math.max(1.45, py + height + air + Math.sin(pitch) * dist * 0.85),
+        Math.max(1.45, py + height + airLift + Math.sin(pitch) * dist * 0.85),
         pz + Math.cos(yaw) * back,
       );
-      lookAt.current.set(
-        px * 0.12 + px * 0.88,
-        py + 0.55,
-        pz - Math.cos(yaw) * CAM_LOOKAHEAD * 0.35,
-      );
-      lookAt.current.x = px;
-      lookAt.current.z = pz - Math.cos(yaw) * 0.15;
+      const ahead = CAM_LOOKAHEAD * (air ? 1.15 : 1);
+      lookAt.current.set(px, py + 0.45, pz - Math.cos(yaw) * ahead);
     }
 
     const k = isShowcaseMode(mode) ? 1.8 : 3.2;

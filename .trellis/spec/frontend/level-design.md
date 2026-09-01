@@ -19,11 +19,15 @@ Apply when changing course layout, `src/game/levels.ts`, checkpoints, roll gates
 11. **Do not rewrite bot AI here.** Catch-up personalities are a later phase. Bots follow compiled safe waypoints.
 12. **Do not put playtest tunables in this spec** (exact gap floats, hammer speed). Those live in the level file and the level’s design doc.
 
+13. **Camera serves landings.** Gameplay chase-cam look-ahead uses `CAM_LOOKAHEAD`. Do not overwrite it to the egg’s feet. Airborne / bounce may lift the camera with the player; it may not hide the next pad.
+14. **Checkpoints are felt.** Hitting one plays `sfxCheckpoint` (already in `audio.ts`) and a short hint. Silent `checkpointsHit++` is not feedback.
+15. **Polish one locked course at a time.** Phase 7 gold standard is Sky Bounce. Do not rebuild pirate–finale. Do not paste meadow’s roll gate onto the sky.
+
 ## Pipeline
 
-`level-designer` → `level-implementer` → `level-playtester` → `level-polisher`
+`level-designer` → `level-implementer` → `level-playtester` / `level-playtest` → `level-polisher`
 
-Skills: `.grok/skills/level-*/SKILL.md` (persisted copy: `.agents/skills/level-*/`). Lessons from L1–L4: `docs/levels/lessons.md`. Do not rebuild pirate–finale until named.
+Skills: `.grok/skills/level-*/SKILL.md` (persisted copy: `.agents/skills/level-*/`). Lessons from L1–L4: `docs/levels/lessons.md`. Gameplay audit: `docs/gameplay/current-gameplay-audit.md`. Do not rebuild pirate–finale until named.
 
 ## Level 1 gold standard
 
