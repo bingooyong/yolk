@@ -33,7 +33,7 @@ These are not tunables. Design inside them.
 | Fact | Consequence |
 |---|---|
 | Capsule never shrinks on roll | Low gate = **player-only overlap** + bounce back. Bots ignore it. |
-| `compile()` takes `\|x\| < 4.2` and top `y > -0.5` | Shortcuts at `\|x\| >= 4.2`. Recovery top `y < -0.5`. Stairs at `x ≈ -5.2` even when top is `-0.2`. |
+| `compile()` takes `lane === "safe"` and top `y > -0.5` | Default `|x| < 4.2` → safe. Curved pads (sky hopB x=−6) pass `lane: "safe"`. Shortcuts stay `side`. Recovery `y < -0.5`. |
 | Movers: midX `\|x\| < 4.2` | Side floe / catwalk movers must sit at `x >= 4.2` or bots path onto them. |
 | Jump air ≈ 5.0 (`JUMP_V=9.5`, `AIR_SPEED=7.4`) | Gap **3.45**: walk dies, jump from the **lip** lives. Jump 4m early and you die in the pit. |
 | Ice already taxes steering | Ice jump **2.2**, not 3.45. |

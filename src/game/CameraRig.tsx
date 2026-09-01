@@ -14,7 +14,7 @@ import { actions, touch } from "./input";
 import { decayTrauma, sim } from "./sim";
 import { useGameStore } from "./store";
 import { currentLevel } from "./course";
-import { camExtraForWidth, localPlayableWidth } from "./spatial";
+import { camExtraForWidth, localPlayableWidth, nextSafePadX } from "./spatial";
 import { getPresentationMode, isShowcaseMode, PRESENTATION_PROFILES, showcaseViewOffset } from "./presentation/profiles";
 
 export function CameraRig({ portrait }: { portrait: boolean }) {
@@ -101,7 +101,13 @@ export function CameraRig({ portrait }: { portrait: boolean }) {
         pz + Math.cos(yaw) * back,
       );
       const ahead = (CAM_LOOKAHEAD + extra.ahead) * (air ? 1.15 : 1);
-      lookAt.current.set(px, py + 0.45, pz - Math.cos(yaw) * ahead);
+      const looking = Math.abs(sim.lookYaw) + Math.abs(sim.lookPitch) > 0.06;
+      const nextX = looking ? null : nextSafePadX(currentLevel().platforms, pz);
+      const leadX = nextX == null ? 0 : (nextX - px) * 0.42;
+      lookAt.current.set(px + leadX, py + 0.45, pz - Math.cos(yaw) * ahead);
+      if (!looking && Math.abs(leadX) > 0.15) {
+        desired.current.x -= leadX * 0.22;
+      }
     }
 
     const k = isShowcaseMode(mode) ? 1.8 : 3.2;

@@ -9,7 +9,7 @@ Apply when changing course layout, `src/game/levels.ts`, checkpoints, roll gates
 1. **Design before pads.** ASCII + sections + routes exist before `Platform[]`. Specs live in `docs/levels/`.
 2. **`compile()` is a bot helper**, not the designer. It infers jump/dash from safe-line gaps. It must not decide that a course is “about jumping.”
 3. **Safe line is bot-finishable** with jump + dash only. Pounce, roll, and boost are player advantages.
-4. **Side routes** sit at `|x| >= 4.2` so `compile()` ignores them. **Recovery** sits at platform top `y < -0.5` for the same reason.
+4. **Side routes** sit at `lane: "side"` (default `|x| >= 4.2`) so `compile()` ignores them. **Recovery** sits at platform top `y < -0.5`. A curved safe pad may sit at `|x| >= 4.2` if it passes `lane: "safe"`. Stairs stay off the safe lane even when the top step is `y = -0.2`.
 5. **One core mechanic per course.** Do not stack hammer + spinner + conveyor + ice on a teaching level.
 6. **Fails are tiered.** Soft = stun/slow and continue. Medium = recovery shelf. Hard = kill plane (`KILL_Y`) → last completed-challenge checkpoint. A small mistake is not a full restart.
 7. **Checkpoints follow challenges**, not raw distance.
@@ -25,6 +25,7 @@ Apply when changing course layout, `src/game/levels.ts`, checkpoints, roll gates
 
 16. **Playable space is not path width.** `SPATIAL` in `src/game/spatial.ts` is the scale. Plazas (start / arena / finish) are rooms; teaching chokes stay narrow (ice tongue, factory hammers, pirate lane, meadow jump/pounce). Do not multiply every pad. Sky is the spatial gold; locked courses copy the rhythm.
 17. **No corridor walls.** Full-length `NeonRails` at ±10.2 are demo bounds. Courses use `ThemeWorld` (instanced far clouds/islands) or meadow’s benchmark art.
+18. **Curves are pad offsets, not a spline.** Sky is the gold S. Camera look-at leads to the next safe pad so W follows the road. Do not add TrackSegment extrusion.
 
 ## Pipeline
 

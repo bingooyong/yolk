@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { LEVELS, SKY_GAPS, platformGap, platformTop, type Platform } from "./levels.ts";
+import { LEVELS, SKY_GAPS, platformGap, platformLane, platformTop, type Platform } from "./levels.ts";
 
 const sky = LEVELS.sky;
 
@@ -11,7 +11,7 @@ function byId(id: string): Platform {
 }
 
 describe("Level 4 sky blockout", () => {
-  it("keeps the safe line at x=0 so bots can compile it", () => {
+  it("keeps the safe line compiled when the sky weaves", () => {
     for (const id of [
       "start",
       "intro",
@@ -27,9 +27,15 @@ describe("Level 4 sky blockout", () => {
       "final",
     ]) {
       const p = byId(id);
-      assert.equal(p.pos[0], 0, id);
+      assert.equal(platformLane(p), "safe", id);
       assert.ok(platformTop(p) > -0.5, id);
+      assert.ok(
+        sky.waypoints.some((wp) => Math.abs(wp.z - p.pos[2]) < 0.2 && Math.abs(wp.x - p.pos[0]) < 0.2),
+        `waypoint for ${id}`,
+      );
     }
+    assert.ok(byId("jelly").pos[0] > 2, "first half bends right");
+    assert.ok(byId("hopB").pos[0] < -4.2, "hops bend left off the old x=0 line");
   });
 
   it("teaches jump with pits walk cannot clear", () => {
@@ -45,11 +51,16 @@ describe("Level 4 sky blockout", () => {
 
   it("puts high islands off the bot line", () => {
     for (const id of ["highA", "highB", "highFin", "highFin2"]) {
-      assert.ok(Math.abs(byId(id).pos[0]) >= 4.2, id);
+      assert.equal(platformLane(byId(id)), "side", id);
       assert.ok(platformTop(byId(id)) > 1.4, id);
     }
     for (const wp of sky.waypoints) {
-      assert.ok(Math.abs(wp.x) < 4.2, `bot wp x=${wp.x}`);
+      assert.ok(
+        !sky.platforms.some(
+          (p) => p.id.startsWith("high") && Math.abs(p.pos[2] - wp.z) < 0.05 && Math.abs(p.pos[0] - wp.x) < 0.05,
+        ),
+        `bot wp on high island z=${wp.z}`,
+      );
     }
   });
 

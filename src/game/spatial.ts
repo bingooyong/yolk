@@ -79,6 +79,27 @@ export function localPlayableWidth(platforms: PadLike[], pz: number): number {
   return bestW;
 }
 
+/** Next safe pad ahead (−Z). Camera looks toward this x so W follows the road. */
+export function nextSafePadX(
+  platforms: { pos: [number, number, number]; size: [number, number, number]; lane?: "safe" | "side" }[],
+  pz: number,
+): number | null {
+  let bestZ = -1e9;
+  let bestX: number | null = null;
+  for (const p of platforms) {
+    const top = p.pos[1] + p.size[1] / 2;
+    if (top < -0.5) continue;
+    const lane = p.lane ?? (Math.abs(p.pos[0]) < 4.2 ? "safe" : "side");
+    if (lane !== "safe") continue;
+    if (p.pos[2] >= pz - 1.6) continue;
+    if (p.pos[2] > bestZ) {
+      bestZ = p.pos[2];
+      bestX = p.pos[0];
+    }
+  }
+  return bestX;
+}
+
 export const SPREAD_SPAWNS: [number, number, number][] = [
   [0, 0.72, 4],
   [-6.2, 0.72, 8],

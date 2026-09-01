@@ -1,6 +1,7 @@
 import { SPATIAL, SPREAD_SPAWNS } from "./spatial.ts";
 
 export type Surface = "static" | "bounce" | "conveyor" | "checkpoint" | "finish" | "ice";
+export type Lane = "safe" | "side";
 
 export type Platform = {
   id: string;
@@ -9,6 +10,7 @@ export type Platform = {
   size: [number, number, number];
   color: string;
   conveyor?: [number, number, number];
+  lane?: Lane;
 };
 
 export type Mover = {
@@ -84,6 +86,15 @@ export type Level = {
   coinCount: number;
 };
 
+function inferLane(id: string, x: number, top: number): Lane {
+  if (id.startsWith("rec") || top < -0.5) return "side";
+  return Math.abs(x) < 4.2 ? "safe" : "side";
+}
+
+export function platformLane(p: Platform): Lane {
+  return p.lane ?? inferLane(p.id, p.pos[0], platformTop(p));
+}
+
 function plat(
   id: string,
   x: number,
@@ -94,8 +105,16 @@ function plat(
   color: string,
   kind: Surface = "static",
   thick = 0.7,
+  lane?: Lane,
 ): Platform {
-  return { id, kind, pos: [x, top - thick / 2, z], size: [w, thick, d], color };
+  return {
+    id,
+    kind,
+    pos: [x, top - thick / 2, z],
+    size: [w, thick, d],
+    color,
+    lane: lane ?? inferLane(id, x, top),
+  };
 }
 
 function extend(
@@ -108,10 +127,11 @@ function extend(
   top: number,
   color: string,
   kind: Surface = "static",
+  lane?: Lane,
 ): Platform {
   const prevFwd = prev.pos[2] - prev.size[2] / 2;
   const z = prevFwd - gap - d / 2;
-  return plat(id, x, z, w, d, top, color, kind);
+  return plat(id, x, z, w, d, top, color, kind, 0.7, lane);
 }
 
 export function platformGap(a: Platform, b: Platform) {
@@ -125,7 +145,7 @@ export function platformTop(p: Platform) {
 function compile(partial: Omit<Level, "waypoints" | "coinCount">): Level {
   const walk = [
     ...partial.platforms
-      .filter((p) => Math.abs(p.pos[0]) < 4.2 && platformTop(p) > -0.5)
+      .filter((p) => platformLane(p) === "safe" && platformTop(p) > -0.5)
       .map((p) => ({
         x: p.pos[0],
         y: p.pos[1] + p.size[1] / 2,
@@ -595,31 +615,31 @@ function skyJump(): Level {
 
   const start = plat("start", 0, 8, SPATIAL.start, 16, 0, W, "checkpoint");
   const intro = extend("intro", start, CONNECT, SPATIAL.standard, 10, 0, 0, B);
-  const land1 = extend("land1", intro, JUMP, SPATIAL.standard, 10, 0, 0, B);
-  const jelly = extend("jelly", land1, CONNECT, SPATIAL.wide, 8, 0, 0, P, "bounce");
-  const isle2 = extend("isle2", jelly, JUMP, 10, 10, 0, 0, B);
+  const land1 = extend("land1", intro, JUMP, SPATIAL.standard, 10, 2.4, 0, B);
+  const jelly = extend("jelly", land1, CONNECT, SPATIAL.wide, 8, 3.8, 0, P, "bounce");
+  const isle2 = extend("isle2", jelly, JUMP, 10, 10, 2.2, 0, B);
   const mid = extend("mid", isle2, CONNECT, SPATIAL.arena, 16, 0, 0, W, "checkpoint");
-  const hopA = extend("hopA", mid, CONNECT, 10, 10, 0, 0, B);
-  const hopB = extend("hopB", hopA, JUMP, SPATIAL.narrow, 10, 0, 0, B);
-  const hopC = extend("hopC", hopB, JUMP, SPATIAL.wide, 14, 0, 0, B);
+  const hopA = extend("hopA", mid, CONNECT, 10, 10, -3.6, 0, B);
+  const hopB = extend("hopB", hopA, JUMP, SPATIAL.narrow, 10, -6.0, 0, B, "static", "safe");
+  const hopC = extend("hopC", hopB, JUMP, SPATIAL.wide, 14, -2.4, 0, B);
   const jelly2 = extend("jelly2", hopC, JUMP, SPATIAL.wide, 8, 0, 0, P, "bounce");
   const land2 = extend("land2", jelly2, JUMP, SPATIAL.standard, 10, 0, 0, B);
   const final = extend("final", land2, CONNECT, SPATIAL.finish, 18, 0, 0, W, "finish");
 
-  const HIGH_X = 8.5;
+  const HIGH_X = jelly.pos[0] + jelly.size[0] / 2 + 1.8;
   const highA = plat("highA", HIGH_X, jelly.pos[2] - 4.6, SPATIAL.shortcut, 12, 1.55, P);
   const highB = extend("highB", highA, POUNCE, SPATIAL.shortcut, 6.0, HIGH_X, 1.55, W);
   const highFin = plat("highFin", HIGH_X, jelly2.pos[2] - 4.6, SPATIAL.shortcut, 12, 1.55, P);
   const highFin2 = extend("highFin2", highFin, POUNCE, SPATIAL.shortcut, 6.0, HIGH_X, 1.55, W);
 
-  const stairX = (land: Platform) => -(land.size[0] / 2 + 2.6);
+  const stairX = (land: Platform) => land.pos[0] - land.size[0] / 2 - 2.6;
 
   const jumpMidZ = (intro.pos[2] - intro.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
-  const recJump = plat("recJump", 0, land1.pos[2] + 2, SPATIAL.recovery, 14, -2.5, Rec, "static", 1.2);
+  const recJump = plat("recJump", land1.pos[0], land1.pos[2] + 2, SPATIAL.recovery, 14, -2.5, Rec, "static", 1.2);
   const recJump2 = plat("recJump2", stairX(land1), land1.pos[2], 5.2, 6, -1.4, Rec);
   const recJump3 = plat("recJump3", stairX(land1) - 0.2, land1.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
-  const recJelly = plat("recJelly", 0, isle2.pos[2] + 2, 22, 14, -2.5, Rec, "static", 1.2);
+  const recJelly = plat("recJelly", isle2.pos[0], isle2.pos[2] + 2, 22, 14, -2.5, Rec, "static", 1.2);
   const recJelly2 = plat("recJelly2", stairX(isle2), isle2.pos[2], 5.2, 6, -1.4, Rec);
   const recJelly3 = plat("recJelly3", stairX(isle2) - 0.2, isle2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
@@ -628,9 +648,9 @@ function skyJump(): Level {
   const recHopFront = jelly2.pos[2] + jelly2.size[2] / 2;
   const recHop = plat(
     "recHop",
-    0,
+    (hopA.pos[0] + hopC.pos[0]) / 2,
     (recHopBack + recHopFront) / 2,
-    SPATIAL.recovery,
+    22,
     recHopBack - recHopFront,
     -2.5,
     Rec,
@@ -640,7 +660,7 @@ function skyJump(): Level {
   const recHop2 = plat("recHop2", stairX(hopC), hopC.pos[2], 5.2, 6, -1.4, Rec);
   const recHop3 = plat("recHop3", stairX(hopC) - 0.2, hopC.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
-  const recFin = plat("recFin", 0, land2.pos[2] - 4, 22, 28, -2.5, Rec, "static", 1.2);
+  const recFin = plat("recFin", land2.pos[0], land2.pos[2] - 4, 22, 28, -2.5, Rec, "static", 1.2);
   const recFin2 = plat("recFin2", stairX(land2), land2.pos[2], 5.2, 6, -1.4, Rec);
   const recFin3 = plat("recFin3", stairX(land2) - 0.2, land2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
 
@@ -701,33 +721,33 @@ function skyJump(): Level {
     spinners: [],
     pendulums: [],
     rings: [
-      { id: "rJump", pos: [0, 1.55, jumpMidZ] },
-      { id: "rHop", pos: [0, 1.55, hopMidZ] },
+      { id: "rJump", pos: [1.2, 1.55, jumpMidZ] },
+      { id: "rHop", pos: [hopB.pos[0], 1.55, hopMidZ] },
       { id: "rHigh", pos: [HIGH_X, 3.2, highA.pos[2]] },
       { id: "rMid", pos: [6, 1.55, mid.pos[2]] },
       { id: "rFin", pos: [0, 1.55, final.pos[2] + 4] },
     ],
     pickups: [
       { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
-      { id: "cLand1", kind: "coin", pos: [0, topOf(land1), land1.pos[2]] },
-      { id: "cJellyR", kind: "coin", pos: [5.2, topOf(jelly), jelly.pos[2] - 1.2] },
+      { id: "cLand1", kind: "coin", pos: [land1.pos[0], topOf(land1), land1.pos[2]] },
+      { id: "cJellyR", kind: "coin", pos: [jelly.pos[0] + 4.6, topOf(jelly), jelly.pos[2] - 1.2] },
       { id: "cHighA", kind: "coin", pos: [HIGH_X, topOf(highA), highA.pos[2]] },
       { id: "sHigh", kind: "shield", pos: [HIGH_X, topOf(highB), highB.pos[2]] },
-      { id: "cIsle2", kind: "coin", pos: [0, topOf(isle2), isle2.pos[2]] },
+      { id: "cIsle2", kind: "coin", pos: [isle2.pos[0], topOf(isle2), isle2.pos[2]] },
       { id: "cMidL", kind: "coin", pos: [-6, topOf(mid), mid.pos[2] + 2] },
       { id: "cMidR", kind: "coin", pos: [6, topOf(mid), mid.pos[2] - 2] },
-      { id: "cHopB", kind: "coin", pos: [0, topOf(hopB), hopB.pos[2]] },
+      { id: "cHopB", kind: "coin", pos: [hopB.pos[0], topOf(hopB), hopB.pos[2]] },
       { id: "cHighFin", kind: "coin", pos: [HIGH_X, topOf(highFin), highFin.pos[2]] },
       { id: "cHighFin2", kind: "coin", pos: [HIGH_X, topOf(highFin2), highFin2.pos[2]] },
       { id: "cLand2", kind: "coin", pos: [0, topOf(land2), land2.pos[2]] },
     ],
     traps: [],
-    gates: [{ id: "gateCloud", pos: [0, 1.55, hopC.pos[2] + hopC.size[2] / 2 - 5.5], size: [11.0, 3.4, 0.85] }],
+    gates: [{ id: "gateCloud", pos: [hopC.pos[0], 1.55, hopC.pos[2] + hopC.size[2] / 2 - 5.5], size: [11.0, 3.4, 0.85] }],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
       { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
-      { z: hopC.pos[2] + 2, pos: [0, 0.7, hopC.pos[2] + 2] },
+      { z: hopC.pos[2] + 2, pos: [hopC.pos[0], 0.7, hopC.pos[2] + 2] },
     ],
     spawns: SPREAD_SPAWNS,
   });

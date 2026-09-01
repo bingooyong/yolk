@@ -38,42 +38,42 @@ Bots jump/dash only, but jelly is a **surface**: walking onto it launches them t
 ## ASCII
 
 ```
- z+  START 20          spawn plaza, six racers spread     [arena]
+ z+  START 20 x=0       spawn plaza                        [arena]
       |
-     intro 12          see the drop                       [standard]
+     intro 12 x=0       see the drop                       [standard]
       | \
       |  \ recJump
      JUMP 3.45
       | /
-     land1 12                                             [SAFE]
+     land1 12 x=+2.4                                       [SAFE, gentle right]
       |
-     jelly 14          PINK bounce, run right             [wide / overtake]
+     jelly 14 x=+3.8    PINK bounce, run right             [wide / overtake]
       | \
-      |  \ highA  x=8.5  w=6  y=1.55  coins               [room, not shoulder]
+      |  \ highA  x=jelly.right+1.8  w=6  y=1.55
       |     |
-      |    highB  x=8.5  pounce 6.25
+      |    highB  pounce 6.25
       |     |
-     isle2 10          LOW landing                        [safe, bots]
+     isle2 10 x=+2.2    LOW landing
       | /
-     mid 20×16         SKY ARENA  left / mid / right      [overtake + boost ring]
+     mid 20×16 x=0      SKY ARENA, recenter                [overtake]
       |
-     hopA 10
+     hopA 10 x=−3.6     S bends left
       | \
       |  \ recHop
      JUMP 3.45
       |
-     hopB 6.2          NARROW commit                      [choke]
+     hopB 6.2 x=−6      NARROW, lane=safe                  [choke]
      JUMP 3.45
       |
-     hopC 14           ROLL cloud (center); edges risky   [wide relief]
+     hopC 14 x=−2.4     ROLL cloud                         [wide relief]
       |
-     jelly2 14         bounce again
+     jelly2 14 x=0      bounce again
       | \
-      |  \ highFin x=8.5
+      |  \ highFin
       |
-     land2 12
+     land2 12 x=0
       |
-     FINISH 20         boost sprint, celebrate
+     FINISH 20 x=0      boost sprint, celebrate
  z-
 ```
 
