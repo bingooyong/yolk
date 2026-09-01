@@ -1,7 +1,7 @@
-# Level Design Lessons — L1–L6
+# Level Design Lessons — L1–L7
 
-Source of truth after 糖果草原 / 冰雪滑坡 / 旋转工厂 / 天空弹跳岛 / 海盗港湾 / 甜品工厂.
-Do not rebuild cloud–finale until asked. Pipeline: designer → implementer → playtester → polisher.
+Source of truth after 糖果草原 / 冰雪滑坡 / 旋转工厂 / 天空弹跳岛 / 海盗港湾 / 甜品工厂 / 云端竞速.
+Do not rebuild finale until asked. Pipeline: designer → implementer → playtester → polisher.
 
 ## Locked courses
 
@@ -13,9 +13,10 @@ Do not rebuild cloud–finale until asked. Pipeline: designer → implementer �
 | sky | 天空弹跳岛 | 果冻弹起来，看清落点再跳 | island jump 3.45, jelly bounce | high islands |
 | pirate | 海盗港湾 | 条纹木板会塌，左边抄近路 | drop at the lip, ship jump 3.45 | left run pier |
 | dessert | 甜品工厂 | 巧克力会滑，滚过去冲过去 | cake jump 3.45, walk the chocolate | roll/boost lock heading, syrup highway |
+| cloud | 云端竞速 | 侧风要改方向，顺风就冲 | jump 3.45, steer the crosswind | jet stream, tailwind sprint |
 
-Specs: `docs/levels/level1-meadow.md` … `level6-dessert.md`.
-Identity-only (do not author pads): cloud 风场冲刺, finale 最后二十米全用上.
+Specs: `docs/levels/level1-meadow.md` … `level7-cloud.md`.
+Identity-only (do not author pads): finale 最后二十米全用上.
 
 ## What actually worked
 
@@ -50,6 +51,7 @@ These are not tunables. Design inside them.
 | NeonRails at `x=±10.2` are 2.5 m walls the whole course | That is a hallway. **No course** mounts them. `ThemeWorld` (far instanced clouds/isles) or meadow benchmark art. |
 | Width is rhythm (`src/game/spatial.ts`) | `narrow 6.2` / `standard 12` / `wide 14` / `arena 20`. Do not `×2` every pad. Side rooms sit past the main pad edge, not on its shoulder. |
 | Camera follows local pad width | Extra distance/height/lookahead from width. Do not open FOV to fake space. |
+| Wind XZ is additive m/s while inside the volume | Grip used to eat `force * dt`. Crosswind dumps W-only; tailwind is a sprint. Leave the volume → walk speed. Y is still acceleration. |
 
 ## Authoring recipe (every new course)
 

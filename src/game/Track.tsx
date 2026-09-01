@@ -10,7 +10,7 @@ import * as THREE from "three";
 import { PHYSICS_DT } from "@/engine/pipeline";
 import { VISUAL_FOUNDATION } from "@/engine/visualProfile";
 import { currentLevel, moverVel, type TrapTileDef, type LowGate } from "./course";
-import type { Hammer, Mover, Pendulum, Spinner } from "./levels";
+import type { Hammer, Mover, Pendulum, Spinner, WindZone } from "./levels";
 import { crateTex, skyTex, stripeTex } from "./look";
 import { Level1BenchmarkArt } from "./Level1BenchmarkArt";
 import { sim } from "./sim";
@@ -191,6 +191,9 @@ export function Track() {
       {level.gates.map((g) => (
         <CandyLowGate key={g.id} gate={g} />
       ))}
+      {level.winds.map((w) => (
+        <WindGust key={w.id} {...w} />
+      ))}
 
       {isLevel1Benchmark ? (
         <Level1BenchmarkArt platforms={level.platforms} finishZ={level.finishZ} />
@@ -272,6 +275,27 @@ function NeonRails({ color, neon }: { color: string; neon: string }) {
             <meshBasicMaterial color={neon} />
           </mesh>
         </group>
+      ))}
+    </group>
+  );
+}
+
+function WindGust({ pos, size, force }: WindZone) {
+  const mag = Math.hypot(force[0], force[2]);
+  if (mag < 0.4) return null;
+  const yaw = Math.atan2(force[0], force[2]);
+  const span = Math.min(size[0] * 0.55, 4.4);
+  return (
+    <group position={pos} rotation={[0, yaw, 0]}>
+      <mesh>
+        <boxGeometry args={[span, 0.07, size[2] * 0.88]} />
+        <meshBasicMaterial color="#C8F6FF" transparent opacity={0.2} depthWrite={false} />
+      </mesh>
+      {[-0.28, 0, 0.28].map((t, i) => (
+        <mesh key={i} position={[0, 0.62, t * size[2] * 0.32]} rotation={[Math.PI / 2, 0, 0]}>
+          <coneGeometry args={[0.42, 1.35, 3]} />
+          <meshBasicMaterial color="#F4FFFF" transparent opacity={0.62} depthWrite={false} />
+        </mesh>
       ))}
     </group>
   );

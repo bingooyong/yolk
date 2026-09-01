@@ -1051,73 +1051,165 @@ export const DESSERT_SECTIONS: LevelSection[] = [
   { id: "finale", startZ: -110, endZ: -160, purpose: "last cake jump then sprint", mechanics: ["jump"] },
 ];
 
+export const CLOUD_GAPS = {
+  connect: 0.14,
+  jump: 3.45,
+} as const;
+
 function cloud(): Level {
   const C = "#B8E0FF";
   const A = "#5BAFE0";
+  const Rec = "#6A9CC4";
+  const { connect: CONNECT, jump: JUMP } = CLOUD_GAPS;
+
+  const start = plat("start", 0, 8, SPATIAL.start, 16, 0, C, "checkpoint");
+  const intro = extend("intro", start, CONNECT, SPATIAL.standard, 10, 0, 0, A);
+  const cross1 = extend("cross1", intro, CONNECT, SPATIAL.standard, 16, 0, 0, C);
+  const rest1 = extend("rest1", cross1, CONNECT, 8, 10, 0, 0, A);
+  const land1 = extend("land1", rest1, JUMP, SPATIAL.standard, 10, 0, 0, C);
+  const mid = extend("mid", land1, CONNECT, SPATIAL.arena, 14, 0, 0, A, "checkpoint");
+  const stream = extend("stream", mid, CONNECT, SPATIAL.wide, 22, 0, 0, C);
+  const land2 = extend("land2", stream, JUMP, SPATIAL.standard, 10, 0, 0, A);
+  const cross2 = extend("cross2", land2, CONNECT, 10, 16, 0, 0, C);
+  const finale = extend("finale", cross2, CONNECT, SPATIAL.standard, 10, 0, 0, A);
+  const final = extend("final", finale, CONNECT, SPATIAL.finish, 16, 0, 0, C, "finish");
+
+  const jet = plat("jet", 6.8, stream.pos[2], SPATIAL.narrow, stream.size[2], 0, A);
+
+  const windOn = (
+    id: string,
+    p: Platform,
+    force: [number, number, number],
+  ): WindZone => ({
+    id,
+    pos: [p.pos[0], 1.2, p.pos[2]],
+    size: [p.size[0], 3.2, p.size[2]],
+    force,
+  });
+
+  const stairL = (land: Platform) => land.pos[0] - land.size[0] / 2 - 2.6;
+  const stairR = (land: Platform) => land.pos[0] + land.size[0] / 2 + 2.6;
+
+  const recBack = cross1.pos[2] + cross1.size[2] / 2;
+  const recFront = rest1.pos[2] - rest1.size[2] / 2 - 2;
+  const recCross = plat(
+    "recCross",
+    0,
+    (recBack + recFront) / 2,
+    28,
+    recBack - recFront,
+    -2.5,
+    Rec,
+    "static",
+    1.2,
+  );
+  const recCross2 = plat("recCross2", stairR(cross1), cross1.pos[2], 5.2, 8, -1.4, Rec);
+  const recCross3 = plat("recCross3", stairR(cross1) + 0.2, cross1.pos[2] - 2, 5.4, 4.2, -0.2, Rec);
+
+  const recJump = plat("recJump", 0, land1.pos[2] + 2, SPATIAL.recovery, 14, -2.5, Rec, "static", 1.2);
+  const recJump2 = plat("recJump2", stairL(land1), land1.pos[2], 5.2, 6, -1.4, Rec);
+  const recJump3 = plat("recJump3", stairL(land1) - 0.2, land1.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recFin = plat("recFin", 0, land2.pos[2] + 2, 22, 16, -2.5, Rec, "static", 1.2);
+  const recFin2 = plat("recFin2", stairL(land2), land2.pos[2], 5.2, 6, -1.4, Rec);
+  const recFin3 = plat("recFin3", stairL(land2) - 0.2, land2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recCrossB = plat("recCrossB", 0, cross2.pos[2], 26, 18, -2.5, Rec, "static", 1.2);
+  const recCrossB2 = plat("recCrossB2", stairL(cross2), cross2.pos[2], 5.2, 8, -1.4, Rec);
+  const recCrossB3 = plat("recCrossB3", stairL(cross2) - 0.2, cross2.pos[2] - 2, 5.4, 4.2, -0.2, Rec);
+
+  const platforms = [
+    start,
+    intro,
+    cross1,
+    rest1,
+    land1,
+    mid,
+    stream,
+    land2,
+    cross2,
+    finale,
+    final,
+    jet,
+    recCross,
+    recCross2,
+    recCross3,
+    recJump,
+    recJump2,
+    recJump3,
+    recFin,
+    recFin2,
+    recFin3,
+    recCrossB,
+    recCrossB2,
+    recCrossB3,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
+
   return compile({
     id: "cloud",
     theme: {
       id: "cloud",
       name: "云端竞速",
-      blurb: "风环加速。看前方，别只盯着脚底下。",
+      blurb: "风会推你。侧风要改方向，顺风就冲。",
       stars: 4,
       sky: "#7EC8FF",
       fog: "#A8DCFA",
-      fogNear: 26,
-      fogFar: 110,
+      fogNear: 36,
+      fogFar: 160,
       rail: "#FFFFFF",
       neon: "#7CF0FF",
       ground: "#5BAFE0",
     },
-    finishZ: -90,
-    startZ: 8,
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
     bots: 6,
-    platforms: [
-      plat("start", 0, 8, SPATIAL.start, 14, 0, C, "checkpoint"),
-      plat("lane", 0, -8, 8, 14, 0, A),
-      plat("a", 0, -22, 6.5, 8, 0.4, C),
-      plat("b", 0, -36, 6.5, 8, 0.8, A),
-      plat("mid", 0, -50, 9, 8, 0.4, C, "checkpoint"),
-      plat("fast", 0, -64, 6, 12, 0.4, A),
-      plat("final", 0, -90, SPATIAL.finish, 12, 0, C, "finish"),
-    ],
-    movers: [
-      {
-        id: "gust",
-        size: [4.8, 0.55, 4.8],
-        color: "#FFF6EB",
-        from: [-3.6, 0.5, -76],
-        to: [3.6, 0.5, -76],
-        period: 2.8,
-        phase: 0,
-      },
-    ],
+    platforms,
+    movers: [],
     hammers: [],
     spinners: [],
     pendulums: [],
     rings: [
-      { id: "r1", pos: [0, 1.6, -16] },
-      { id: "r2", pos: [0, 2.0, -36] },
-      { id: "r3", pos: [0, 1.8, -64] },
+      { id: "rCross1", pos: [0, 1.55, cross1.pos[2] + cross1.size[2] / 2 - 2] },
+      { id: "rStream", pos: [0, 1.55, stream.pos[2] + stream.size[2] / 2 - 3] },
+      { id: "rJet", pos: [6.8, 1.55, stream.pos[2]] },
     ],
     pickups: [
-      { id: "c1", kind: "coin", pos: [0, 1.3, -8] },
-      { id: "c2", kind: "coin", pos: [0, 1.6, -36] },
-      { id: "j1", kind: "jelly", pos: [0, 1.4, -50] },
-      { id: "c3", kind: "coin", pos: [0, 1.5, -64] },
+      { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
+      { id: "cRest1", kind: "coin", pos: [0, topOf(rest1), rest1.pos[2]] },
+      { id: "cMid", kind: "coin", pos: [0, topOf(mid), mid.pos[2]] },
+      { id: "cJet", kind: "coin", pos: [6.8, topOf(jet), jet.pos[2]] },
+      { id: "sJet", kind: "shield", pos: [6.8, topOf(jet), jet.pos[2] - 4] },
+      { id: "cLand2", kind: "coin", pos: [0, topOf(land2), land2.pos[2]] },
+      { id: "cFinale", kind: "coin", pos: [0, topOf(finale), finale.pos[2]] },
     ],
     traps: [],
     gates: [],
     winds: [
-      { id: "tail", pos: [0, 1, -64], size: [5, 3, 10], force: [0, 0, -10] },
+      windOn("wCross1", cross1, [7.2, 0, 0]),
+      windOn("wStream", stream, [0, 0, -8]),
+      windOn("wJet", jet, [0, 0, -12]),
+      windOn("wCross2", cross2, [-6.8, 0, 0]),
     ],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -50, pos: [0, 1.1, -48] },
+      { z: land1.pos[2] + 2, pos: [0, 0.7, land1.pos[2] + 2] },
+      { z: land2.pos[2] + 2, pos: [0, 0.7, land2.pos[2] + 2] },
     ],
     spawns: SPREAD_SPAWNS,
   });
 }
+
+export const CLOUD_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -16, purpose: "see the stream", mechanics: ["move"] },
+  { id: "cross1", startZ: -16, endZ: -40, purpose: "crosswind dumps W-only", mechanics: ["wind"] },
+  { id: "jump1", startZ: -40, endZ: -60, purpose: "cloud pit after the lesson", mechanics: ["jump"] },
+  { id: "arena", startZ: -60, endZ: -80, purpose: "overtake plaza", mechanics: ["boost"] },
+  { id: "stream", startZ: -80, endZ: -110, purpose: "ride the tailwind", mechanics: ["wind", "boost"] },
+  { id: "cross2", startZ: -110, endZ: -140, purpose: "opposite crosswind", mechanics: ["wind"] },
+  { id: "finale", startZ: -140, endZ: -180, purpose: "sprint home", mechanics: ["move"] },
+];
 
 function finale(): Level {
   const N = "#2B6BEE";

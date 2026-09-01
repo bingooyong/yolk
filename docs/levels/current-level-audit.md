@@ -103,7 +103,7 @@ Design-only for 2–8. Do not rebuild them this slice.
 | sky | 天空弹跳岛 | 3 | 8 → −82 | Bounce islands, slight x drift, cloud mover, updraft | Aerial commits | Island graph (high/low) | 连跳选落点 |
 | pirate | 海盗港湾 | 4 | 8 → −126 | Stripe pits + left run pier + ship jump. See `docs/levels/level5-pirate.md`. | Multi-route / read the floor | Safe center, fast-left drop pier, boat merge | 条纹板会塌，左边抄近路 |
 | dessert | 甜品工厂 | 4 | 8 → ~−130 | Chocolate ice + roll gates + cake jumps. See `docs/levels/level6-dessert.md`. | Skill combo | Safe cake vs syrup speed | 巧克力会滑，滚过去冲过去 |
-| cloud | 云端竞速 | 4 | 8 → −90 | Rising pads, three rings, tailwind, gust mover | High-speed Boost | Wide sprint vs ring line | 风场冲刺 |
+| cloud | 云端竞速 | 4 | 8 → ~−134 | Crosswind + tailwind + jet. See `docs/levels/level7-cloud.md`. | High-speed Boost | Wide sprint vs jet | 侧风要改方向，顺风就冲 |
 | finale | 终极派对 | 5 | 8 → −110 | Ice + hammer + jelly + spinner + belt + pendulum + wind, in a row | Mix of taught skills | Safe vs greedy line through the mix | 最后二十米全用上 |
 
 ### Per-level gaps (current)

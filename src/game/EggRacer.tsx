@@ -428,8 +428,6 @@ export function EggRacer({
       L.vx = L.dashDirX * speed;
       L.vz = L.dashDirZ * speed;
     }
-    const hx = L.vx;
-    const hz = L.vz;
 
     if (isPlayer && !actions.jump && L.vy > 1.8 && L.pounceT <= 0 && !L.fromBounce) {
       L.vy *= JUMP_CUT;
@@ -455,17 +453,23 @@ export function EggRacer({
     }
 
     const level = currentLevel();
+    let windX = 0;
+    let windY = 0;
+    let windZ = 0;
     for (const w of level.winds) {
       if (
         Math.abs(t.x - w.pos[0]) < w.size[0] / 2 &&
         Math.abs(t.y - w.pos[1]) < w.size[1] / 2 &&
         Math.abs(t.z - w.pos[2]) < w.size[2] / 2
       ) {
-        L.vx += w.force[0] * dt;
-        L.vy += w.force[1] * dt;
-        L.vz += w.force[2] * dt;
+        windX += w.force[0];
+        windY += w.force[1];
+        windZ += w.force[2];
       }
     }
+    L.vy += windY * dt;
+    const hx = L.vx + windX;
+    const hz = L.vz + windZ;
 
     cc.computeColliderMovement(col, { x: hx * dt, y: L.vy * dt, z: hz * dt });
     const mv = cc.computedMovement();

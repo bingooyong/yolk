@@ -21,7 +21,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "audio:bgm": "python3 scripts/generate_bgm.py",
-    "test:visual": "node --experimental-strip-types --test src/engine/visualProfile.test.ts src/game/character-presentation.test.ts src/game/level1-benchmark.test.ts src/game/meadow-layout.test.ts src/game/ice-layout.test.ts src/game/factory-layout.test.ts src/game/sky-layout.test.ts src/game/pirate-layout.test.ts src/game/dessert-layout.test.ts src/game/store-hydration.test.ts src/game/skins.test.ts src/game/presentation/appearance.test.ts",
+    "test:visual": "node --experimental-strip-types --test src/engine/visualProfile.test.ts src/game/character-presentation.test.ts src/game/level1-benchmark.test.ts src/game/meadow-layout.test.ts src/game/ice-layout.test.ts src/game/factory-layout.test.ts src/game/sky-layout.test.ts src/game/pirate-layout.test.ts src/game/dessert-layout.test.ts src/game/cloud-layout.test.ts src/game/store-hydration.test.ts src/game/skins.test.ts src/game/presentation/appearance.test.ts",
     "test:skin": "node --experimental-strip-types --test src/engine/skin-asset/__tests__/factory.test.ts src/engine/skin-asset/__tests__/mock-provider.test.ts src/engine/skin-asset/__tests__/loader.test.ts src/engine/skin-asset/__tests__/gate-registry.test.ts src/game/skins.test.ts && node --test scripts/validate-skin-asset.test.mjs scripts/quality-gate.test.mjs scripts/import-glb-url.test.mjs",
     "smoke:visual": "node scripts/visual-smoke.mjs"
   },

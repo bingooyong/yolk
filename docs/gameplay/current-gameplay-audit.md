@@ -17,7 +17,7 @@ If this box is empty, the course has no gold-standard moment.
 | sky | 天空弹跳岛 | 果冻弹起来，看清落点再跳，高岛有金币 | **This phase’s gold standard** |
 | pirate | 海盗港湾 | 条纹木板会塌，左边抄近路 | Locked |
 | dessert | 甜品工厂 | 巧克力会滑，滚过去冲过去 | Locked teaching |
-| cloud | 云端竞速 | 风场冲刺（identity only） | Prototype strip |
+| cloud | 云端竞速 | 侧风要改方向，顺风就冲 | Locked teaching |
 | finale | 终极派对 | 最后二十米全用上（identity only） | Prototype strip |
 
 ---
@@ -114,7 +114,7 @@ Still short strips (`finishZ` −84 to −110). Gadget parades in finale. **Do n
 |---|---|---|
 | pirate | 条纹板会塌；左边跑过去 | Stripe pits + left run pier + ship jump. Span ~130. See `docs/levels/level5-pirate.md`. |
 | dessert | 巧克力会滑，滚过去冲过去 | Chocolate ice + two roll gates + cake jumps. Span 122. |
-| cloud | 风环加速 | Three rings + a tail wind. Span ~98. |
+| cloud | 侧风要改方向，顺风就冲 | Crosswind + tailwind + jet. Span 142. |
 | finale | 前面学过的都会来 | Ice + hammer + bounce + spinner + conveyor + pendulum + wind. Span ~118. |
 
 ---
