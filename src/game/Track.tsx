@@ -215,7 +215,16 @@ function TrapTile(t: TrapTileDef) {
   useBeforePhysicsStep(() => {
     elapsed.current += PHYSICS_DT;
     const rb = ref.current;
-    if (!rb || dropped.current) return;
+    if (!rb) return;
+    if (dropped.current) {
+      const cur = rb.translation();
+      rb.setNextKinematicTranslation({
+        x: cur.x,
+        y: cur.y - 16 * PHYSICS_DT,
+        z: cur.z,
+      });
+      return;
+    }
     const p = sim.racers.find((r) => r.isPlayer);
     if (
       t.drops &&
@@ -228,14 +237,6 @@ function TrapTile(t: TrapTileDef) {
     }
     if (armed.current > t.delay) {
       dropped.current = true;
-    }
-    if (dropped.current) {
-      const cur = rb.translation();
-      rb.setNextKinematicTranslation({
-        x: cur.x,
-        y: cur.y - 16 * PHYSICS_DT,
-        z: cur.z,
-      });
     }
   });
   return (

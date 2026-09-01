@@ -21,17 +21,17 @@ Apply when changing course layout, `src/game/levels.ts`, checkpoints, roll gates
 
 13. **Camera serves landings.** Gameplay chase-cam look-ahead uses `CAM_LOOKAHEAD`. Do not overwrite it to the egg’s feet. Airborne / bounce may lift the camera with the player; it may not hide the next pad.
 14. **Checkpoints are felt.** Hitting one plays `sfxCheckpoint` (already in `audio.ts`) and a short hint. Silent `checkpointsHit++` is not feedback.
-15. **Polish one locked course at a time.** Phase 7 gold standard is Sky Bounce. Do not rebuild pirate–finale. Do not paste meadow’s roll gate onto the sky.
+15. **Polish one locked course at a time.** Do not rebuild dessert–finale. Do not paste meadow’s roll gate onto the sky.
 
 ## Pipeline
 
 `level-designer` → `level-implementer` → `level-playtester` / `level-playtest` → `level-polisher`
 
-Skills: `.grok/skills/level-*/SKILL.md` (persisted copy: `.agents/skills/level-*/`). Lessons from L1–L4: `docs/levels/lessons.md`. Gameplay audit: `docs/gameplay/current-gameplay-audit.md`. Do not rebuild pirate–finale until named.
+Skills: `.grok/skills/level-*/SKILL.md` (persisted copy: `.agents/skills/level-*/`). Lessons from L1–L5: `docs/levels/lessons.md`. Gameplay audit: `docs/gameplay/current-gameplay-audit.md`. Do not rebuild dessert–finale until named.
 
 ## Level 1 gold standard
 
-`docs/levels/level1-meadow.md`. Level 2: `docs/levels/level2-ice.md`. Level 3: `docs/levels/level3-factory.md`. Level 4: `docs/levels/level4-sky.md`. Lessons: `docs/levels/lessons.md`. Other courses keep their **identity** from `docs/levels/current-level-audit.md` until a later slice rebuilds them.
+`docs/levels/level1-meadow.md`. Level 2: `docs/levels/level2-ice.md`. Level 3: `docs/levels/level3-factory.md`. Level 4: `docs/levels/level4-sky.md`. Level 5: `docs/levels/level5-pirate.md`. Lessons: `docs/levels/lessons.md`. Other courses keep their **identity** from `docs/levels/current-level-audit.md` until a later slice rebuilds them.
 
 ## Validation
 

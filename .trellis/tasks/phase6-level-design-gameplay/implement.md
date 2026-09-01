@@ -16,4 +16,8 @@
 - [x] Sky bounce pad sheen (existing pink bounce color)
 - [x] Sky layout tests
 - [x] Lessons + skills (`docs/levels/lessons.md`, level-pipeline / designer / implementer / playtester / polisher)
-- [ ] Levels 5–8 still identity-only (paused)
+- [x] Level 5 pirate spec (`docs/levels/level5-pirate.md`)
+- [x] `pirate()` blockout: stripe collapse, left run pier, ship jump, recovery
+- [x] Trap tiles actually fall after they trigger
+- [x] Pirate layout tests
+- [ ] Levels 6–8 still identity-only (paused)

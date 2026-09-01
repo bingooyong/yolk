@@ -1,6 +1,6 @@
 # Current Level Audit — Phase 6 Step 1
 
-Source of truth: `src/game/levels.ts` on current main. This is a design audit, not a rewrite. Ice, factory, and sky later matched their identities (`docs/levels/level2-ice.md`, `docs/levels/level3-factory.md`, `docs/levels/level4-sky.md`). Pirate–finale remain identity-only.
+Source of truth: `src/game/levels.ts` on current main. This is a design audit, not a rewrite. Ice, factory, sky, and pirate later matched their identities (`docs/levels/level2-ice.md`, `docs/levels/level3-factory.md`, `docs/levels/level4-sky.md`, `docs/levels/level5-pirate.md`). Dessert–finale remain identity-only.
 
 ## Verdict
 
@@ -101,7 +101,7 @@ Design-only for 2–8. Do not rebuild them this slice.
 | ice | 冰雪滑坡 | 2 | 8 → −78 | Ice pads + crack L/R + one floe | Ice steering / braking | Center slide vs crack sides | 滑坡上改方向 |
 | factory | 旋转工厂 | 3 | 8 → −86 | Hall, two hammers, conveyor, spinner, piston, pendulum | Timing / rhythm | Single line with wait-windows | 看锤再过 |
 | sky | 天空弹跳岛 | 3 | 8 → −82 | Bounce islands, slight x drift, cloud mover, updraft | Aerial commits | Island graph (high/low) | 连跳选落点 |
-| pirate | 海盗港湾 | 4 | 8 → −88 | **Only real fork today:** right `safe` vs left drop tiles | Multi-route / read the floor | Safe right, fast-left traps, boat merge | 船间抄近路 |
+| pirate | 海盗港湾 | 4 | 8 → −126 | Stripe pits + left run pier + ship jump. See `docs/levels/level5-pirate.md`. | Multi-route / read the floor | Safe center, fast-left drop pier, boat merge | 条纹板会塌，左边抄近路 |
 | dessert | 甜品工厂 | 4 | 8 → −84 | Ice-as-choco + jelly + conveyor + spinner + lift | Skill combo | Safe walk vs syrup speed | 糖浆上 Roll+Boost |
 | cloud | 云端竞速 | 4 | 8 → −90 | Rising pads, three rings, tailwind, gust mover | High-speed Boost | Wide sprint vs ring line | 风场冲刺 |
 | finale | 终极派对 | 5 | 8 → −110 | Ice + hammer + jelly + spinner + belt + pendulum + wind, in a row | Mix of taught skills | Safe vs greedy line through the mix | 最后二十米全用上 |
@@ -116,7 +116,7 @@ Design-only for 2–8. Do not rebuild them this slice.
 
 **sky.** Bounce pads + island jumps. High islands at `|x|>=4.2`. Recovery under pits. See `docs/levels/level4-sky.md`.
 
-**pirate.** Best route idea in the file (safe-right vs trap-left). `safe` is at x=4.2 so bots never use it. Trap `drops` pattern is the actual decision. Keep this identity when Phase 6+ reaches it.
+**pirate.** Stripe pits + left run pier. Walk falls on the first collapse; jump lands. Fast pier at `|x|>=4.2`. Recovery under pits. See `docs/levels/level5-pirate.md`.
 
 **dessert.** Factory gadgets with dessert materials. Ice + bounce + conveyor + spinner is “one of each,” not a combo line.
 

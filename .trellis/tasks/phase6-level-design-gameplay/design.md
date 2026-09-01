@@ -10,4 +10,4 @@ Level 2 sequence: Grippy → wide ice → ice jump → tongue vs crack → water
 
 Level 3 sequence: Observe hammer → one slow wait-window → rest → rhythm pair or catwalk → jump pit → last hammer → Finish.
 
-Level 4 sequence: Island jump → jelly bounce → high vs low landing → hop chain → last bounce → Finish.
+Level 5 sequence: See stripes → first collapse → rest → observe left pier → ships / 船间抄近路 → wood jump → last stripe pit → Finish.

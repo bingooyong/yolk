@@ -139,7 +139,7 @@ function compile(partial: Omit<Level, "waypoints" | "coinCount">): Level {
       d: m.size[2],
     })),
     ...partial.traps
-      .filter((t) => !t.drops)
+      .filter((t) => !t.drops && Math.abs(t.pos[0]) < 4.2)
       .map((t) => ({
         x: t.pos[0],
         y: t.pos[1] + t.size[1] / 2,
@@ -761,90 +761,172 @@ export const SKY_SECTIONS: LevelSection[] = [
 ];
 
 
+export const PIRATE_GAPS = {
+  connect: 0.14,
+  jump: 3.45,
+  drop: 3.45,
+} as const;
+
 function pirate(): Level {
   const Wd = "#C4A574";
-  const Sea = "#2B6BEE";
   const Flag = "#E8614A";
+  const Rec = "#2E5A8A";
+  const { connect: CONNECT, jump: JUMP, drop: DROP } = PIRATE_GAPS;
+
+  const start = plat("start", 0, 8, 14, 16, 0, Flag, "checkpoint");
+  const intro = extend("intro", start, CONNECT, 11, 10, 0, 0, Wd);
+  const land1 = extend("land1", intro, DROP, 11, 10, 0, 0, Wd);
+  const lane = extend("lane", land1, CONNECT, 6.2, 12, 0, 0, Wd);
+  const safe1 = extend("safe1", lane, CONNECT, 11, 10, 0, 0, Flag);
+  const ship1 = extend("ship1", safe1, CONNECT, 9, 10, 0, 0, Wd);
+  const ship2 = extend("ship2", ship1, JUMP, 9, 10, 0, 0, Wd);
+  const mid = extend("mid", ship2, CONNECT, 12, 10, 0, 0, Flag, "checkpoint");
+  const gap = extend("gap", mid, CONNECT, 8, 10, 0, 0, Wd);
+  const land2 = extend("land2", gap, CONNECT, 9, 10, 0, 0, Wd);
+  const finale = extend("finale", land2, CONNECT, 9, 10, 0, 0, Wd);
+  const final = extend("final", finale, JUMP, 14, 18, 0, 0, Flag, "finish");
+
+  const recPit1 = plat("recPit1", 0, land1.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
+  const recPit1b = plat("recPit1b", 5.2, land1.pos[2], 5.2, 6, -1.4, Rec);
+  const recPit1c = plat("recPit1c", 5.2, land1.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recShips = plat("recShips", 0, ship2.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
+  const recShipsb = plat("recShipsb", 5.2, ship2.pos[2], 5.2, 6, -1.4, Rec);
+  const recShipsc = plat("recShipsc", 5.2, ship2.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const recFin = plat("recFin", 0, finale.pos[2] - 6, 12, 16, -2.5, Rec, "static", 1.2);
+  const recFin2 = plat("recFin2", 5.2, final.pos[2], 5.2, 6, -1.4, Rec);
+  const recFin3 = plat("recFin3", 5.2, final.pos[2] - 3.2, 5.4, 4.2, -0.2, Rec);
+
+  const TILE: [number, number, number] = [2.05, 0.44, 2.05];
+  const TEACH = 0;
+  const RUN = 0.52;
+  const PIER_X = -5.5;
+  const drop = (id: string, x: number, z: number, delay: number): TrapTileDef => ({
+    id,
+    pos: [x, -0.22, z],
+    size: TILE,
+    drops: true,
+    delay,
+  });
+  const pitRows = (prefix: string, a: Platform, _b: Platform, delay: number): TrapTileDef[] => {
+    const aFront = a.pos[2] - a.size[2] / 2;
+    const z = aFront - 0.14 - 1.025;
+    return [-2.2, 0, 2.2].map((x, ci) => drop(`${prefix}0${ci}`, x, z, delay));
+  };
+  const pitPier = (prefix: string, a: Platform, b: Platform): TrapTileDef[] => {
+    const mid = (a.pos[2] - a.size[2] / 2 + b.pos[2] + b.size[2] / 2) / 2;
+    return [3, 1, -1, -3].map((o, i) => drop(`${prefix}${i}`, PIER_X, mid + o, RUN));
+  };
+  const lanePier = (): TrapTileDef[] => {
+    const z0 = lane.pos[2] + 3;
+    return [0, 1, 2, 3].map((i) => drop(`laneL${i}`, PIER_X, z0 - i * 2.0, RUN));
+  };
+
+  const traps: TrapTileDef[] = [
+    ...pitRows("p1", intro, land1, TEACH),
+    ...pitPier("p1L", intro, land1),
+    ...lanePier(),
+    ...pitPier("shL", ship1, ship2),
+    ...pitPier("fnL", finale, final),
+  ];
+
+  const pit1MidZ = (intro.pos[2] - intro.size[2] / 2 + land1.pos[2] + land1.size[2] / 2) / 2;
+  const shipMidZ = (ship1.pos[2] - ship1.size[2] / 2 + ship2.pos[2] + ship2.size[2] / 2) / 2;
+  const finMidZ = (finale.pos[2] - finale.size[2] / 2 + final.pos[2] + final.size[2] / 2) / 2;
+
+  const platforms = [
+    start,
+    intro,
+    land1,
+    lane,
+    safe1,
+    ship1,
+    ship2,
+    mid,
+    gap,
+    land2,
+    finale,
+    final,
+    recPit1,
+    recPit1b,
+    recPit1c,
+    recShips,
+    recShipsb,
+    recShipsc,
+    recFin,
+    recFin2,
+    recFin3,
+  ];
+
+  const topOf = (p: Platform) => platformTop(p) + 0.9;
+
   return compile({
     id: "pirate",
     theme: {
       id: "pirate",
       name: "海盗港湾",
-      blurb: "右边稳、左边快。掉落板会塌，看准再踩。",
+      blurb: "条纹木板会塌。看见就跳，或者跑左边抄近路。不要停。",
       stars: 4,
       sky: "#7EC8E3",
       fog: "#8FD4F0",
       fogNear: 22,
-      fogFar: 105,
+      fogFar: 150,
       rail: "#C4A574",
       neon: "#E8C85A",
       ground: "#2B6BEE",
     },
-    finishZ: -88,
-    startZ: 8,
-    bots: 6,
-    platforms: [
-      plat("dock", 0, 8, 16, 16, 0, Wd, "checkpoint"),
-      plat("deck", 0, -8, 12, 12, 0, Wd),
-      plat("safe", 4.2, -28, 5.2, 22, 0, Wd),
-      plat("mid", 0, -44, 10, 8, 0, Flag, "checkpoint"),
-      plat("ship", 0, -62, 8, 14, 0.3, Wd),
-      plat("final", 0, -88, 14, 12, 0, Flag, "finish"),
-    ],
-    movers: [
-      {
-        id: "boat",
-        size: [5, 0.6, 5],
-        color: "#8B6914",
-        from: [-3.2, 0.1, -74],
-        to: [3.2, 0.1, -74],
-        period: 3.4,
-        phase: 0,
-      },
-    ],
+    finishZ: final.pos[2],
+    startZ: start.pos[2],
+    bots: 5,
+    platforms,
+    movers: [],
     hammers: [],
     spinners: [],
-    pendulums: [{ id: "mast", pos: [0, 4.1, -62], length: 3.1, speed: 1.05, phase: 0 }],
-    rings: [{ id: "r1", pos: [-3.2, 1.5, -28] }],
-    pickups: [
-      { id: "c1", kind: "coin", pos: [4.2, 1.2, -22] },
-      { id: "c2", kind: "coin", pos: [-3.2, 1.3, -28] },
-      { id: "c3", kind: "coin", pos: [0, 1.4, -62] },
-      { id: "s1", kind: "shield", pos: [0, 1.2, -44] },
+    pendulums: [],
+    rings: [
+      { id: "rPit1", pos: [0, 1.55, pit1MidZ] },
+      { id: "rShips", pos: [0, 1.55, shipMidZ] },
     ],
-    traps: ((): TrapTileDef[] => {
-      const cols = [-4.4, -2.2, 0];
-      const rows = [-20, -23.2, -26.4, -29.6, -32.8, -36];
-      return rows.flatMap((z, ri) =>
-        cols.map((x, ci) => {
-          const path = (ci === 0 && ri % 2 === 0) || (ci === 1 && ri % 2 === 1);
-          return {
-            id: `t${ri}${ci}`,
-            pos: [x, -0.22, z] as [number, number, number],
-            size: [2.05, 0.44, 2.05] as [number, number, number],
-            drops: !path && ri !== 0 && ri !== rows.length - 1,
-            delay: 0.32,
-          };
-        }),
-      );
-    })(),
+    pickups: [
+      { id: "cIntro", kind: "coin", pos: [0, topOf(intro), intro.pos[2]] },
+      { id: "cLand1", kind: "coin", pos: [0, topOf(land1), land1.pos[2]] },
+      { id: "cPitL", kind: "coin", pos: [PIER_X, 0.9, pit1MidZ] },
+      { id: "cLaneL", kind: "coin", pos: [PIER_X, 0.9, lane.pos[2]] },
+      { id: "cSafe", kind: "coin", pos: [0, topOf(safe1), safe1.pos[2]] },
+      { id: "cShipL", kind: "coin", pos: [PIER_X, 0.9, shipMidZ + 1.2] },
+      { id: "sShipL", kind: "shield", pos: [PIER_X, 0.9, shipMidZ - 1.2] },
+      { id: "cShip2", kind: "coin", pos: [0, topOf(ship2), ship2.pos[2]] },
+      { id: "cFinL", kind: "coin", pos: [PIER_X, 0.9, finMidZ] },
+      { id: "cFinale", kind: "coin", pos: [0, topOf(finale), finale.pos[2]] },
+    ],
+    traps,
     gates: [],
     winds: [],
     checkpoints: [
       { z: 6, pos: [0, 0.7, 6] },
-      { z: -44, pos: [0, 0.7, -42] },
-      { z: -74, pos: [0, 0.7, -72] },
+      { z: safe1.pos[2] + 2, pos: [0, 0.7, safe1.pos[2] + 2] },
+      { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
     ],
     spawns: [
       [0, 0.72, 4],
-      [-2.4, 0.72, 8],
-      [2.4, 0.72, 7.4],
-      [-1.2, 0.72, 8],
-      [1.2, 0.72, 7],
-      [3, 0.72, 8.2],
+      [-2.2, 0.72, 8],
+      [-1, 0.72, 7],
+      [1, 0.72, 8],
+      [2.2, 0.72, 7.2],
+      [2.8, 0.72, 8.2],
     ],
   });
 }
+
+export const PIRATE_SECTIONS: LevelSection[] = [
+  { id: "intro", startZ: 16, endZ: -20, purpose: "see the stripes", mechanics: ["move"] },
+  { id: "pit1", startZ: -20, endZ: -40, purpose: "first collapse", mechanics: ["drop"] },
+  { id: "lane", startZ: -40, endZ: -60, purpose: "stripes beside the dock", mechanics: ["drop"] },
+  { id: "ships", startZ: -60, endZ: -90, purpose: "shortcut between boats", mechanics: ["drop", "jump"] },
+  { id: "dock", startZ: -90, endZ: -110, purpose: "wood rest after the boats", mechanics: ["move"] },
+  { id: "finale", startZ: -110, endZ: -160, purpose: "last water jump then sprint", mechanics: ["jump"] },
+];
 
 function dessert(): Level {
   const Ch = "#8B5A2B";

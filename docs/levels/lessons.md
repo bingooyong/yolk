@@ -1,7 +1,7 @@
-# Level Design Lessons — L1–L4
+# Level Design Lessons — L1–L5
 
-Source of truth after 糖果草原 / 冰雪滑坡 / 旋转工厂 / 天空弹跳岛.
-Do not rebuild pirate–finale until asked. Pipeline: designer → implementer → playtester → polisher.
+Source of truth after 糖果草原 / 冰雪滑坡 / 旋转工厂 / 天空弹跳岛 / 海盗港湾.
+Do not rebuild dessert–finale until asked. Pipeline: designer → implementer → playtester → polisher.
 
 ## Locked courses
 
@@ -11,16 +11,17 @@ Do not rebuild pirate–finale until asked. Pipeline: designer → implementer �
 | ice | 冰雪滑坡 | 冰面很滑，提前改方向 | jump 2.2 (forgiving on ice) | crack risk, floe shortcut |
 | factory | 旋转工厂 | 看锤再过，不要慌 | wait-window + jump 3.45 | catwalk skip |
 | sky | 天空弹跳岛 | 果冻弹起来，看清落点再跳 | island jump 3.45, jelly bounce | high islands |
+| pirate | 海盗港湾 | 条纹木板会塌，左边抄近路 | drop at the lip, ship jump 3.45 | left run pier |
 
-Specs: `docs/levels/level1-meadow.md` … `level4-sky.md`.
-Identity-only (do not author pads): pirate 船间抄近路, dessert 糖浆上 Roll+Boost, cloud 风场冲刺, finale 最后二十米全用上.
+Specs: `docs/levels/level1-meadow.md` … `level5-pirate.md`.
+Identity-only (do not author pads): dessert 糖浆上 Roll+Boost, cloud 风场冲刺, finale 最后二十米全用上.
 
 ## What actually worked
 
 1. **One mechanic per course.** Theme is dressing. A spinner on a hammer level is a gadget parade, not “more content.”
 2. **Spec before `Platform[]`.** ASCII + sections + routes in `docs/levels/<id>.md`. `compile()` is a bot helper, not the designer.
 3. **The player must make a choice.** If holding W+jump is enough, the course failed. Meadow: roll gate blocks. Ice: tongue dumps a twitch. Factory: hammer stuns the impatient. Sky: walk falls off the first island.
-4. **SAFE → CHALLENGE → SAFE.** Teach once, rest, then the same lesson harder (not a new gadget). Factory: one slow hammer, then a rhythm pair.
+4. **SAFE → CHALLENGE → SAFE.** Teach once, rest, then the same lesson harder (not a new gadget). Factory: one slow hammer, then a rhythm pair. Pirate: first collapse, then the same choice between ships.
 5. **Observe → act.** 3–5 body lengths of preview. No screen-edge hammers, no surprise lips.
 6. **Fails are tiered.** Soft = `setHint` (hammer, gate, ice slide). Medium = recovery shelf. Hard = `KILL_Y` → last *challenge* checkpoint. A small mistake is not a restart.
 7. **Bots on the safe line are the lock.** `compile()` waypoints, jump+dash only. Scripted player finish is a bonus; Playwright key latency is not a level bug.
@@ -38,6 +39,7 @@ These are not tunables. Design inside them.
 | Ice already taxes steering | Ice jump **2.2**, not 3.45. |
 | Pounce ≈ 4.8, jump→pounce ≈ 6.2 | Pounce pit **6.25** on a **side** pad. Never on the bot line. |
 | Bounce is a **surface** (`vy=10.4`) | Bots that walk onto jelly get launched. A short connected jelly launches from the **back** and misses the next pad. Depth ≥ ~8 so the second bounce is near the front. **JUMP_CUT does not eat bounce** (`fromBounce`): stepping on jelly launches even if Space is up. |
+| Trap tiles must keep falling after they trigger | A one-frame drop sinks ~0.27m (`autostep` 0.38) so walkers still cross. After `dropped`, keep kinematic translation down. Teach delay 0; run-pier delay ~0.52. |
 | Mash-jump (hold Space) period ≈ 5m | Island / takeoff pads **d ≈ 10** so the last auto-jump is at the lip. `d=8` on sky hops made mash-jump fall in the hole. A **roll** island needs **d ≥ 13** so roll (0.58s × 11.2 ≈ 6.5m) ends before the next lip. |
 | `FALL_GRAVITY=48`, recovery thick 0.7 | Recovery must run **under the landing pad**, not only under the gap, or holding W walks off the shelf into kill. Stairs: tops `-2.5 / -1.4 / -0.2`. |
 | Hazard hit used to increment `falls` | Soft hits = `setHint`. Only kill-plane `setFail`. |

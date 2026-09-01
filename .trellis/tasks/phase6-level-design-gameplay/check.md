@@ -46,3 +46,12 @@
 - [x] Bots finish the safe line (`botMinZ` past finishZ, 3–4 bots finished)
 - [x] `npm run test:visual` includes `sky-layout.test.ts`
 
+## Level 5 海盗港湾
+
+- [x] Drop planks are the core, not a gadget parade (no pendulum / hammer / mover / ice)
+- [x] First stripe strip: walk collapses, recovery catches
+- [x] Jump from the lip lands; left pier at `|x|>=4.2` is the 船间抄近路
+- [x] Teach tiles drop on contact; run pier delay lets hold-W live
+- [x] Recovery under pits; stairs on the right so they miss the left pier
+- [x] Bots finish the safe line (`botsFinished` 3)
+- [x] `npm run test:visual` includes `pirate-layout.test.ts`

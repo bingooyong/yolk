@@ -15,7 +15,7 @@ If this box is empty, the course has no gold-standard moment.
 | ice | 冰雪滑坡 | 舌头上乱扭会掉 | Locked |
 | factory | 旋转工厂 | 看锤再过 | Locked |
 | sky | 天空弹跳岛 | 果冻弹起来，看清落点再跳，高岛有金币 | **This phase’s gold standard** |
-| pirate | 海盗港湾 | 船间抄近路（identity only） | Prototype strip |
+| pirate | 海盗港湾 | 条纹木板会塌，左边抄近路 | Locked |
 | dessert | 甜品工厂 | 糖浆上 Roll+Boost（identity only） | Prototype strip |
 | cloud | 云端竞速 | 风场冲刺（identity only） | Prototype strip |
 | finale | 终极派对 | 最后二十米全用上（identity only） | Prototype strip |
@@ -106,13 +106,13 @@ Steering. Tongue dumps a twitch. Jump 2.2. Do not restyle.
 
 Hammer wait-windows. Soft hits. Do not add sky bounce here.
 
-## Levels 5–8 — identity only
+## Levels 6–8 — identity only
 
 Still short strips (`finishZ` −84 to −110). Gadget parades in finale. **Do not rebuild this phase.**
 
 | Id | What the blurb promises | What the data is |
 |---|---|---|
-| pirate | 右边稳、左边快；掉落板 | Dock + drop tiles + one boat mover + pendulum. Span ~96. |
+| pirate | 条纹板会塌；左边跑过去 | Stripe pits + left run pier + ship jump. Span ~130. See `docs/levels/level5-pirate.md`. |
 | dessert | 巧克力会滑，果冻会弹 | Ice + tiny bounce + conveyor + spinner. Span ~92. |
 | cloud | 风环加速 | Three rings + a tail wind. Span ~98. |
 | finale | 前面学过的都会来 | Ice + hammer + bounce + spinner + conveyor + pendulum + wind. Span ~118. |
