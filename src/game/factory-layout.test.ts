@@ -69,6 +69,9 @@ describe("Level 3 factory blockout", () => {
     assert.equal(factory.movers.length, 0);
     assert.ok(factory.platforms.every((p) => p.kind !== "conveyor" && p.kind !== "ice"));
     assert.ok(byId("ham1").size[0] <= 7.4, "hammer pad must be too narrow to walk around");
+    assert.ok(byId("start").size[0] >= 18);
+    assert.ok(byId("mid").size[0] >= 18);
+    assert.ok(byId("final").size[0] >= 18);
   });
 
   it("is a party-length factory course", () => {

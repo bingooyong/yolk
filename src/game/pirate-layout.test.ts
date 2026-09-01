@@ -104,5 +104,9 @@ describe("Level 5 pirate blockout", () => {
     assert.ok(span >= 120, `span ${span}`);
     assert.equal(pirate.theme.stars, 4);
     assert.ok(pirate.checkpoints.length >= 3);
+    assert.ok(byId("start").size[0] >= 18);
+    assert.ok(byId("mid").size[0] >= 18);
+    assert.ok(byId("final").size[0] >= 18);
+    assert.ok(byId("lane").size[0] <= 6.3, "collapse lane stays the choke");
   });
 });

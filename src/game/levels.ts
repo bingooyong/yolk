@@ -1,4 +1,4 @@
-import { SPATIAL } from "./spatial.ts";
+import { SPATIAL, SPREAD_SPAWNS } from "./spatial.ts";
 
 export type Surface = "static" | "bounce" | "conveyor" | "checkpoint" | "finish" | "ice";
 
@@ -182,19 +182,19 @@ function meadow(): Level {
   const Rec = "#5EA882";
   const { connect: CONNECT, jump: JUMP, pounce: POUNCE } = MEADOW_GAPS;
 
-  const start = plat("start", 0, 8, 16, 16, 0, P, "checkpoint");
-  const path = extend("path", start, CONNECT, 12, 14, 0, 0, C);
+  const start = plat("start", 0, 8, SPATIAL.start, 16, 0, P, "checkpoint");
+  const path = extend("path", start, CONNECT, SPATIAL.standard, 14, 0, 0, C);
   const step1 = extend("step1", path, CONNECT, 10, 10, 0, 0, G);
   const land1 = extend("land1", step1, JUMP, 10, 9, 0, 0, C);
   const path2 = extend("path2", land1, CONNECT, 10, 16, 0, 0, P, "checkpoint");
   const rollLane = extend("rollLane", path2, CONNECT, 10, 11, 0, 0, C);
-  const boostLane = extend("boostLane", rollLane, CONNECT, 10, 22, 0, 0, C);
-  const fork = extend("fork", boostLane, CONNECT, 12, 8, 0, 0, P);
+  const boostLane = extend("boostLane", rollLane, CONNECT, SPATIAL.wide, 22, 0, 0, C);
+  const fork = extend("fork", boostLane, CONNECT, SPATIAL.standard, 8, 0, 0, P);
   const safeLane = extend("safeLane", fork, CONNECT, 9, 16, 0, 0, C);
-  const plaza = extend("plaza", safeLane, CONNECT, 12, 10, 0, 0, P, "checkpoint");
+  const plaza = extend("plaza", safeLane, CONNECT, SPATIAL.arena, 12, 0, 0, P, "checkpoint");
   const gapA = extend("gapA", plaza, CONNECT, 9, 8, 0, 0, G);
   const landj = extend("landj", gapA, JUMP, 9, 8, 0, 0, C);
-  const final = extend("final", landj, CONNECT, 14, 16, 0, 0, P, "finish");
+  const final = extend("final", landj, CONNECT, SPATIAL.finish, 16, 0, 0, P, "finish");
 
   const pounceA = plat("pounceA", 5.6, land1.pos[2] - 4.4, 3.4, 3.2, 0.18, P);
   const pounceB = extend("pounceB", pounceA, POUNCE, 3.6, 4.0, 5.6, 0.22, G);
@@ -298,13 +298,7 @@ function meadow(): Level {
       { z: path2.pos[2] + 2, pos: [0, 0.7, path2.pos[2] + 2] },
       { z: plaza.pos[2] + 2, pos: [0, 0.7, plaza.pos[2] + 2] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-2.4, 0.72, 8],
-      [-1.2, 0.72, 7.2],
-      [1.2, 0.72, 8.1],
-      [2.4, 0.72, 7.4],
-    ],
+    spawns: SPREAD_SPAWNS.slice(0, 5),
   });
 }
 
@@ -331,18 +325,18 @@ function ice(): Level {
   const Rec = "#7AA8C8";
   const { connect: CONNECT, jump: JUMP } = ICE_GAPS;
 
-  const start = plat("start", 0, 8, 14, 16, 0, S, "checkpoint");
-  const ice1 = extend("ice1", start, CONNECT, 12, 18, 0, 0, I, "ice");
+  const start = plat("start", 0, 8, SPATIAL.start, 16, 0, S, "checkpoint");
+  const ice1 = extend("ice1", start, CONNECT, SPATIAL.standard, 18, 0, 0, I, "ice");
   const gap = extend("gap", ice1, CONNECT, 8.8, 12, 0, 0, I, "ice");
   const ice2 = extend("ice2", gap, JUMP, 9, 10, 0, 0, I, "ice");
   const lane = extend("lane", ice2, CONNECT, 10, 8, 0, 0, I, "ice");
   const tongue = extend("tongue", lane, CONNECT, 6.4, 16, 0, 0, I, "ice");
-  const mid = extend("mid", tongue, CONNECT, 10, 8, 0, 0, S, "checkpoint");
+  const mid = extend("mid", tongue, CONNECT, SPATIAL.arena, 10, 0, 0, S, "checkpoint");
   const water = extend("water", mid, CONNECT, 8, 8, 0, 0, I, "ice");
   const land = extend("land", water, JUMP, 9, 8, 0, 0, S);
   const slide = extend("slide", land, CONNECT, 6.5, 14, 0, -0.4, I, "ice");
   const land2 = extend("land2", slide, CONNECT, 9, 8, 0, 0, S);
-  const final = extend("final", land2, CONNECT, 14, 14, 0, 0, D, "finish");
+  const final = extend("final", land2, CONNECT, SPATIAL.finish, 14, 0, 0, D, "finish");
 
   const crackR = extend("crackR", lane, CONNECT, 3.8, 10, 5.5, 0, I, "ice");
   const crackR2 = extend("crackR2", crackR, JUMP, 3.8, 4.2, 5.2, 0, I, "ice");
@@ -441,14 +435,7 @@ function ice(): Level {
       { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
       { z: land2.pos[2] + 2, pos: [0, 0.7, land2.pos[2] + 2] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-2.2, 0.72, 8],
-      [-1, 0.72, 7],
-      [1, 0.72, 8],
-      [2.2, 0.72, 7.2],
-      [2.8, 0.72, 8.2],
-    ],
+    spawns: SPREAD_SPAWNS,
   });
 }
 
@@ -473,18 +460,18 @@ function factory(): Level {
   const Rec = "#5A6A7C";
   const { connect: CONNECT, jump: JUMP } = FACTORY_GAPS;
 
-  const start = plat("start", 0, 8, 14, 16, 0, Y, "checkpoint");
-  const intro = extend("intro", start, CONNECT, 10, 16, 0, 0, M);
+  const start = plat("start", 0, 8, SPATIAL.start, 16, 0, Y, "checkpoint");
+  const intro = extend("intro", start, CONNECT, SPATIAL.standard, 16, 0, 0, M);
   const ham1 = extend("ham1", intro, CONNECT, 7.2, 14, 0, 0, D);
-  const safe1 = extend("safe1", ham1, CONNECT, 11, 10, 0, 0, Y);
-  const hall2 = extend("hall2", safe1, CONNECT, 10, 14, 0, 0, M);
+  const safe1 = extend("safe1", ham1, CONNECT, SPATIAL.wide, 10, 0, 0, Y);
+  const hall2 = extend("hall2", safe1, CONNECT, SPATIAL.standard, 14, 0, 0, M);
   const ham2a = extend("ham2a", hall2, CONNECT, 7.2, 10, 0, 0, D);
   const ham2b = extend("ham2b", ham2a, CONNECT, 7.2, 10, 0, 0, D);
-  const mid = extend("mid", ham2b, CONNECT, 12, 10, 0, 0, Y, "checkpoint");
+  const mid = extend("mid", ham2b, CONNECT, SPATIAL.arena, 12, 0, 0, Y, "checkpoint");
   const gap = extend("gap", mid, CONNECT, 8, 10, 0, 0, M);
   const land = extend("land", gap, JUMP, 9, 8, 0, 0, Y);
   const finale = extend("finale", land, CONNECT, 7.4, 12, 0, 0, D);
-  const final = extend("final", finale, CONNECT, 14, 14, 0, 0, Y, "finish");
+  const final = extend("final", finale, CONNECT, SPATIAL.finish, 14, 0, 0, Y, "finish");
 
   const catA = plat("catA", 5.5, ham2a.pos[2], 3.8, 8, 0, Y);
   const catB = extend("catB", catA, JUMP, 3.8, 10, 5.5, 0, Y);
@@ -580,14 +567,7 @@ function factory(): Level {
       { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
       { z: land.pos[2] + 2, pos: [0, 0.7, land.pos[2] + 2] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-2.2, 0.72, 8],
-      [-1, 0.72, 7],
-      [1, 0.72, 8],
-      [2.2, 0.72, 7.2],
-      [2.8, 0.72, 8.2],
-    ],
+    spawns: SPREAD_SPAWNS,
   });
 }
 
@@ -749,14 +729,7 @@ function skyJump(): Level {
       { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
       { z: hopC.pos[2] + 2, pos: [0, 0.7, hopC.pos[2] + 2] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-6.2, 0.72, 8],
-      [-3.2, 0.72, 7],
-      [3.2, 0.72, 8],
-      [6.2, 0.72, 7.2],
-      [-1.6, 0.72, 8.2],
-    ],
+    spawns: SPREAD_SPAWNS,
   });
 }
 
@@ -782,18 +755,18 @@ function pirate(): Level {
   const Rec = "#2E5A8A";
   const { connect: CONNECT, jump: JUMP, drop: DROP } = PIRATE_GAPS;
 
-  const start = plat("start", 0, 8, 14, 16, 0, Flag, "checkpoint");
+  const start = plat("start", 0, 8, SPATIAL.start, 16, 0, Flag, "checkpoint");
   const intro = extend("intro", start, CONNECT, 11, 10, 0, 0, Wd);
   const land1 = extend("land1", intro, DROP, 11, 10, 0, 0, Wd);
   const lane = extend("lane", land1, CONNECT, 6.2, 12, 0, 0, Wd);
-  const safe1 = extend("safe1", lane, CONNECT, 11, 10, 0, 0, Flag);
-  const ship1 = extend("ship1", safe1, CONNECT, 9, 10, 0, 0, Wd);
-  const ship2 = extend("ship2", ship1, JUMP, 9, 10, 0, 0, Wd);
-  const mid = extend("mid", ship2, CONNECT, 12, 10, 0, 0, Flag, "checkpoint");
+  const safe1 = extend("safe1", lane, CONNECT, SPATIAL.wide, 10, 0, 0, Flag);
+  const ship1 = extend("ship1", safe1, CONNECT, SPATIAL.standard, 10, 0, 0, Wd);
+  const ship2 = extend("ship2", ship1, JUMP, SPATIAL.standard, 10, 0, 0, Wd);
+  const mid = extend("mid", ship2, CONNECT, SPATIAL.arena, 12, 0, 0, Flag, "checkpoint");
   const gap = extend("gap", mid, CONNECT, 8, 10, 0, 0, Wd);
-  const land2 = extend("land2", gap, CONNECT, 9, 10, 0, 0, Wd);
-  const finale = extend("finale", land2, CONNECT, 9, 10, 0, 0, Wd);
-  const final = extend("final", finale, JUMP, 14, 18, 0, 0, Flag, "finish");
+  const land2 = extend("land2", gap, CONNECT, SPATIAL.standard, 10, 0, 0, Wd);
+  const finale = extend("finale", land2, CONNECT, SPATIAL.standard, 10, 0, 0, Wd);
+  const final = extend("final", finale, JUMP, SPATIAL.finish, 18, 0, 0, Flag, "finish");
 
   const recPit1 = plat("recPit1", 0, land1.pos[2] + 2, 12, 14, -2.5, Rec, "static", 1.2);
   const recPit1b = plat("recPit1b", 5.2, land1.pos[2], 5.2, 6, -1.4, Rec);
@@ -917,14 +890,7 @@ function pirate(): Level {
       { z: safe1.pos[2] + 2, pos: [0, 0.7, safe1.pos[2] + 2] },
       { z: mid.pos[2] + 2, pos: [0, 0.7, mid.pos[2] + 2] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-2.2, 0.72, 8],
-      [-1, 0.72, 7],
-      [1, 0.72, 8],
-      [2.2, 0.72, 7.2],
-      [2.8, 0.72, 8.2],
-    ],
+    spawns: SPREAD_SPAWNS,
   });
 }
 
@@ -960,14 +926,14 @@ function dessert(): Level {
     startZ: 8,
     bots: 6,
     platforms: [
-      plat("start", 0, 8, 14, 16, 0, Ca, "checkpoint"),
+      plat("start", 0, 8, SPATIAL.start, 16, 0, Ca, "checkpoint"),
       plat("cake", 0, -8, 10, 12, 0, Ca),
       plat("choco", 0, -22, 9, 12, 0, Ch, "ice"),
       { ...plat("jelly", 0, -34, 4.6, 4.6, 0, Je, "bounce") },
       plat("belt", 0, -46, 9, 10, 0.4, Ca, "conveyor"),
       plat("mid", 0, -56, 10, 8, 0, Je, "checkpoint"),
       plat("spinF", 0, -66, 8.5, 10, 0, Ch),
-      plat("final", 0, -84, 14, 10, 0, Ca, "finish"),
+      plat("final", 0, -84, SPATIAL.finish, 10, 0, Ca, "finish"),
     ],
     movers: [
       {
@@ -997,14 +963,7 @@ function dessert(): Level {
       { z: 6, pos: [0, 0.7, 6] },
       { z: -56, pos: [0, 0.7, -54] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-2.2, 0.72, 8],
-      [2.2, 0.72, 7.4],
-      [-1, 0.72, 8],
-      [1.2, 0.72, 7],
-      [2.8, 0.72, 8.2],
-    ],
+    spawns: SPREAD_SPAWNS,
   });
 }
 
@@ -1030,13 +989,13 @@ function cloud(): Level {
     startZ: 8,
     bots: 6,
     platforms: [
-      plat("start", 0, 8, 14, 14, 0, C, "checkpoint"),
+      plat("start", 0, 8, SPATIAL.start, 14, 0, C, "checkpoint"),
       plat("lane", 0, -8, 8, 14, 0, A),
       plat("a", 0, -22, 6.5, 8, 0.4, C),
       plat("b", 0, -36, 6.5, 8, 0.8, A),
       plat("mid", 0, -50, 9, 8, 0.4, C, "checkpoint"),
       plat("fast", 0, -64, 6, 12, 0.4, A),
-      plat("final", 0, -90, 14, 12, 0, C, "finish"),
+      plat("final", 0, -90, SPATIAL.finish, 12, 0, C, "finish"),
     ],
     movers: [
       {
@@ -1072,14 +1031,7 @@ function cloud(): Level {
       { z: 6, pos: [0, 0.7, 6] },
       { z: -50, pos: [0, 1.1, -48] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-2.2, 0.72, 8],
-      [2.2, 0.72, 7.4],
-      [-1, 0.72, 8],
-      [1.2, 0.72, 7],
-      [2.8, 0.72, 8.2],
-    ],
+    spawns: SPREAD_SPAWNS,
   });
 }
 
@@ -1106,7 +1058,7 @@ function finale(): Level {
     startZ: 8,
     bots: 7,
     platforms: [
-      plat("start", 0, 8, 16, 16, 0, G, "checkpoint"),
+      plat("start", 0, 8, SPATIAL.start, 16, 0, G, "checkpoint"),
       plat("ice", 0, -8, 10, 12, 0, "#C8E8FF", "ice"),
       plat("ham", 0, -24, 11, 14, 0, N),
       { ...plat("jelly", 0, -38, 4.4, 4.4, 0, P, "bounce") },
@@ -1114,7 +1066,7 @@ function finale(): Level {
       plat("spin", 0, -60, 8.8, 12, 0, N),
       plat("belt", 0, -74, 9, 10, 0.3, "#7ED9B8", "conveyor"),
       plat("air", 0, -88, 6, 8, 0.8, N),
-      plat("final", 0, -110, 16, 14, 0, G, "finish"),
+      plat("final", 0, -110, SPATIAL.finish, 14, 0, G, "finish"),
     ],
     movers: [
       {
@@ -1150,16 +1102,7 @@ function finale(): Level {
       { z: -48, pos: [0, 0.7, -46] },
       { z: -88, pos: [0, 1.5, -86] },
     ],
-    spawns: [
-      [0, 0.72, 4],
-      [-3.2, 0.72, 8.4],
-      [-2.0, 0.72, 7.2],
-      [-1.0, 0.72, 8.6],
-      [1.0, 0.72, 7.0],
-      [2.0, 0.72, 8.5],
-      [3.2, 0.72, 7.3],
-      [3.6, 0.72, 8.2],
-    ],
+    spawns: [...SPREAD_SPAWNS, [8.0, 0.72, 7.5], [-8.0, 0.72, 8.0]],
   });
 }
 

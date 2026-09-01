@@ -91,7 +91,20 @@ FINAL 20     boost sprint, celebrate
 | Camera | fixed 6.2 | scales with local width |
 | Decor | trees at ±8.2 | far clouds + isles |
 
-Other 7: audit only. Next spatial copy, when named: factory hammers stay narrow; ice tongue stays 6.4; meadow teaching pads stay. First copy candidate is **pirate** (already the widest average).
+Other 7: **copied**. Corridor rails off globally. Start/arena/finish are rooms. Teaching chokes unchanged.
+
+## After copy (locked courses)
+
+| Course | Keep | Rooms (20) | Notes |
+|---|---|---|---|
+| meadow | jump 10, pounce 3.4, roll 10 | start, plaza, final; boost 14 | Art still from pad bounds |
+| ice | tongue 6.4, slide 6.5, crack 3.8 | start, mid, final | Ice jump 2.2 |
+| factory | hammers 7.2, finale 7.4, catwalk 3.8 | start, mid, final; safe1 14 | Cannot walk around hammers |
+| pirate | intro 11, lane 6.2, PIER_X −5.5 | start, mid, final; ships 12 | Collapse teaching intact |
+| sky | hopB 6.2, high x=8.5 | start, mid, final | Gold |
+| dessert/cloud/finale | identity pads | start + finish only | No mechanic rewrite |
+
+Rails: none. World: `ThemeWorld` or meadow benchmark. Camera: `camExtraForWidth` on every course.
 
 ## Acceptance
 

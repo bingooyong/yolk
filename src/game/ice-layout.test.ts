@@ -66,5 +66,10 @@ describe("Level 2 ice blockout", () => {
     const span = ice.startZ - ice.finishZ;
     assert.ok(span >= 120, `span ${span}`);
     assert.ok(ice.theme.stars === 2);
+    assert.ok(byId("start").size[0] >= 18);
+    assert.ok(byId("mid").size[0] >= 18);
+    assert.ok(byId("final").size[0] >= 18);
+    assert.ok(byId("tongue").size[0] <= 6.5, "tongue stays the ice choke");
+    assert.ok(byId("slide").size[0] <= 6.6, "slide stays the ice choke");
   });
 });

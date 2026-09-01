@@ -149,7 +149,6 @@ export function Track() {
   return (
     <group key={`${levelId}-${raceId}`}>
       <SkyDome />
-      {level.id === "sky" ? null : <NeonRails color={level.theme.rail} neon={level.theme.neon} />}
       {level.platforms.map((p) => {
         const kind =
           p.kind === "ice" || p.kind === "bounce" || p.kind === "conveyor" ? p.kind : "platform";
@@ -195,15 +194,10 @@ export function Track() {
 
       {isLevel1Benchmark ? (
         <Level1BenchmarkArt platforms={level.platforms} finishZ={level.finishZ} />
-      ) : level.id === "sky" ? (
-        <>
-          <FinishArch z={level.finishZ} />
-          <SkyWorld finishZ={level.finishZ} />
-        </>
       ) : (
         <>
           <FinishArch z={level.finishZ} />
-          <Decor theme={level.theme.id} finishZ={level.finishZ} />
+          <ThemeWorld theme={level.theme.id} finishZ={level.finishZ} />
         </>
       )}
       <CloudFloor />
@@ -656,7 +650,7 @@ function CloudFloor() {
   const finishZ = currentLevel().finishZ;
   const midZ = (8 + finishZ) / 2;
   const depth = Math.max(280, 8 - finishZ + 80);
-  const wide = currentLevel().id === "sky" ? 160 : 90;
+  const wide = 160;
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -12, midZ]}>
       <planeGeometry args={[wide, depth]} />
@@ -665,10 +659,34 @@ function CloudFloor() {
   );
 }
 
-function SkyWorld({ finishZ }: { finishZ: number }) {
+function ThemeWorld({ theme, finishZ }: { theme: string; finishZ: number }) {
   const cloudRef = useRef<THREE.InstancedMesh>(null);
   const isleRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
+  const cloudColor =
+    theme === "ice"
+      ? "#F2FBFF"
+      : theme === "factory"
+        ? "#D8DEE6"
+        : theme === "pirate"
+          ? "#F4E4C4"
+          : theme === "dessert"
+            ? "#FFE8F2"
+            : theme === "finale"
+              ? "#E8EEFF"
+              : "#F4FBFF";
+  const isleColor =
+    theme === "ice"
+      ? "#A8D4F0"
+      : theme === "factory"
+        ? "#6A7A90"
+        : theme === "pirate"
+          ? "#2E5A8A"
+          : theme === "dessert"
+            ? "#C47890"
+            : theme === "finale"
+              ? "#4A68C8"
+              : "#7EC8E8";
 
   useEffect(() => {
     const clouds = cloudRef.current;
@@ -700,11 +718,11 @@ function SkyWorld({ finishZ }: { finishZ: number }) {
     <group>
       <instancedMesh ref={cloudRef} args={[undefined, undefined, 28]} frustumCulled={false}>
         <sphereGeometry args={[1, 8, 6]} />
-        <meshLambertMaterial color="#F4FBFF" transparent opacity={0.7} />
+        <meshLambertMaterial color={cloudColor} transparent opacity={0.7} />
       </instancedMesh>
       <instancedMesh ref={isleRef} args={[undefined, undefined, 10]} frustumCulled={false}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshLambertMaterial color="#7EC8E8" transparent opacity={0.55} />
+        <meshLambertMaterial color={isleColor} transparent opacity={0.55} />
       </instancedMesh>
     </group>
   );

@@ -78,3 +78,12 @@ export function localPlayableWidth(platforms: PadLike[], pz: number): number {
   }
   return bestW;
 }
+
+export const SPREAD_SPAWNS: [number, number, number][] = [
+  [0, 0.72, 4],
+  [-6.2, 0.72, 8],
+  [-3.2, 0.72, 7],
+  [3.2, 0.72, 8],
+  [6.2, 0.72, 7.2],
+  [-1.6, 0.72, 8.2],
+];

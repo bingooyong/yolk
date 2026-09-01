@@ -1,0 +1,33 @@
+{
+  "id": "phase8-spatial-copy",
+  "name": "phase8-spatial-copy",
+  "title": "Phase 8 Spatial Copy — rails off, width rhythm on locked courses",
+  "description": "Copy Sky spatial gold to locked courses. Kill corridor rails. Do not rebuild dessert–finale. Do not ×2 every pad. No new systems.",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P0",
+  "creator": "grok-build",
+  "assignee": "grok-build",
+  "createdAt": "2026-09-01",
+  "completedAt": "2026-09-01",
+  "branch": null,
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "src/game/spatial.ts",
+    "src/game/levels.ts",
+    "src/game/Track.tsx",
+    "src/game/CameraRig.tsx",
+    "docs/gameplay/level-spatial-audit.md",
+    ".trellis/spec/frontend/level-design.md"
+  ],
+  "notes": "Identity chokes kept. dessert/cloud/finale start+finish only.",
+  "meta": {}
+}

@@ -106,5 +106,9 @@ describe("Level 1 meadow blockout", () => {
     assert.ok(span < 200, `span ${span}`);
     assert.equal(MEADOW_GAPS.jump, 3.45);
     assert.equal(MEADOW_GAPS.pounce, 6.25);
+    assert.ok(byId("start").size[0] >= 18, "start plaza");
+    assert.ok(byId("plaza").size[0] >= 18, "mid arena");
+    assert.ok(byId("final").size[0] >= 18, "finish plaza");
+    assert.ok(byId("boostLane").size[0] >= 14, "boost is an overtake");
   });
 });
